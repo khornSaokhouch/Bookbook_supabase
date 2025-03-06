@@ -1,101 +1,123 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabaseClient"; // Adjust path as needed
+
+
+// types/user.ts
+export interface UserProfile {
+  user_id: string;
+  user_name: string;
+  email: string;
+  about_me: string;
+  image_url?: string;
+}
+
+interface HomeProps {}
+
+export default function Home({}: HomeProps) {
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("❌ Error fetching session:", sessionError.message);
+          setError("Failed to fetch session.");
+          return;
+        }
+
+        const userId = session?.session?.user?.id;
+        if (!userId) {
+          console.warn("⚠️ No user logged in.");
+          setError("No user logged in.");
+          return;
+        }
+
+        // Fetch user profile
+        const profile = await getUserById(userId);
+        if (profile) {
+          setUserProfile(profile);
+        } else {
+          setError("User profile not found.");
+        }
+      } catch (error) {
+        console.error("❌ Unexpected error:", error);
+        setError("An unexpected error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div>
+      {userProfile ? (
+        <div>
+          <h1>Welcome, {userProfile.user_name}!</h1>
+          <p>About me: {userProfile.about_me}</p>
+          <p>Email: {userProfile.email}</p>
+          {userProfile.image_url && (
+            <img
+              src={userProfile.image_url}
+              alt="Profile Picture"
+              style={{ width: "100px", height: "100px", borderRadius: "50%" }}
+              loading="lazy"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      ) : (
+        <p>No profile information available.</p>
+      )}
     </div>
   );
 }
+
+export const getUserById = async (userId: string): Promise<UserProfile | null> => {
+  console.log("🔍 Fetching user data for ID:", userId);
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("user_id, user_name, email, about_me, image_url")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    console.error("❌ Error fetching user:", error.message);
+    return null;
+  }
+
+  if (!data) {
+    console.log("⚠️ User not found for ID:", userId);
+    return null;
+  }
+
+  if (data.image_url) {
+    try {
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from("profile_images") // Ensure correct bucket name
+        .createSignedUrl(data.image_url, 60);
+
+      if (urlError) {
+        console.error("❌ Error generating signed URL:", urlError.message);
+      } else if (signedUrlData?.signedUrl) {
+        data.image_url = signedUrlData.signedUrl;
+      }
+    } catch (signedUrlError) {
+      console.error("❌ Error generating signed URL:", signedUrlError);
+    }
+  }
+
+  console.log("✅ User fetched:", data);
+  return data as UserProfile;
+};
