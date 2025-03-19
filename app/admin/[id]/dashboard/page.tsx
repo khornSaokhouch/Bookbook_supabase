@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 type DashboardStats = {
   userCount: number;
@@ -76,71 +77,91 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [loading, setLoading] = useState(true);
-    const [userId, setUserId] = useState<string | null>(null); // Add state for userId
+  const [userId, setUserId] = useState<string | null>(null); // Add state for userId
+  const router = useRouter(); // Initialize useRouter
 
-    useEffect(() => {
-        const getUserIdFromCookies = () => {
-            if (typeof document === "undefined") {
-                return null; // Exit if document is not available (SSR)
-            }
-            const cookies = document.cookie.split("; ");
-            const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
-            if (userCookie) {
-                try {
-                    const user = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
-                    return user.id;
-                } catch (error) {
-                    console.error("Error parsing user cookie:", error);
-                    return null;
-                }
-            }
-            return null;
-        };
+  useEffect(() => {
+    const getUserIdFromCookies = () => {
+      if (typeof document === "undefined") {
+        return null; // Exit if document is not available (SSR)
+      }
+      const cookies = document.cookie.split("; ");
+      const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
+      if (userCookie) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
+          return user.id;
+        } catch (error) {
+          console.error("Error parsing user cookie:", error);
+          return null;
+        }
+      }
+      return null;
+    };
 
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const fetchedUserId = getUserIdFromCookies();
-                if (fetchedUserId) {
-                    setUserId(fetchedUserId);
-                }
-                const [fetchedStats, fetchedCategories, fetchedOccasions] = await Promise.all([
-                    getDashboardStats(),
-                    getCategories(),
-                    getOccasions(),
-                ]);
-                setStats(fetchedStats);
-                setCategories(fetchedCategories);
-                setOccasions(fetchedOccasions);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const fetchedUserId = getUserIdFromCookies();
+        if (fetchedUserId) {
+          setUserId(fetchedUserId);
+        }
+        const [fetchedStats, fetchedCategories, fetchedOccasions] = await Promise.all([
+          getDashboardStats(),
+          getCategories(),
+          getOccasions(),
+        ]);
+        setStats(fetchedStats);
+        setCategories(fetchedCategories);
+        setOccasions(fetchedOccasions);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        fetchData();
-    }, []);
+    fetchData();
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>; // You can replace this with a spinner or skeleton loader
   }
-    if (!userId) {
-        return <div>Not authorized</div>
+  if (!userId) {
+    return <div>Not authorized</div>;
+  }
+
+  const handleStatClick = (label: string) => {
+    switch (label) {
+      case "Users":
+        router.push("/admin/`${data.id}`/users"); // Replace with your actual users page route
+        break;
+      case "Recipes":
+        router.push("/admin/`${data.id}`/recipes"); // Replace with your actual recipes page route
+        break;
+      case "Events":
+        router.push("/admin/`${data.id}`/events"); // Replace with your actual events page route
+        break
+      case "Categories":
+        router.push("/admin/`${data.id}`/categories"); // Replace with your actual categories page route
+        break;
+      default:
+        console.warn(`No route defined for ${label}`);
     }
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       {/* Greeting */}
       <section
-        className="mb-8 bg-cover bg-center rounded-lg p-4 md:p-8 h-[250px] flex flex-col justify-center"
+        className="mb-8 bg-cover bg-center rounded-lg  md:p-8 h-[350px] flex flex-col justify-center"
         style={{ backgroundImage: "url('/banner.png')" }}
       >
-        <h1 className="text-3xl md:text-4xl font-semibold text-black mb-2">Hello, Admin</h1>
-        <p className="text-black mb-4">
-          Get <span className="text-orange-400 font-medium text-lg">FREE delivery</span> on every weekend.
+        <h1 className="text-3xl md:text-4xl font-semibold text-black mb-2 px-12">Hello, Admin</h1>
+        <p className="text-black mb-4 px-12">
+          Get <span className="text-orange-400 font-medium text-lg ">FREE delivery</span> on every weekend.
         </p>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 px-12">
           <Link
             href={`/admin/${userId}/post-event`}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
@@ -164,7 +185,8 @@ export default function Dashboard() {
             ({ label, count }) => (
               <div
                 key={label}
-                className="bg-white p-4 shadow rounded-lg text-center hover:shadow-md transition-shadow duration-200"
+                className="bg-white p-4 shadow rounded-lg text-center hover:shadow-md transition-shadow duration-200 cursor-pointer" // Add cursor pointer
+                onClick={() => handleStatClick(label)} // Add onClick handler
               >
                 <h3 className="text-lg font-medium">{label}</h3>
                 <p className="text-3xl font-bold">{count}</p>

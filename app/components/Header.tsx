@@ -182,11 +182,22 @@ export default function Header() {
                         {/* Right Section (Search, Add Recipe, Profile) */}
                         <div className="flex items-center space-x-20">
                             {/* Search Bar */}
+                            <div className="relative">
                             <input
                                 type="text"
-                                className="border border-gray-500 rounded-full pl-4 pr-10 py-3 text-sm"
+                                className="border border-gray-500 rounded-full pl-10 pr-4 py-3 text-sm w-full"
                                 placeholder="Search by name"
                             />
+                            <img
+                                src="https://img.icons8.com/ios7/512/search.png"
+                                className="absolute left-4 top-1/2 transform -translate-y-1/2"
+                                alt="Search icon"
+                                width="20"
+                                height="20"
+                            />
+                            </div>
+
+
 
                             {/* Add Recipe Link */}
                             <Link
