@@ -2,47 +2,49 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabaseClient"; // Correct import from the supabaseClient.ts file
-import Link from "next/link"; // Import Link from next/link
+import { supabase } from "../lib/supabaseClient";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsLoading(true); // Set loading state to true
-    setError(""); // Clear any previous errors
+    setIsLoading(true);
+    setError("");
 
     try {
       // Fetch the user from the database
-      const { data: user, error } = await supabase
+      const { data, error } = await supabase
         .from("users")
-        .select("*")
+        .select("*, role") // Changed select query to include role
         .eq("email", email)
         .single();
 
-      if (error || !user) {
+      if (error || !data) {
         throw new Error("User not found.");
       }
 
-      // Password validation
-      // You would typically hash the password here and compare it with the hash stored in the database
-      const passwordMatch = true; // Assuming password matches (add your hashing logic here)
+      // Password validation - replace with your hashing logic
+      // Assuming you have a function 'comparePasswords' that compares the entered password with the stored hash
+      // const passwordMatch = await comparePasswords(password, data.hashed_password);
+      const passwordMatch = true; //This code will be removed
+
       if (!passwordMatch) {
         throw new Error("Invalid password.");
       }
 
       // On successful login, redirect the user based on their role
-      router.push(user.role === "Admin" ? "/admin/dashboard" : "/");
+      router.push(data.role === "Admin" ? "/admin/`${data.id}`/dashboard" : "user/`${data.id}`/profile");
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "An error occurred during login. Please try again.");
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false);
     }
   }
 
@@ -52,16 +54,13 @@ export default function LoginPage() {
         <div className="flex-grow">
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Welcome Back</h1>
 
-          {/* Error Display */}
           {error && (
             <p className="text-red-500 text-center mb-4 bg-red-100 border border-red-300 py-2 px-4 rounded-md">
               {error}
             </p>
           )}
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
                 Username or Email
@@ -78,7 +77,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
                 Password
@@ -95,7 +93,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -104,7 +101,6 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Log In"}
             </button>
 
-            {/* Remember Me and Forgot Password Links */}
             <div className="flex justify-between mt-4">
               <label className="flex items-center">
                 <input type="checkbox" className="mr-2" />
@@ -116,7 +112,6 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {/* Social Login Buttons */}
           <div className="flex flex-col space-y-4 mt-6">
             <button className="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none transition">
               <img src="./auth/path_to_facebook_icon.png" alt="Facebook" className="w-5 h-5 mr-2" />
@@ -128,7 +123,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Register Link */}
           <p className="mt-6 text-center text-gray-600">
             Don't have an account?{" "}
             <Link href="/register" className="text-blue-500 hover:underline">
@@ -137,7 +131,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Illustration Section */}
         <div className="hidden md:flex items-center justify-center md:ml-4 mt-6 md:mt-0">
           <img src="./auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" />
         </div>

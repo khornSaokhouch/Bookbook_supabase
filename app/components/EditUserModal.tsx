@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 type User = {
   user_id: string;
@@ -15,18 +15,17 @@ type EditUserModalProps = {
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) => {
   const [updatedUser, setUpdatedUser] = useState<User>({ ...user });
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
     setUpdatedUser((prevUser) => ({
       ...prevUser,
-      [name]: value,
+      [name]: value.trim(), // Prevents leading/trailing spaces
     }));
   };
 
   const handleSubmit = () => {
-    // Trim whitespace to prevent invalid inputs
     const trimmedUser = {
       ...updatedUser,
       user_name: updatedUser.user_name.trim(),
@@ -34,61 +33,76 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
     };
 
     if (!trimmedUser.user_name || !trimmedUser.email) {
-      console.error("User name and email cannot be empty.");
-      alert("User name and email are required.");
+      setErrorMessage("User name and email cannot be empty.");
       return;
     }
 
-    // Validate role before saving
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmedUser.email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+
     const validRoles = ["User", "Admin"];
-    const role = validRoles.includes(trimmedUser.role) ? trimmedUser.role : "User"; // Default to 'user'
+    if (!validRoles.includes(trimmedUser.role)) {
+      setErrorMessage("Invalid role selected.");
+      return;
+    }
 
-    console.log("Submitting updated user:", trimmedUser);
-
-    // Update the user with the valid role
-    onSave({ ...trimmedUser, role });
+    setErrorMessage(null);
+    onSave(trimmedUser);
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center ">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-xl font-semibold mb-4">Edit User</h2>
 
-        {/* Name Field */}
-        <label className="block mb-2 font-medium">Name</label>
+        {errorMessage && (
+          <div className="text-red-600 mb-4 p-2 bg-red-100 rounded-md">{errorMessage}</div>
+        )}
+
+        <label className="block mb-2 font-medium" htmlFor="user_name">
+          Name
+        </label>
         <input
           type="text"
           name="user_name"
           value={updatedUser.user_name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
+          className="w-full border p-2 rounded mb-4"
+          id="user_name"
+          aria-label="User name"
         />
 
-        {/* Email Field */}
-        <label className="block mb-2 mt-4 font-medium">Email</label>
+        <label className="block mb-2 font-medium" htmlFor="email">
+          Email
+        </label>
         <input
           type="email"
           name="email"
           value={updatedUser.email}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
+          className="w-full border p-2 rounded mb-4"
+          id="email"
+          aria-label="User email"
         />
 
-        {/* Role Dropdown */}
-        <label className="block mb-2 mt-4 font-medium">Role</label>
+        <label className="block mb-2 font-medium" htmlFor="role">
+          Role
+        </label>
         <select
           name="role"
           value={updatedUser.role}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded mb-4"
+          id="role"
+          aria-label="User role"
         >
           <option value="User">User</option>
           <option value="Admin">Admin</option>
         </select>
 
-        {/* Buttons */}
         <div className="mt-6 flex justify-end space-x-2">
           <button
             onClick={onClose}

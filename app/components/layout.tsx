@@ -1,13 +1,11 @@
 import Footer from "./Footer";
-import Navbar from "./Navbar";
+import Navbar from "./Header";
 
-
-export default function Layout () {
-   return (
+export default function Layout() {
+  return (
     <div>
-        <Navbar />
-        <Footer />
-    </div> 
-
-   );
+      <Navbar />
+      <Footer />
+    </div>
+  );
 }

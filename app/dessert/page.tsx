@@ -1,6 +1,6 @@
 // pages/drinks.tsx (or wherever you want to display the drinks)
 import DessertList from "../components/DessertList";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/Header";
 import Footer from "../components/Footer";
 
 const DessertPage = () => {

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import AdminLayout from "../../components/AdminLayout";
-import DeleteUserModal from "../../components/DeleteUserModal";
-import EditUserModal from "../../components/EditUserModal";
+import { supabase } from "../../../lib/supabaseClient";
+import DeleteUserModal from "../../../components/DeleteUserModal";
+import EditUserModal from "../../../components/EditUserModal"; // Ensure this component exists
 
 type User = {
   user_id: string;
@@ -30,12 +29,14 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
-    setError(null); // Clear any previous errors
+    setError(null);
     try {
-      const { data, error } = await supabase.from("users").select("*").order("created_at", { ascending: false }); // Fetch all data
-      if (error) {
-        throw error;
-      }
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
       setUsers(data as User[]);
     } catch (err: any) {
       setError(`Error fetching users: ${err.message}`);
@@ -52,12 +53,11 @@ const UserManagement = () => {
 
       setUsers((prevUsers) => prevUsers.filter((user) => user.user_id !== user_id));
       setIsDeleteModalOpen(false);
-
       setSuccessMessage("User deleted successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error: any) {
-      console.error("Error deleting user:", error);
-      setError(`Error deleting user: ${error.message}`); // Show the error in the UI
+    } catch (err: any) {
+      console.error("Error deleting user:", err);
+      setError(`Error deleting user: ${err.message}`);
     }
   };
 
@@ -67,41 +67,34 @@ const UserManagement = () => {
   };
 
   const handleSave = async (updatedUser: User) => {
-    const validRoles = ["Admin", "User"];
-    const role = validRoles.includes(updatedUser.role) ? updatedUser.role : "User";
-
     try {
-      const { data, error } = await supabase
+      const validRoles = ["Admin", "User"];
+      const role = validRoles.includes(updatedUser.role) ? updatedUser.role : "User";
+
+      const { error } = await supabase
         .from("users")
         .update({
           user_name: updatedUser.user_name.trim(),
           email: updatedUser.email.trim(),
-          role: role,
+          role,
         })
-        .eq("user_id", updatedUser.user_id)
-        .select();
+        .eq("user_id", updatedUser.user_id);
 
-      if (error) {
-        console.error("Supabase error:", error);
-        setError(`Error updating user: ${error.message}`);
-        return;
-      }
+      if (error) throw error;
 
       setUsers((prevUsers) =>
         prevUsers.map((user) => (user.user_id === updatedUser.user_id ? { ...user, ...updatedUser } : user))
       );
       setIsEditModalOpen(false);
-
       setSuccessMessage("User updated successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error("Unexpected error updating user:", err);
-      setError(`An unexpected error occurred: ${err.message}. Please try again.`);
+      setError(`Error updating user: ${err.message}`);
     }
   };
 
   return (
-    <AdminLayout>
       <div className="container mx-auto p-4 md:p-8">
         <h1 className="text-2xl font-semibold mb-4">Users</h1>
         <p className="mb-4 text-gray-600">Manage users here. You can edit or remove users.</p>
@@ -189,7 +182,6 @@ const UserManagement = () => {
           />
         )}
       </div>
-    </AdminLayout>
   );
 };
 
