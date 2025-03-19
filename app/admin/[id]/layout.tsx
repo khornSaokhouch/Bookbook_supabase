@@ -171,11 +171,20 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </button>
 
           {/* Search Bar */}
+          <div className="relative mx-5">
           <input
             type="text"
             placeholder="Search..."
-            className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10" 
           />
+          <img
+            src="https://img.icons8.com/ios7/512/search.png"
+            alt="search icon"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2"
+            width="20"
+            height="20"
+          />
+        </div>
 
           {/* Profile */}
           <div className="flex items-center space-x-3">
@@ -199,7 +208,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-4 overflow-x-hidden">{children}</main>
+        <main className="flex-1 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );
