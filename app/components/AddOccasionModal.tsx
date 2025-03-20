@@ -1,4 +1,3 @@
-// components/AddOccasionModal.tsx
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
@@ -70,6 +69,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
     setLoading(true);
     setError(null);
 
+    // Ensure a category is selected
     if (!categoryId) {
       setError("Please select a category.");
       setLoading(false);
@@ -80,17 +80,17 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
 
     if (imageFile) {
       try {
-        // Generate a unique file name
+        // Generate a unique file name for the image
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
         // Upload the image to Supabase Storage
         const { data: storageData, error: storageError } =
-          await supabase.storage
-            .from("occasion-images") // Replace with your bucket name!
-            .upload(fileName, imageFile, {
-              cacheControl: "3600",
-              upsert: false,
-            });
+                  await supabase.storage
+                    .from("occasion") // Change this to "images" to match your bucket name
+                    .upload(fileName, imageFile, {
+                      cacheControl: "3600",
+                      upsert: false,
+                    });
 
         if (storageError) {
           console.error("Error uploading image:", storageError);
@@ -100,7 +100,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
         }
 
         // Get the public URL of the uploaded image
-        imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion-images/${fileName}`; // Construct the full URL
+        imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`; // Construct the full URL
       } catch (uploadErr: any) {
         console.error("Error uploading image:", uploadErr);
         setError(
@@ -113,11 +113,12 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
     }
 
     try {
+      // Insert new occasion into the 'occasion' table
       const { data, error } = await supabase.from("occasion").insert([
         {
           name: occasionName,
-          occasion_image: imageUrl, // Corrected column name
-          category_id: categoryId,
+          occasion_image: imageUrl, // Save the image URL (if uploaded)
+          category_id: categoryId, // Save the category ID
         },
       ]);
 

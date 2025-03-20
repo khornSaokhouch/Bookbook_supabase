@@ -20,7 +20,7 @@ type Category = {
 type Occasion = {
   occasion_id: string;
   name: string;
-  image_occasions: string;
+  occasion_image: string;
 };
 
 export default function RecipeManagement() {
@@ -186,7 +186,7 @@ export default function RecipeManagement() {
                 className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition duration-200 flex flex-col items-center justify-center"
               >
                 <Image
-                  src={occasion.image_occasions || "/default-image.jpg"}
+                  src={occasion.occasion_image || "/default-image.jpg"}
                   alt={occasion.name}
                   width={80}
                   height={80}

@@ -7,7 +7,7 @@ interface OccasionDetailModalProps {
   occasion: {
     occasion_id: string;
     name: string;
-    image_occasions: string;
+    occasion_image: string;
   } | null;
 }
 
@@ -32,7 +32,7 @@ const OccasionDetailModal: React.FC<OccasionDetailModalProps> = ({
               <strong>Name:</strong> {occasion.name}
             </p>
             {/* Display image, error handle for missing image */}
-            <img src={occasion.image_occasions || "/default-image.jpg"} alt={occasion.name} className="mx-auto my-4 h-32 w-32 object-cover rounded-full" />
+            <img src={occasion.occasion_image || "/default-image.jpg"} alt={occasion.name} className="mx-auto my-4 h-32 w-32 object-cover rounded-full" />
             <p className="text-sm text-gray-500">
               <strong>ID:</strong> {occasion.occasion_id}
             </p>

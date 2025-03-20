@@ -22,7 +22,7 @@ type Category = {
 type Occasion = {
   occasion_id: string;
   name: string;
-  image_occasions: string;
+  occasion_image: string;
 };
 
 // Fetch dashboard stats
@@ -33,7 +33,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
         supabase.from("users").select("*", { head: true, count: "exact" }),
         supabase.from("recipe").select("*", { head: true, count: "exact" }),
         supabase.from("event").select("*", { head: true, count: "exact" }),
-        supabase.from("categories").select("*", { head: true, count: "exact" }),
+        supabase.from("category").select("*", { head: true, count: "exact" }),
       ]);
 
     return { userCount, recipeCount, eventCount, categoryCount };
@@ -46,7 +46,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
 // Fetch categories & occasions
 async function getCategories(): Promise<Category[]> {
   try {
-    const { data, error } = await supabase.from("categories").select();
+    const { data, error } = await supabase.from("category").select();
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -57,7 +57,7 @@ async function getCategories(): Promise<Category[]> {
 
 async function getOccasions(): Promise<Occasion[]> {
   try {
-    const { data, error } = await supabase.from("occasions").select();
+    const { data, error } = await supabase.from("occasion").select();
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -241,7 +241,7 @@ export default function Dashboard() {
                   className="bg-gray-100 rounded-lg p-4 text-center shadow-md min-w-[150px] mx-2 last:mr-0 hover:shadow-lg transition-shadow duration-200"
                 >
                   <Image
-                    src={occasion.image_occasions}
+                    src={occasion.occasion_image}
                     alt={occasion.name}
                     width={80}
                     height={80}

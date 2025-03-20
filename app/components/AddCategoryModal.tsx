@@ -53,39 +53,40 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
         const { data: storageData, error: storageError } =
           await supabase.storage
-            .from("images") // Your bucket name!
+            .from("images") // Change this to "images" to match your bucket name
             .upload(fileName, imageFile, {
               cacheControl: "3600",
               upsert: false,
             });
 
         if (storageError) {
-          console.error("Supabase Storage Error:", storageError);  // Log the full error
+          console.error("Supabase Storage Error:", storageError); // Log the full error
           setError(
-            `Image upload failed: ${storageError.message}.  Check console for details.`
+            `Image upload failed: ${storageError.message}.  Please check the console for details.`
           );
           setLoading(false);
           return;
         }
-
         // Ensure NEXT_PUBLIC_SUPABASE_URL is set in your .env.local
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
           console.error(
             "NEXT_PUBLIC_SUPABASE_URL is not defined in your environment variables!"
           );
           setError(
-            "Configuration error: Supabase URL is missing. Check the console."
+            "Configuration error: Supabase URL is missing. Please check your .env.local file and restart the server."
           );
           setLoading(false);
           return;
         }
 
-        imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
-
+        //Construct imageURL
+        imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`; // Ensure 'images' matches your bucket name
       } catch (uploadErr: any) {
-        console.error("Image Upload Error:", uploadErr);  // Log the full error
+        console.error("Image Upload Error:", uploadErr); // Log the full error
         setError(
-          `Image upload failed: ${uploadErr.message || "An unexpected error occurred."}. Check console for details.`
+          `Image upload failed: ${
+            uploadErr.message || "An unexpected error occurred."
+          }. Please check the console for details.`
         );
         setLoading(false);
         return;
@@ -99,16 +100,21 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
       if (error) {
         console.error("Supabase Insert Error:", error); // Log the full error
-        setError(`Category creation failed: ${error.message}. Check console for details.`);
-
+        setError(
+          `Category creation failed: ${error.message}. Please check the console for details.`
+        );
       } else {
         console.log("Category added successfully:", data);
         onCategoryAdded();
         onClose();
       }
     } catch (dbErr: any) {
-      console.error("Database Insert Error:", dbErr);  // Log the full error
-      setError(`Category creation failed: ${dbErr.message || "An unexpected error occurred."}. Check console for details.`);
+      console.error("Database Insert Error:", dbErr); // Log the full error
+      setError(
+        `Category creation failed: ${
+          dbErr.message || "An unexpected error occurred."
+        }. Please check the console for details.`
+      );
     } finally {
       setLoading(false);
     }
