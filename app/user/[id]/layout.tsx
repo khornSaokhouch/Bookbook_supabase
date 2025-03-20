@@ -1,59 +1,24 @@
-// app/user/layout.tsx
-
-"use client"
-
-import React, { ReactNode, useState } from "react";
-import SidebarNav from "../../components/SidebarNav";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import { Menu } from 'lucide-react'; //Or whatever Icon Library is in use
+// UserLayout.tsx
+import React from 'react';
+import Footer from '../../components/Footer';
+import Header from '../../components/Header';
 
 interface UserLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-const UserLayout = ({ children }: UserLayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
+const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Navbar */}
-      <header> {/* Use <header> semantic tag */}
+    <div className="flex flex-col min-h-screen">
+      <header className="bg-white shadow-md">
         <Header />
       </header>
 
-      <div className="flex flex-1">
-        {/* Mobile Sidebar Toggle Button */}
-        <button
-          onClick={toggleSidebar}
-          className="md:hidden bg-blue-500 text-white p-2 rounded-md focus:outline-none"
-        >
-          <Menu className="h-6 w-6" />
-          Toggle Sidebar
-        </button>
+      <main className="flex-grow container mx-auto py-8 px-4">
+        {children}
+      </main>
 
-        {/* Sidebar */}
-        <aside
-          aria-label="Navigation Sidebar"
-          className={`w-64 bg-white shadow-md p-4 ${
-            isSidebarOpen ? "block" : "hidden"
-          } md:block`} /* Use isSidebarOpen */
-        >
-          <SidebarNav />
-        </aside>
-
-        {/* Main Content */}
-        <main aria-label="Main Content" className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
-
-      {/* Footer */}
-      <footer className="mt-auto"> {/* Push the footer to the bottom */}
+      <footer className="bg-gray-100 py-4 mt-8">
         <Footer />
       </footer>
     </div>

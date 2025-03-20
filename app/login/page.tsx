@@ -39,7 +39,7 @@ export default function LoginPage() {
       }
 
       // On successful login, redirect the user based on their role
-      router.push(data.role === "Admin" ? "/admin/`${data.id}`/dashboard" : "user/`${data.id}`/profile");
+      router.push(data.role === "Admin" ? "/admin/`${data.id}`/dashboard" : "user/`${data.id}`/add-recipe");
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "An error occurred during login. Please try again.");
