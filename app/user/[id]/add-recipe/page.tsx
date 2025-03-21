@@ -85,32 +85,32 @@ const AddRecipe = () => {
         await actuallySubmit();  // Submit after category is selected
     };
 
-    const uploadImage = async (file: File | null, path: string) => {
-        if (!file) return null;
+   const uploadImage = async (file: File | null, path: string) => {
+    if (!file) return null;
 
-        const { data, error } = await supabase.storage
-            .from("recipe-images")
-            .upload(`${path}/${file.name}`, file, {
-                cacheControl: "3600",
-                upsert: false,
-            });
+    const { data, error } = await supabase.storage
+        .from("add-recipe")  // Changed to 'add-recipe' bucket
+        .upload(`${path}/${file.name}`, file, {
+            cacheControl: "3600",
+            upsert: false,
+        });
 
-        if (error) {
-            console.error("Error uploading image:", error);
-            throw new Error(error.message);
-        }
+    if (error) {
+        console.error("Error uploading image:", error);
+        throw new Error(error.message);
+    }
 
-        return data.path;
-    };
+    return data?.path;
+};
 
-    const getImageUrl = async (imagePath: string | null) => {
-        if (!imagePath) return null;
+const getImageUrl = async (imagePath: string | null) => {
+    if (!imagePath) return null;
 
-        const { data } = await supabase.storage
-            .from("recipe-images")
-            .getPublicUrl(imagePath);
-        return data.publicUrl;
-    };
+    const { data } = await supabase.storage
+        .from("add-recipe")  // Changed to 'add-recipe' bucket
+        .getPublicUrl(imagePath);
+    return data.publicUrl;
+};
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();

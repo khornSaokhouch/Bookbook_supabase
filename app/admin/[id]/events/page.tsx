@@ -1,24 +1,14 @@
+// EventsManagement.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabaseClient";
 import { v4 as uuidv4 } from 'uuid';
-
-type Event = {
-  event_id: string;
-  admin_id: string;
-  title: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  image_url: string;
-};
-
-type User = {
-  user_id: string;
-  name: string;
-};
+import EditEventModal from "../../../components/EditEventModal";
+import DeleteEventModal from "../../../components/DeleteEventModal";
+import AddEventModal from "../../../components/AddEventModal";
+import { Event, User } from "../../../components/types"; // Import types
 
 async function getEvents(): Promise<Event[]> {
   try {
@@ -41,38 +31,38 @@ async function getEvents(): Promise<Event[]> {
 
 async function getUser(): Promise<User> {
   try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (sessionError) {
-          console.error("Error getting session:", sessionError);
-          throw new Error("Failed to get session: " + sessionError.message);
-      }
+    if (sessionError) {
+      console.error("Error getting session:", sessionError);
+      throw new Error("Failed to get session: " + sessionError.message);
+    }
 
-      if (!session?.user) {
-          console.warn("No user in session. User might not be logged in.");
-          return { user_id: "0", name: "Admin" }; // Return default user
-      }
+    if (!session?.user) {
+      console.warn("No user in session. User might not be logged in.");
+      return { user_id: "0", name: "Admin" }; // Return default user
+    }
 
-      const { data, error } = await supabase
-          .from("users")
-          .select("user_id, user_name")
-          .eq("user_id", session.user.id)
-          .single();
+    const { data, error } = await supabase
+      .from("users")
+      .select("user_id, user_name")
+      .eq("user_id", session.user.id)
+      .single();
 
-      if (error) {
-          console.error("Error fetching user data:", error);
-          throw new Error("Failed to fetch user data: " + error.message);
-      }
+    if (error) {
+      console.error("Error fetching user data:", error);
+      throw new Error("Failed to fetch user data: " + error.message);
+    }
 
-      if (!data) {
-          console.warn("User data not found in 'users' table for id:", session.user.id);
-          return { user_id: "0", name: "Admin" }; // Return default user
-      }
+    if (!data) {
+      console.warn("User data not found in 'users' table for id:", session.user.id);
+      return { user_id: "0", name: "Admin" }; // Return default user
+    }
 
-      return { user_id: data.user_id, name: data.user_name };
+    return { user_id: data.user_id, name: data.user_name };
   } catch (error: any) {
-      console.error("Error in getUser function:", error);
-      return { user_id: "0", name: "Admin" }; // Fallback user
+    console.error("Error in getUser function:", error);
+    return { user_id: "0", name: "Admin" }; // Fallback user
   }
 }
 
@@ -87,8 +77,8 @@ export default function EventsManagement() {
   const [deleting, setDeleting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false); // State for new event modal
-  const [creating, setCreating] = useState(false);  // **DEFINE setCreating HERE**
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [newEvent, setNewEvent] = useState<Event>({
     event_id: "",
     admin_id: null, // Initialize to null
@@ -98,7 +88,7 @@ export default function EventsManagement() {
     end_date: "",
     image_url: "",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null); // State for image file
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const clearSuccessMessage = () => {
     setTimeout(() => {
@@ -110,11 +100,14 @@ export default function EventsManagement() {
     async function fetchData() {
       try {
         setLoading(true);
-        const userData = await getUser(); // Fetch user first
+        const userData = await getUser();
         setUser(userData);
         console.log("Fetched User Data:", userData);
-        if (userData && userData.user_id) { // **Check for a valid user_id**
-          setNewEvent(prevState => ({
+        if (userData && userData.user_id) {
+          // **Log the user_id here!**
+          console.log("Using user_id from userData:", userData.user_id);
+
+          setNewEvent((prevState) => ({
             ...prevState,
             admin_id: userData.user_id,
           }));
@@ -122,9 +115,8 @@ export default function EventsManagement() {
         } else {
           console.warn("No valid user_id found, leaving admin_id as null");
         }
-        const eventsData = await getEvents(); // Then fetch events
+        const eventsData = await getEvents();
         setEvents(eventsData);
-  
       } catch (fetchError: any) {
         setError(fetchError.message || "Failed to load data.");
       } finally {
@@ -159,6 +151,7 @@ export default function EventsManagement() {
 
   const handleEdit = async (event: Event) => {
     setSelectedEvent({ ...event });
+    setImageFile(null);  // Reset image file for edit
     setShowEditModal(true);
   };
 
@@ -169,6 +162,19 @@ export default function EventsManagement() {
     }
 
     try {
+      let imageUrlToUpdate = updatedEvent.image_url;
+
+      // Upload the image if a new image has been selected
+      if (imageFile) {
+        const uploadResult = await handleImageUpload(imageFile);
+        if (uploadResult && uploadResult.publicURL) {
+          imageUrlToUpdate = uploadResult.publicURL; //Use the return
+        } else {
+          // Handle upload error (already handled in handleImageUpload, but you can add more specific logic here)
+          return; // Stop saving the event if image upload fails
+        }
+      }
+
       const { data, error } = await supabase
         .from("event")
         .update({
@@ -176,7 +182,7 @@ export default function EventsManagement() {
           description: updatedEvent.description,
           start_date: updatedEvent.start_date,
           end_date: updatedEvent.end_date,
-          image_url: updatedEvent.image_url,
+          image_url: imageUrlToUpdate, // Use the new or existing image URL
         })
         .eq("event_id", updatedEvent.event_id);
 
@@ -185,7 +191,7 @@ export default function EventsManagement() {
         setError(`An error occurred while saving the event: ${error.message}`);
       } else {
         setEvents(
-          events.map((e) => (e.event_id === updatedEvent.event_id ? { ...updatedEvent } : e))
+          events.map((e) => (e.event_id === updatedEvent.event_id ? { ...updatedEvent, image_url: imageUrlToUpdate } : e)) //Also correct image when update
         );
         setShowEditModal(false);
         setSuccessMessage("Event updated successfully!");
@@ -197,11 +203,11 @@ export default function EventsManagement() {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (file: File): Promise<{ publicURL: string } | null> => {  // Return the URL
     try {
       if (!file) {
         setError("Please select an image to upload.");
-        return;
+        return null;
       }
 
       const fileExt = file.name.split('.').pop();
@@ -209,7 +215,7 @@ export default function EventsManagement() {
       const filePath = `events/${fileName}`;
 
       const { data, error } = await supabase.storage
-        .from('event-images') // your storage bucket name
+        .from('event') // **CORRECTED BUCKET NAME: 'event'**
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -218,64 +224,85 @@ export default function EventsManagement() {
       if (error) {
         console.error("Error uploading image:", error);
         setError(`Failed to upload image: ${error.message}`);
-        return;
+        return null;
       }
 
-      const publicURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event-images/${filePath}`; //Construct URL for public access
+      // Construct URL for public access - **CORRECTED URL PATH to 'event'**
+      const publicURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event/${filePath}`;
 
-      setNewEvent({ ...newEvent, image_url: publicURL });  //Set the image URL
-      setSuccessMessage("Image uploaded successfully!");
-      clearSuccessMessage();
+      //setNewEvent({ ...newEvent, image_url: publicURL });  // NO update here
+      //setSuccessMessage("Image uploaded successfully!");
+      //clearSuccessMessage();
+      return { publicURL }; // return publicURL
     } catch (uploadError: any) {
       console.error("Error during image upload:", uploadError);
       setError(`An unexpected error occurred while uploading the image: ${uploadError.message}`);
+      return null;
     }
   };
 
-  const handleCreateEvent = async () => {
-    if (!newEvent.title || !newEvent.start_date || !newEvent.end_date) {
+  const handleCreateEvent = async (event: Event) => { //the event to save
+    if (!event.title || !event.start_date || !event.end_date) {
       setError("Please fill in all required fields.");
       return;
     }
-  
-    console.log("Validating admin_id:", newEvent.admin_id);
+
     try {
-      //Check for null or empty admin_id BEFORE validation query
-      if (!newEvent.admin_id) {
+      // Check for null or empty admin_id BEFORE validation query
+      if (!event.admin_id) {
         console.warn("Admin ID is null or empty. Skipping validation.");
         setError("Invalid admin ID: Admin ID cannot be empty.");
         return;
       }
-  
+
       // Ensure admin_id exists in users table before insertion
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("user_id")
-        .eq("user_id", newEvent.admin_id)
+        .eq("user_id", event.admin_id)
         .single();
-  
-      if (userError || !userData) {
+
+      if (userError) {
         console.error("Error validating admin ID:", userError);
-        setError("Invalid admin ID.");
+        setError(`Error validating admin ID: ${userError.message}`);
         return;
       }
-  
+
+      if (!userData) {
+        console.warn("Admin ID not found in users table:", event.admin_id);
+        setError("Invalid admin ID: Admin ID not found.");
+        return;
+      }
+
       setCreating(true);
-  
+      let imageUrlToInsert = event.image_url;
+      // Upload the image if a new image has been selected
+      if (imageFile) {
+        const uploadResult = await handleImageUpload(imageFile);
+        if (uploadResult && uploadResult.publicURL) {
+          imageUrlToInsert = uploadResult.publicURL; //Use the return
+        } else {
+          // Handle upload error (already handled in handleImageUpload, but you can add more specific logic here)
+          return; // Stop saving the event if image upload fails
+        }
+      }
+
       // Proceed to create the event
-      const { data, error } = await supabase.from("event").insert([newEvent]);
-  
+      const { data, error } = await supabase
+        .from("event")
+        .insert([{ ...event, image_url: imageUrlToInsert }]); //Include image
+
       if (error) {
         console.error("Error creating event:", error);
         setError(error.message || "An error occurred while creating the event.");
       } else {
-        setEvents(prevEvents => [...prevEvents, ...(data || [])]);
+        setEvents((prevEvents) => [...prevEvents, ...(data || [])]);
         setShowCreateModal(false);
         setSuccessMessage("Event created successfully!");
         clearSuccessMessage();
         setNewEvent({
           event_id: "",
-          admin_id: user.user_id, //Correct Admin ID
+          admin_id: user.user_id, // Correct Admin ID
           title: "",
           description: "",
           start_date: "",
@@ -299,20 +326,28 @@ export default function EventsManagement() {
     }
   };
 
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-semibold mb-4">Events Management</h1>
-      <p className="text-gray-600">Manage events here. This section allows you to create, update, or delete events.</p>
+      <p className="text-gray-600">
+        Manage events here. This section allows you to create, update, or delete
+        events.
+      </p>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
       {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div
+          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <strong className="font-bold">Success!</strong>
           <span className="block sm:inline">{successMessage}</span>
         </div>
@@ -397,197 +432,36 @@ export default function EventsManagement() {
 
       {/* Edit Event Modal */}
       {showEditModal && selectedEvent && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">Edit Event</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveEdit(selectedEvent);
-              }}
-            >
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Title</label>
-                <input
-                  type="text"
-                  value={selectedEvent.title}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                <textarea
-                  value={selectedEvent.description}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, description: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
-                <input
-                  type="datetime-local"
-                  value={selectedEvent.start_date}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, start_date: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">End Date</label>
-                <input
-                  type="datetime-local"
-                  value={selectedEvent.end_date}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, end_date: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Image URL</label>
-                <input
-                  type="text"
-                  value={selectedEvent.image_url}
-                  onChange={(e) => setSelectedEvent({ ...selectedEvent, image_url: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditEventModal
+          selectedEvent={selectedEvent}
+          setSelectedEvent={setSelectedEvent}
+          onSave={handleSaveEdit}
+          onCancel={() => setShowEditModal(false)}
+          handleImageChange={handleImageChange} //pass the handler
+          imageFile={imageFile} // pass the file
+        />
       )}
 
       {/* Delete Event Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">Are you sure you want to delete this event?</h2>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteEventModal
+          onDelete={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+          deleting={deleting}
+        />
       )}
 
       {/* Create Event Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
-            <h2 className="text-2xl font-semibold mb-4">Create New Event</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleCreateEvent();
-              }}
-            >
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Title</label>
-                <input
-                  type="text"
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                <textarea
-                  value={newEvent.description}
-                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Start Date</label>
-                <input
-                  type="datetime-local"
-                  value={newEvent.start_date}
-                  onChange={(e) => setNewEvent({ ...newEvent, start_date: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">End Date</label>
-                <input
-                  type="datetime-local"
-                  value={newEvent.end_date}
-                  onChange={(e) => setNewEvent({ ...newEvent, end_date: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Image URL</label>
-                <input
-                  type="text"
-                  value={newEvent.image_url}
-                  onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-
-               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Upload Image</label>
-                <input
-                  type="file"
-                  onChange={handleImageChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
-                  disabled={creating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                   disabled={creating}
-                >
-                  {creating ? "Creating..." : "Create Event"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AddEventModal
+          newEvent={newEvent}
+          setNewEvent={setNewEvent}
+          onSave={handleCreateEvent} // call to save function
+          onCancel={() => setShowCreateModal(false)}
+          creating={creating}
+          handleImageChange={handleImageChange}
+          imageFile={imageFile} // Pass the file too
+        />
       )}
     </div>
   );
