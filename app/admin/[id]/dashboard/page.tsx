@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion"; // Import framer-motion
+import {
+  User,
+  ChefHat as RestaurantMenu,
+  CalendarDays as Event,
+  ListChecks as CategoryIcon,
+} from "lucide-react";
 
 type DashboardStats = {
   userCount: number;
@@ -39,7 +46,12 @@ async function getDashboardStats(): Promise<DashboardStats> {
     return { userCount, recipeCount, eventCount, categoryCount };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
-    return { userCount: 0, recipeCount: 0, eventCount: 0, categoryCount: 0 };
+    return {
+      userCount: 0,
+      recipeCount: 0,
+      eventCount: 0,
+      categoryCount: 0,
+    };
   }
 }
 
@@ -77,16 +89,18 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null); // Add state for userId
-  const router = useRouter(); // Initialize useRouter
+  const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const getUserIdFromCookies = () => {
       if (typeof document === "undefined") {
-        return null; // Exit if document is not available (SSR)
+        return null;
       }
       const cookies = document.cookie.split("; ");
-      const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
+      const userCookie = cookies.find((cookie) =>
+        cookie.startsWith("user=")
+      );
       if (userCookie) {
         try {
           const user = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
@@ -106,11 +120,12 @@ export default function Dashboard() {
         if (fetchedUserId) {
           setUserId(fetchedUserId);
         }
-        const [fetchedStats, fetchedCategories, fetchedOccasions] = await Promise.all([
-          getDashboardStats(),
-          getCategories(),
-          getOccasions(),
-        ]);
+        const [fetchedStats, fetchedCategories, fetchedOccasions] =
+          await Promise.all([
+            getDashboardStats(),
+            getCategories(),
+            getOccasions(),
+          ]);
         setStats(fetchedStats);
         setCategories(fetchedCategories);
         setOccasions(fetchedOccasions);
@@ -125,88 +140,128 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // You can replace this with a spinner or skeleton loader
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    ); // Improved loading indicator
   }
+
   if (!userId) {
-    return <div>Not authorized</div>;
+    return <div className="text-center p-4">Not authorized</div>;
   }
 
   const handleStatClick = (label: string) => {
     switch (label) {
       case "Users":
-        router.push("/admin/`${data.id}`/users"); // Replace with your actual users page route
+        router.push(`/admin/${userId}/users`);
         break;
       case "Recipes":
-        router.push("/admin/`${data.id}`/recipes"); // Replace with your actual recipes page route
+        router.push(`/admin/${userId}/recipes`);
         break;
       case "Events":
-        router.push("/admin/`${data.id}`/events"); // Replace with your actual events page route
-        break
+        router.push(`/admin/${userId}/events`);
+        break;
       case "Categories":
-        router.push("/admin/`${data.id}`/categories"); // Replace with your actual categories page route
+        router.push(`/admin/${userId}/categories`);
         break;
       default:
         console.warn(`No route defined for ${label}`);
     }
   };
 
+  const statIcons = {
+    Users: User,
+    Recipes: RestaurantMenu,
+    Events: Event,
+    Categories: CategoryIcon,
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-8">
-      {/* Greeting */}
-      <section
-        className="mb-8 bg-cover bg-center rounded-lg  md:p-8 h-[350px] flex flex-col justify-center"
+      {/* Greeting Banner */}
+      <motion.section
+        className="mb-8 bg-cover bg-center rounded-lg  md:p-8 h-[350px] flex flex-col justify-center text-white shadow-md"
         style={{ backgroundImage: "url('/banner.png')" }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
       >
-        <h1 className="text-3xl md:text-4xl font-semibold text-black mb-2 px-12">Hello, Admin</h1>
-        <p className="text-black mb-4 px-12">
-          Get <span className="text-orange-400 font-medium text-lg ">FREE delivery</span> on every weekend.
+        <h1 className="text-3xl text-black md:text-4xl font-semibold mb-2 px-12 text-shadow-md">
+          Hello, Admin
+        </h1>
+        <p className="mb-4 text-black px-12 text-shadow-md">
+          Empower your culinary world! Manage users, recipes, events and
+          categories.
         </p>
         <div className="flex flex-wrap gap-4 px-12">
           <Link
             href={`/admin/${userId}/post-event`}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm"
           >
             + Post Events
           </Link>
           <Link
             href={`/admin/${userId}/events`}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm"
           >
             Check Events
           </Link>
         </div>
-      </section>
+      </motion.section>
 
-      {/* Dashboard Stats */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Dashboard Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[{ label: "Users", count: stats.userCount }, { label: "Recipes", count: stats.recipeCount }, { label: "Events", count: stats.eventCount }, { label: "Categories", count: stats.categoryCount }].map(
-            ({ label, count }) => (
-              <div
-                key={label}
-                className="bg-white p-4 shadow rounded-lg text-center hover:shadow-md transition-shadow duration-200 cursor-pointer" // Add cursor pointer
-                onClick={() => handleStatClick(label)} // Add onClick handler
-              >
-                <h3 className="text-lg font-medium">{label}</h3>
-                <p className="text-3xl font-bold">{count}</p>
-              </div>
-            )
-          )}
-        </div>
-      </section>
+{/* Dashboard Stats */}
+<section className="mb-8">
+  <h2 className="text-2xl text-white font-semibold mb-4">Dashboard Stats</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {[
+      { label: "Users", count: stats.userCount },
+      { label: "Recipes", count: stats.recipeCount },
+      { label: "Events", count: stats.eventCount },
+      { label: "Categories", count: stats.categoryCount },
+    ].map(({ label, count }) => {
+      const Icon = statIcons[label as keyof typeof statIcons];
 
-      {/* Recipe Categories & Occasions (Fetched from Supabase) */}
+      return (
+        <motion.div
+          key={label}
+          className="p-4 rounded-lg text-center hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-white border shadow"
+          onClick={() => handleStatClick(label)}
+          whileHover={{ scale: 1.05 }}
+        >
+          <div className="text-blue-500 mb-2">{Icon && <Icon className="h-8 w-8" />}</div>
+          <h3 className="text-lg font-medium">{label}</h3>
+          <p className="text-3xl font-bold">{count}</p>
+        </motion.div>
+      );
+    })}
+  </div>
+</section>
+
+      {/* Recipe Categories & Occasions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recipe Categories */}
-        <section className="bg-white p-4 md:p-6 rounded-lg shadow">
-          <h2 className="text-xl md:text-2xl font-semibold mb-4">Recipe Categories</h2>
+        <motion.section
+          className="bg-white p-4 md:p-6 rounded-lg shadow"
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">
+            Recipe Categories
+          </h2>
           <div className="flex flex-nowrap overflow-x-auto">
             {categories.length > 0 ? (
               categories.map((category) => (
-                <div
+                <motion.div
                   key={category.category_id}
-                  className="bg-gray-100 rounded-lg p-4 text-center shadow-md min-w-[150px] mx-2 last:mr-0 hover:shadow-lg transition-shadow duration-200"
+                  className="bg-gray-100 rounded-lg p-4 text-center shadow-md min-w-[150px] mx-2 last:mr-0 hover:shadow-lg transition-shadow duration-200 flex-shrink-0"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.05 }}
                 >
                   <Image
                     src={category.image}
@@ -215,30 +270,41 @@ export default function Dashboard() {
                     height={80}
                     className="mx-auto mb-2 rounded-full object-cover"
                   />
-                  <h3 className="font-medium text-sm md:text-base">{category.category_name}</h3>
+                  <h3 className="font-medium text-sm md:text-base">
+                    {category.category_name}
+                  </h3>
                   <Link
                     href={`/recipes/category/${category.category_id}`}
                     className="text-blue-600 hover:underline text-xs md:text-sm"
                   >
                     View All
                   </Link>
-                </div>
+                </motion.div>
               ))
             ) : (
-              <p className="text-center text-gray-600">No categories available.</p>
+              <p className="text-center text-gray-600">
+                No categories available.
+              </p>
             )}
           </div>
-        </section>
+        </motion.section>
 
         {/* Occasions */}
-        <section className="bg-white p-4 md:p-6 rounded-lg shadow">
+        <motion.section
+          className="bg-white p-4 md:p-6 rounded-lg shadow"
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <h2 className="text-xl md:text-2xl font-semibold mb-4">Occasions</h2>
           <div className="flex flex-nowrap overflow-x-auto">
             {occasions.length > 0 ? (
               occasions.map((occasion) => (
-                <div
+                <motion.div
                   key={occasion.occasion_id}
-                  className="bg-gray-100 rounded-lg p-4 text-center shadow-md min-w-[150px] mx-2 last:mr-0 hover:shadow-lg transition-shadow duration-200"
+                  className="bg-gray-100 rounded-lg p-4 text-center shadow-md min-w-[150px] mx-2 last:mr-0 hover:shadow-lg transition-shadow duration-200 flex-shrink-0"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.05 }}
                 >
                   <Image
                     src={occasion.occasion_image}
@@ -247,20 +313,22 @@ export default function Dashboard() {
                     height={80}
                     className="mx-auto mb-2 rounded-full object-cover"
                   />
-                  <h3 className="font-medium text-sm md:text-base">{occasion.name}</h3>
+                  <h3 className="font-medium text-sm md:text-base">
+                    {occasion.name}
+                  </h3>
                   <Link
                     href={`/recipes/occasion/${occasion.occasion_id}`}
                     className="text-blue-600 hover:underline text-xs md:text-sm"
                   >
                     View All
                   </Link>
-                </div>
+                </motion.div>
               ))
             ) : (
               <p className="text-center text-gray-600">No occasions available.</p>
             )}
           </div>
-        </section>
+        </motion.section>
       </div>
     </div>
   );

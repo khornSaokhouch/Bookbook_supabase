@@ -1,6 +1,11 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import { XCircle, ImageIcon, AlertTriangle } from "lucide-react";
 
 type EditOccasionModalProps = {
   isOpen: boolean;
@@ -9,59 +14,90 @@ type EditOccasionModalProps = {
   onOccasionUpdated: () => void;
 };
 
-const EditOccasionModal = ({
+type Occasion = {
+  occasion_id: string;
+  name: string;
+  occasion_image: string;
+};
+
+const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
   isOpen,
   onClose,
   occasion,
   onOccasionUpdated,
-}: EditOccasionModalProps) => {
+}) => {
   const [occasionName, setOccasionName] = useState<string>("");
-  const [image, setImage] = useState<File | null>(null); // Now using File instead of string
-  const [imagePreview, setImagePreview] = useState<string | null>(""); // For the image preview URL
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>("");
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (occasion) {
       setOccasionName(occasion.name);
-      setImagePreview(occasion.occasion_image); // Set the preview to the current image URL
+      setImagePreview(occasion.occasion_image);
     }
   }, [occasion]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file)); // Preview the selected image
+    const file = e.target.files?.[0] || null; // Use optional chaining
+
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image file is too large. Maximum size is 5MB.");
+        setImageFile(null);
+        setImagePreview(null);
+        return;
+      }
+
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setError(null); // Clear any previous errors
+    } else {
+      setImageFile(null);
+      setImagePreview(occasion?.occasion_image || ""); // Reset to original if available
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null); // Clear any previous errors
 
-    if (!occasion) return;
+    if (!occasion) {
+      setError("No occasion data to update.");
+      setLoading(false);
+      return;
+    }
 
-    let imageUrl: string | null = imagePreview; // Default to current image if no new image is uploaded
+    let imageUrl: string | null = occasion.occasion_image; // Default to current image if no new image is uploaded
 
-    if (image) {
+    if (imageFile) {
       try {
         // Generate a unique file name for the new image
-        const fileName = `${uuidv4()}-${image.name}`;
+        const fileName = `${uuidv4()}-${imageFile.name}`;
 
         // Upload the new image to Supabase Storage
         const { data, error: uploadError } = await supabase.storage
           .from("occasion") // Make sure to use your correct bucket name
-          .upload(fileName, image, {
+          .upload(fileName, imageFile, {
             cacheControl: "3600",
             upsert: false,
           });
 
         if (uploadError) {
-          throw uploadError;
+          console.error("Supabase Storage Error:", uploadError);
+          setError(`Image upload failed: ${uploadError.message}`);
+          setLoading(false);
+          return;
         }
 
         // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`;
-      } catch (uploadErr) {
-        console.error("Error uploading image:", uploadErr);
+      } catch (uploadErr: any) {
+        console.error("Image Upload Error:", uploadErr);
+        setError(`Image upload failed: ${uploadErr.message}`);
+        setLoading(false);
         return;
       }
     }
@@ -72,24 +108,72 @@ const EditOccasionModal = ({
         .update({ name: occasionName, occasion_image: imageUrl })
         .eq("occasion_id", occasion.occasion_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating occasion:", error);
+        setError(`Failed to update occasion: ${error.message}`);
+        setLoading(false);
+        return;
+      }
 
       onOccasionUpdated(); // Refresh the list of occasions
       onClose(); // Close the modal
-    } catch (error) {
-      console.error("Error updating occasion:", error);
+    } catch (dbError: any) {
+      console.error("Database Update Error:", dbError);
+      setError(`Failed to update occasion: ${dbError.message}`);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
   if (!isOpen || !occasion) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
-        <h3 className="text-2xl font-bold mb-4">Edit Occasion</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="occasionName" className="block font-semibold">
+    <motion.div
+      className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
+      <motion.div
+        className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full"
+        variants={modalVariants}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Edit Occasion
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded-md mb-4 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            {error}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="occasionName"
+              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
+            >
               Occasion Name
             </label>
             <input
@@ -97,51 +181,66 @@ const EditOccasionModal = ({
               id="occasionName"
               value={occasionName}
               onChange={(e) => setOccasionName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600"
               required
             />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="image" className="block font-semibold">
-              Image (Optional)
+          <div>
+            <label
+              htmlFor="imageFile"
+              className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
+            >
+              Image (Optional):
             </label>
-            <input
-              type="file"
-              id="image"
-              onChange={handleImageChange}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
-              accept="image/*"
-            />
+            <label
+              htmlFor="imageFile"
+              className="relative cursor-pointer bg-gray-100 dark:bg-gray-700 border border-dashed border-gray-400 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+              <ImageIcon className="w-6 h-6 text-gray-500 dark:text-gray-500 mb-2" />
+              <span className="text-gray-500 dark:text-gray-500 text-sm">
+                Click to Upload
+              </span>
+              <input
+                type="file"
+                id="imageFile"
+                className="absolute inset-0 w-full h-full opacity-0"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </label>
+
             {imagePreview && (
-              <div className="mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Image Preview"
-                  className="w-24 h-24 object-cover rounded"
-                />
-              </div>
+              <Image
+                src={imagePreview}
+                alt="Occasion Preview"
+                width={100}
+                height={100}
+                className="mt-2 rounded-full object-cover mx-auto"
+              />
             )}
           </div>
 
-          <div className="flex justify-between">
+          {/* Actions */}
+          <div className="flex justify-end space-x-2">
             <button
-              type="button"
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded focus:outline-none focus:shadow-outline transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              type="button"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-700 text-white font-semibold rounded focus:outline-none focus:shadow-outline transition-colors disabled:opacity-50"
+              disabled={loading}
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

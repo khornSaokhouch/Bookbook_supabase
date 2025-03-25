@@ -299,3 +299,62 @@ export default function Header() {
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+// // components/Header.tsx
+// import React from 'react';
+// import Image from 'next/image';
+// import Link from 'next/link';
+
+// interface HeaderProps {
+//   userName: string | null;
+//   userImageUrl: string | null;
+//   loading: boolean;
+// }
+
+// const Header: React.FC<HeaderProps> = ({ userName, userImageUrl, loading }) => {
+//   return (
+//     <div className="container mx-auto p-4 flex items-center justify-between">
+//       <Link href="/" className="text-2xl font-bold text-gray-800">
+//         CookBook
+//       </Link>
+
+//       {loading ? (
+//         <p>Loading user data...</p>
+//       ) : userName ? (
+//         <div className="flex items-center space-x-4">
+//           {userImageUrl ? (
+//             <Image
+//               src={userImageUrl}
+//               alt="User Avatar"
+//               width={40}
+//               height={40}
+//               className="rounded-full object-cover"
+//             />
+//           ) : (
+//             <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+//               {/* Display initials or a default icon here */}
+//               {userName.charAt(0).toUpperCase()}
+//             </div>
+//           )}
+//           <span className="text-gray-700">{userName}</span>
+//         </div>
+//       ) : (
+//         <Link href="/login" className="text-blue-500 hover:underline">
+//           Log In
+//         </Link>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Header;

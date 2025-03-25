@@ -1,14 +1,15 @@
-// EventsManagement.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabaseClient";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import EditEventModal from "../../../components/EditEventModal";
 import DeleteEventModal from "../../../components/DeleteEventModal";
 import AddEventModal from "../../../components/AddEventModal";
 import { Event, User } from "../../../components/types"; // Import types
+import { motion } from "framer-motion";
+import { Edit, Trash2, Plus } from "lucide-react"; // Import icons
 
 async function getEvents(): Promise<Event[]> {
   try {
@@ -40,7 +41,7 @@ async function getUser(): Promise<User> {
 
     if (!session?.user) {
       console.warn("No user in session. User might not be logged in.");
-      return { user_id: "0", name: "Admin" }; // Return default user
+      return { user_id: 0, name: "Admin" }; // Return default user - Int 0
     }
 
     const { data, error } = await supabase
@@ -56,13 +57,13 @@ async function getUser(): Promise<User> {
 
     if (!data) {
       console.warn("User data not found in 'users' table for id:", session.user.id);
-      return { user_id: "0", name: "Admin" }; // Return default user
+      return { user_id: 0, name: "Admin" }; // Return default user - Int 0
     }
 
     return { user_id: data.user_id, name: data.user_name };
   } catch (error: any) {
     console.error("Error in getUser function:", error);
-    return { user_id: "0", name: "Admin" }; // Fallback user
+    return { user_id: 0, name: "Admin" }; // Fallback user - Int 0
   }
 }
 
@@ -203,36 +204,33 @@ export default function EventsManagement() {
     }
   };
 
-  const handleImageUpload = async (file: File): Promise<{ publicURL: string } | null> => {  // Return the URL
+  const handleImageUpload = async (file: File): Promise<{ publicURL: string } | null> => {
     try {
       if (!file) {
         setError("Please select an image to upload.");
         return null;
       }
-
+  
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `events/${fileName}`;
-
+  
       const { data, error } = await supabase.storage
         .from('event') // **CORRECTED BUCKET NAME: 'event'**
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });
-
+  
       if (error) {
         console.error("Error uploading image:", error);
         setError(`Failed to upload image: ${error.message}`);
         return null;
       }
-
+  
       // Construct URL for public access - **CORRECTED URL PATH to 'event'**
       const publicURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event/${filePath}`;
-
-      //setNewEvent({ ...newEvent, image_url: publicURL });  // NO update here
-      //setSuccessMessage("Image uploaded successfully!");
-      //clearSuccessMessage();
+  
       return { publicURL }; // return publicURL
     } catch (uploadError: any) {
       console.error("Error during image upload:", uploadError);
@@ -254,13 +252,12 @@ export default function EventsManagement() {
         setError("Invalid admin ID: Admin ID cannot be empty.");
         return;
       }
-
-      // Ensure admin_id exists in users table before insertion
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("user_id")
-        .eq("user_id", event.admin_id)
-        .single();
+            // Ensure admin_id exists in users table before insertion
+            const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("user_id")
+            .eq("user_id", parseInt(event.admin_id)) // Parse Int
+            .single();
 
       if (userError) {
         console.error("Error validating admin ID:", userError);
@@ -326,108 +323,129 @@ export default function EventsManagement() {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-semibold mb-4">Events Management</h1>
-      <p className="text-gray-600">
-        Manage events here. This section allows you to create, update, or delete
-        events.
-      </p>
+    <motion.div
+      className="container mx-auto p-4 md:p-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
+        <h1 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">Events Management</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">Manage events here. This section allows you to create, update, or delete events.</p>
 
-      {error && (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-          role="alert"
-        >
-          <strong className="font-bold">Error!</strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
-      {successMessage && (
-        <div
-          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-          role="alert"
-        >
-          <strong className="font-bold">Success!</strong>
-          <span className="block sm:inline">{successMessage}</span>
-        </div>
-      )}
-
-      <div className="mt-8 flex items-center justify-center bg-gray-100 p-6 rounded-lg border-dashed border-2 border-gray-300">
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="text-orange-500 text-lg font-medium"
-          disabled={creating}
-        >
-          {creating ? "Creating..." : "+ Add Event"}
-        </button>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Events List</h2>
-
-        {loading ? (
-          <p className="text-center text-gray-500">Loading events...</p>
-        ) : events.length === 0 ? (
-          <p className="text-center text-gray-600">No events available.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead>
-                <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left">Event ID</th>
-                  <th className="py-3 px-6 text-left">Admin Name</th>
-                  <th className="py-3 px-6 text-left">Title</th>
-                  <th className="py-3 px-6 text-left">Description</th>
-                  <th className="py-3 px-6 text-left">Start Date</th>
-                  <th className="py-3 px-6 text-left">End Date</th>
-                  <th className="py-3 px-6 text-left">Image</th>
-                  <th className="py-3 px-6 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 text-sm font-light">
-                {events.map((event) => (
-                  <tr key={event.event_id} className="border-b hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{event.event_id}</td>
-                    <td className="py-3 px-6 text-left">{user.name}</td>
-                    <td className="py-3 px-6 text-left">{event.title}</td>
-                    <td className="py-3 px-6 text-left">{event.description}</td>
-                    <td className="py-3 px-6 text-left">{new Date(event.start_date).toLocaleDateString()}</td>
-                    <td className="py-3 px-6 text-left">{new Date(event.end_date).toLocaleDateString()}</td>
-                    <td className="py-3 px-6 text-left">
-                      {event.image_url && (
-                        <Image
-                          src={event.image_url}
-                          alt={event.title}
-                          width={50}
-                          height={50}
-                          className="rounded-full"
-                        />
-                      )}
-                    </td>
-                    <td className="py-3 px-6 text-left">
-                      <button
-                        onClick={() => handleEdit(event)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDeletingEventId(event.event_id);
-                          setShowDeleteModal(true);
-                        }}
-                        className="ml-4 text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline">{error}</span>
           </div>
         )}
+
+        {successMessage && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">Success!</strong>
+            <span className="block sm:inline">{successMessage}</span>
+          </div>
+        )}
+
+        <motion.div
+          className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg border-dashed border-2 border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 transition-colors duration-200 cursor-pointer"
+          onClick={() => setShowCreateModal(true)}
+          variants={itemVariants}
+          whileHover={{ scale: 1.05 }}
+        >
+          <Plus className="text-orange-500 dark:text-orange-400 w-5 h-5 mr-2" />
+          <button
+            className="text-orange-500 dark:text-orange-400 text-lg font-medium hover:text-orange-600 dark:hover:text-orange-500 transition-colors duration-200"
+            disabled={creating}
+          >
+            {creating ? "Creating..." : "Add Event"}
+          </button>
+        </motion.div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Events List</h2>
+
+          {loading ? (
+            <p className="text-center text-gray-500 dark:text-gray-300">Loading events...</p>
+          ) : events.length === 0 ? (
+            <p className="text-center text-gray-600 dark:text-gray-400">No events available.</p>
+          ) : (
+            <motion.div className="overflow-x-auto" variants={itemVariants}>
+              <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
+                    <th className="py-3 px-6 text-left">Event ID</th>
+                    <th className="py-3 px-6 text-left">Admin Name</th>
+                    <th className="py-3 px-6 text-left">Title</th>
+                    <th className="py-3 px-6 text-left">Description</th>
+                    <th className="py-3 px-6 text-left">Start Date</th>
+                    <th className="py-3 px-6 text-left">End Date</th>
+                    <th className="py-3 px-6 text-left">Image</th>
+                    <th className="py-3 px-6 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
+                  {events.map((event) => (
+                    <motion.tr
+                      key={event.event_id}
+                      className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                      variants={itemVariants}
+                      whileHover={{ backgroundColor: "#ddd" }}
+                    >
+                      <td className="py-3 px-6">{event.event_id}</td>
+                      <td className="py-3 px-6">{user.name}</td>
+                      <td className="py-3 px-6">{event.title}</td>
+                      <td className="py-3 px-6">{event.description}</td>
+                      <td className="py-3 px-6">{new Date(event.start_date).toLocaleDateString()}</td>
+                      <td className="py-3 px-6">{new Date(event.end_date).toLocaleDateString()}</td>
+                      <td className="py-3 px-6">
+                        {event.image_url && (
+                          <Image
+                            src={event.image_url}
+                            alt={event.title}
+                            width={50}
+                            height={50}
+                            className="rounded-full object-cover"
+                          />
+                        )}
+                      </td>
+                      <td className="py-3 px-6 whitespace-nowrap">
+                        <button
+                          onClick={() => handleEdit(event)}
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeletingEventId(event.event_id);
+                            setShowDeleteModal(true);
+                          }}
+                          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Edit Event Modal */}
@@ -463,6 +481,6 @@ export default function EventsManagement() {
           imageFile={imageFile} // Pass the file too
         />
       )}
-    </div>
+    </motion.div>
   );
 }

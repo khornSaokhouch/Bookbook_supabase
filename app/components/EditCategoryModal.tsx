@@ -1,13 +1,23 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
+import { motion } from "framer-motion";
+import { XCircle, ImageIcon, AlertTriangle } from "lucide-react";
 
-type EditCategoryModalProps = {
+type Category = {
+  category_id: string;
+  category_name: string;
+  image: string;
+};
+
+interface EditCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   category: Category | null;
   onCategoryUpdated: () => void;
-};
+}
 
 const EditCategoryModal = ({
   isOpen,
@@ -34,7 +44,6 @@ const EditCategoryModal = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      // Basic client-side file size check (e.g., limit to 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image file is too large. Maximum size is 5MB.");
         setImageFile(null);
@@ -43,7 +52,7 @@ const EditCategoryModal = ({
       }
 
       setImageFile(file);
-      setImagePreview(URL.createObjectURL(file)); // Preview the image
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -54,7 +63,6 @@ const EditCategoryModal = ({
     setError(null);
     let updatedImageUrl = image;
 
-    // If the user has selected a new image, upload it to Supabase
     if (imageFile) {
       try {
         const fileName = `${uuidv4()}-${imageFile.name}`;
@@ -70,7 +78,7 @@ const EditCategoryModal = ({
         if (storageError) throw storageError;
 
         updatedImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error uploading image:", error);
         setError("Image upload failed. Please try again.");
         setLoading(false);
@@ -89,7 +97,7 @@ const EditCategoryModal = ({
 
         onCategoryUpdated(); // Callback to refresh data
         onClose(); // Close modal
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error updating category:", error);
         setError("Category update failed. Please try again.");
       } finally {
@@ -98,16 +106,55 @@ const EditCategoryModal = ({
     }
   };
 
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
   return (
     <>
       {isOpen && category && (
-        <div className="fixed inset-0 flex items-center justify-center m-auto bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
-            <h3 className="text-2xl font-bold mb-4">Edit Category</h3>
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="categoryName" className="block font-semibold">
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-50"
+          variants={backdropVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+        >
+          <motion.div
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full"
+            variants={modalVariants}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                Edit Category
+              </h3>
+              <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-100 text-red-600 p-3 rounded-md mb-4 flex items-center">
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                {error}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="categoryName"
+                  className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
+                >
                   Category Name
                 </label>
                 <input
@@ -115,48 +162,62 @@ const EditCategoryModal = ({
                   id="categoryName"
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded mt-2"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label htmlFor="imageFile" className="block font-semibold">
+
+              <div>
+                <label
+                  htmlFor="imageFile"
+                  className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
+                >
                   Image (Optional)
                 </label>
-                <input
-                  type="file"
-                  id="imageFile"
-                  onChange={handleImageChange}
-                  className="w-full p-2 border border-gray-300 rounded mt-2"
-                  accept="image/*"
-                />
+                <label
+                  htmlFor="imageFile"
+                  className="relative cursor-pointer bg-gray-100 dark:bg-gray-700 border border-dashed border-gray-400 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                >
+                  <ImageIcon className="w-6 h-6 text-gray-500 dark:text-gray-500 mb-2" />
+                  <span className="text-gray-500 dark:text-gray-500 text-sm">
+                    Click to Upload
+                  </span>
+                  <input
+                    type="file"
+                    id="imageFile"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0"
+                    accept="image/*"
+                  />
+                </label>
                 {imagePreview && (
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="mt-2 w-24 h-24 object-cover rounded"
+                    className="mt-2 w-24 h-24 object-cover rounded-full mx-auto"
                   />
                 )}
               </div>
-              <div className="flex justify-between">
+
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300 font-semibold rounded focus:outline-none focus:shadow-outline transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded focus:outline-none focus:shadow-outline transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </>
   );

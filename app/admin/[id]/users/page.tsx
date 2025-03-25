@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import DeleteUserModal from "../../../components/DeleteUserModal";
-import EditUserModal from "../../../components/EditUserModal"; // Ensure this component exists
+import EditUserModal from "../../../components/EditUserModal";
+import { motion } from "framer-motion";
+import { Edit, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 
 type User = {
   user_id: string;
@@ -26,6 +28,16 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -54,7 +66,6 @@ const UserManagement = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user.user_id !== user_id));
       setIsDeleteModalOpen(false);
       setSuccessMessage("User deleted successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error("Error deleting user:", err);
       setError(`Error deleting user: ${err.message}`);
@@ -87,57 +98,107 @@ const UserManagement = () => {
       );
       setIsEditModalOpen(false);
       setSuccessMessage("User updated successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error("Unexpected error updating user:", err);
       setError(`Error updating user: ${err.message}`);
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+  };
+
+  const tableVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    hover: { backgroundColor: "#f9f9f9" },
+  };
+
   return (
-      <div className="container mx-auto p-4 md:p-8">
-        <h1 className="text-2xl font-semibold mb-4">Users</h1>
-        <p className="mb-4 text-gray-600">Manage users here. You can edit or remove users.</p>
+    <motion.div
+      className="container mx-auto p-4 md:p-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
+        <h1 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">Users</h1>
+        <p className="mb-4 text-gray-600 dark:text-gray-400">Manage users here. You can edit or remove users.</p>
 
         {/* Success Message */}
         {successMessage && (
-          <div className="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded shadow-lg z-50">
+          <motion.div
+            className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+            exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+          >
+            <CheckCircle className="w-5 h-5 mr-2" />
             {successMessage}
-          </div>
+          </motion.div>
         )}
 
         {/* Error Message */}
-        {error && <div className="text-red-600 bg-red-100 p-4 rounded-lg mb-6">{error}</div>}
+        {error && (
+          <motion.div
+            className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+            exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+          >
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            {error}
+          </motion.div>
+        )}
 
         {loading ? (
-          <div className="text-center">Loading users...</div>
+           <div className="flex justify-center items-center h-48">
+           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+         </div>
         ) : (
-          <div className="overflow-x-auto mt-6 bg-white rounded-lg shadow">
-            <table className="min-w-full bg-white border border-gray-200">
+          <motion.div
+            className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow"
+            variants={tableVariants}
+          >
+            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <thead>
-                <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left">ID</th>
-                  <th className="py-3 px-6 text-left">Name</th>
-                  <th className="py-3 px-6 text-left">Email</th>
-                  <th className="py-3 px-6 text-left">Role</th>
-                  <th className="py-3 px-6 text-left">Date Created</th>
-                  <th className="py-3 px-6 text-left">Action</th>
+                <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left text-white">ID</th>
+                  <th className="py-3 px-6 text-left text-white">Name</th>
+                  <th className="py-3 px-6 text-left text-white">Email</th>
+                  <th className="py-3 px-6 text-left text-white">Role</th>
+                  <th className="py-3 px-6 text-left text-white">Date Created</th>
+                  <th className="py-3 px-6 text-left text-white">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-gray-600 text-sm font-light">
+              <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
                 {users.length > 0 ? (
                   users.map((user) => (
-                    <tr key={user.user_id} className="border-b hover:bg-gray-50">
+                    <motion.tr
+                      key={user.user_id}
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      variants={rowVariants}
+                      whileHover="hover"
+                    >
                       <td className="py-3 px-6">{user.user_id}</td>
                       <td className="py-3 px-6">{user.user_name}</td>
                       <td className="py-3 px-6">{user.email}</td>
                       <td className="py-3 px-6 capitalize">{user.role}</td>
-                      <td className="py-3 px-6">{new Date(user.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-6">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </td>
                       <td className="py-3 px-6 whitespace-nowrap">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="mr-2 text-blue-600 hover:underline"
+                          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
                         >
+                          <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </button>
                         <button
@@ -145,23 +206,24 @@ const UserManagement = () => {
                             setDeleteUserId(user.user_id);
                             setIsDeleteModalOpen(true);
                           }}
-                          className="text-red-600 hover:underline"
+                          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
                         >
+                          <Trash2 className="h-4 w-4 mr-2" />
                           Delete
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-6">
+                    <td colSpan={6} className="text-center py-6 text-gray-500 dark:text-gray-300">
                       No users found.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
+          </motion.div>
         )}
 
         {/* Edit User Modal */}
@@ -182,6 +244,7 @@ const UserManagement = () => {
           />
         )}
       </div>
+    </motion.div>
   );
 };
 

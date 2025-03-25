@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { CheckCircle, AlertTriangle, User as UserIcon } from "lucide-react";
 
 type User = {
   user_id: string;
@@ -21,7 +25,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
     const { name, value } = e.target;
     setUpdatedUser((prevUser) => ({
       ...prevUser,
-      [name]: value.trim(), // Prevents leading/trailing spaces
+      [name]: value.trim(),
     }));
   };
 
@@ -53,72 +57,108 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
     onSave(trimmedUser);
   };
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-semibold mb-4">Edit User</h2>
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
 
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex justify-center items-center bg-opacity-50"
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
+      <motion.div
+        className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full"
+        variants={modalVariants}
+      >
+        {/* Header */}
+        <div className="flex items-center mb-6">
+          <UserIcon className="w-6 h-6 text-blue-500 mr-2" />
+          <h2 className="text-2xl font-semibold text-gray-800">Edit User</h2>
+        </div>
+
+        {/* Error Message */}
         {errorMessage && (
-          <div className="text-red-600 mb-4 p-2 bg-red-100 rounded-md">{errorMessage}</div>
+          <div className="bg-red-100 text-red-600 p-3 rounded-md mb-4 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            {errorMessage}
+          </div>
         )}
 
-        <label className="block mb-2 font-medium" htmlFor="user_name">
-          Name
-        </label>
-        <input
-          type="text"
-          name="user_name"
-          value={updatedUser.user_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded mb-4"
-          id="user_name"
-          aria-label="User name"
-        />
+        {/* Form */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="user_name">
+              Name
+            </label>
+            <input
+              type="text"
+              name="user_name"
+              value={updatedUser.user_name}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="user_name"
+              placeholder="Enter user name"
+            />
+          </div>
 
-        <label className="block mb-2 font-medium" htmlFor="email">
-          Email
-        </label>
-        <input
-          type="email"
-          name="email"
-          value={updatedUser.email}
-          onChange={handleChange}
-          className="w-full border p-2 rounded mb-4"
-          id="email"
-          aria-label="User email"
-        />
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={updatedUser.email}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="email"
+              placeholder="Enter email"
+            />
+          </div>
 
-        <label className="block mb-2 font-medium" htmlFor="role">
-          Role
-        </label>
-        <select
-          name="role"
-          value={updatedUser.role}
-          onChange={handleChange}
-          className="w-full border p-2 rounded mb-4"
-          id="role"
-          aria-label="User role"
-        >
-          <option value="User">User</option>
-          <option value="Admin">Admin</option>
-        </select>
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+              Role
+            </label>
+            <select
+              name="role"
+              value={updatedUser.role}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="role"
+            >
+              <option value="User">User</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+        </div>
 
-        <div className="mt-6 flex justify-end space-x-2">
+        {/* Actions */}
+        <div className="flex justify-end mt-8 space-x-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
           >
             Save
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

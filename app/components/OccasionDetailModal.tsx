@@ -1,5 +1,9 @@
-// OccasionDetailModal.tsx
+"use client";
+
 import React from "react";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import { XCircle } from "lucide-react";
 
 interface OccasionDetailModalProps {
   isOpen: boolean;
@@ -16,40 +20,71 @@ const OccasionDetailModal: React.FC<OccasionDetailModalProps> = ({
   onClose,
   occasion,
 }) => {
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
   if (!isOpen || !occasion) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3 text-center">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+    <motion.div
+      className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
+      <motion.div
+        className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full"
+        variants={modalVariants}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
             Occasion Details
           </h3>
-          <div className="mt-2 px-7 py-3">
-            <p className="text-sm text-gray-500">
-              <strong>Name:</strong> {occasion.name}
-            </p>
-            {/* Display image, error handle for missing image */}
-            <img src={occasion.occasion_image || "/default-image.jpg"} alt={occasion.name} className="mx-auto my-4 h-32 w-32 object-cover rounded-full" />
-            <p className="text-sm text-gray-500">
-              <strong>ID:</strong> {occasion.occasion_id}
-            </p>
-
-            {/* Add more occasion details here as needed */}
-          </div>
-          <div className="items-center px-4 py-3">
-            <button
-              className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              onClick={onClose}
-            >
-              Close
-            </button>
-          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <XCircle className="w-6 h-6" />
+          </button>
         </div>
-      </div>
-    </div>
+
+        {/* Content */}
+        <div className="text-center">
+          <Image
+            src={occasion.occasion_image || "/default-image.jpg"}
+            alt={occasion.name}
+            width={120}
+            height={120}
+            className="mx-auto mb-4 rounded-full object-cover shadow-md"
+          />
+          <p className="text-gray-700 dark:text-gray-300 mb-2">
+            <strong>Name:</strong> {occasion.name}
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <strong>ID:</strong> {occasion.occasion_id}
+          </p>
+          {/* Add more occasion details here as needed */}
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end mt-8">
+          <button
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded focus:outline-none focus:shadow-outline transition-colors"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

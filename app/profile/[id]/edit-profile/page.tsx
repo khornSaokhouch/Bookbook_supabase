@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabaseClient";
-import UserLayout from "../../components/UserLayout";
-import ConfirmationModal from "../../components/ConfirmationModal";
+import { supabase } from "../../../lib/supabaseClient";
+import ConfirmationModal from "../../../components/ConfirmationModal";
 
 // Function to fetch user data by ID
 export const getUserById = async (userId: string) => {
@@ -128,16 +127,13 @@ const EditProfile = () => {
 
   if (!user) {
     return (
-      <UserLayout>
         <div className="container mx-auto px-10 py-10">
           <h1 className="text-3xl font-bold mb-6 ml-[100px]">Loading...</h1>
         </div>
-      </UserLayout>
     );
   }
 
   return (
-    <UserLayout>
       <div className="container mx-auto px-10 py-10">
         <h1 className="text-3xl font-bold mb-6 ml-[100px]">Edit Profile</h1>
         
@@ -231,7 +227,6 @@ const EditProfile = () => {
           onConfirm={handleConfirmUpdate}
         />
       </div>
-    </UserLayout>
   );
 };
 

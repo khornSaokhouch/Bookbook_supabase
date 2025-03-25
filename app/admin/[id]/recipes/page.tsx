@@ -8,8 +8,10 @@ import AddOccasionModal from "../../../components/AddOccasionModal";
 import EditCategoryModal from "../../../components/EditCategoryModal";
 import EditOccasionModal from "../../../components/EditOccasionModal";
 import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
-import CategoryDetailModal from "../../../components/CategoryDetailModal"; // Import Category Detail Modal
-import OccasionDetailModal from "../../../components/OccasionDetailModal"; // Import Occasion Detail Modal
+import CategoryDetailModal from "../../../components/CategoryDetailModal";
+import OccasionDetailModal from "../../../components/OccasionDetailModal";
+import { motion } from "framer-motion";
+import { Plus, Edit, Trash2, Eye, CheckCircle, AlertTriangle } from "lucide-react";
 
 type Category = {
   category_id: string;
@@ -38,8 +40,6 @@ export default function RecipeManagement() {
   const [deleteItemType, setDeleteItemType] =
     useState<"category" | "occasion">("category");
   const [itemToDelete, setItemToDelete] = useState<string>("");
-
-  // State for detail modals
   const [showCategoryDetailModal, setShowCategoryDetailModal] =
     useState(false);
   const [showOccasionDetailModal, setShowOccasionDetailModal] =
@@ -50,6 +50,8 @@ export default function RecipeManagement() {
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | null>(
     null
   );
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -61,8 +63,8 @@ export default function RecipeManagement() {
       const { data, error } = await supabase.from("category").select("*");
       if (error) throw error;
       setCategories(data || []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+    } catch (error:any) {
+          setError(`Error fetching categories: ${error.message}`);
     }
   };
 
@@ -71,26 +73,31 @@ export default function RecipeManagement() {
       const { data, error } = await supabase.from("occasion").select("*");
       if (error) throw error;
       setOccasions(data || []);
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error fetching occasions:", error);
+        setError(`Error fetching occasions: ${error.message}`);
     }
   };
 
   const deleteCategory = async (id: string) => {
     try {
-      await supabase.from("category").delete().eq("category_id", id);
+      const { error } = await supabase.from("category").delete().eq("category_id", id);
+      if (error) throw error;
+          setSuccessMessage("Category deleted successfully!");
       fetchCategories();
-    } catch (error) {
-      console.error("Error deleting category:", error);
+    } catch (error:any) {
+        setError(`Error deleting category: ${error.message}`);
     }
   };
 
   const deleteOccasion = async (id: string) => {
     try {
-      await supabase.from("occasion").delete().eq("occasion_id", id);
+      const { error } = await supabase.from("occasion").delete().eq("occasion_id", id);
+      if (error) throw error;
+        setSuccessMessage("Occasion deleted successfully!");
       fetchOccasions();
-    } catch (error) {
-      console.error("Error deleting occasion:", error);
+    } catch (error:any) {
+        setError(`Error deleting occasion: ${error.message}`);
     }
   };
 
@@ -106,6 +113,7 @@ export default function RecipeManagement() {
     } else if (deleteItemType === "occasion") {
       deleteOccasion(itemToDelete);
     }
+    setShowDeleteConfirmation(false);
   };
 
   const handleEditCategory = (category: Category) => {
@@ -118,116 +126,223 @@ export default function RecipeManagement() {
     setShowEditOccasionModal(true);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+  };
+
+    const tableVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
+
+    const rowVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+        hover: { backgroundColor: "#f9f9f9" },
+    };
+
+
   return (
-    <main className="container mx-auto p-4 md:p-8">
-      <div className="bg-gray-50 min-h-screen p-4 md:p-8">
-        <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6">Recipe Category</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {categories.map((category) => (
-              <div
-                key={category.category_id}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition duration-200 flex flex-col items-center justify-center"
+    <motion.main
+      className="container mx-auto p-4 md:p-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
+
+          {/* Error Message */}
+          {error && (
+              <motion.div
+                  className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+                  exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
               >
-                <Image
-                  src={category.image || "/default-image.jpg"}
-                  alt={category.category_name}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 rounded-full object-cover mx-auto mb-2"
-                />
-                <h3 className="text-lg font-semibold text-center mb-2">
-                  {category.category_name}
-                </h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setShowCategoryDetailModal(true);
-                    }}
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg text-center hover:bg-orange-600 transition-colors duration-200"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleEditCategory(category)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleDeleteItem(category.category_id, "category")
-                    }
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-            <div className="flex items-center justify-center bg-gray-100 p-4 rounded-lg border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors duration-200">
+                  <AlertTriangle className="w-5 h-5 mr-2" />
+                  {error}
+              </motion.div>
+          )}
+
+          {/* Success Message */}
+          {successMessage && (
+              <motion.div
+                  className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0, transition: { duration: 0.5 } }}
+                  exit={{ opacity: 0, x: 20, transition: { duration: 0.5 } }}
+              >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {successMessage}
+              </motion.div>
+          )}
+
+        <section className="mb-8 md:mb-12">
+          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Recipe Categories</h2>
+          <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left text-white">ID</th>
+                  <th className="py-3 px-6 text-left text-white">Image</th>
+                  <th className="py-3 px-6 text-left text-white">Name</th>
+                  <th className="py-3 px-6 text-right text-white">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <motion.tr
+                      key={category.category_id}
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      variants={rowVariants}
+                      whileHover="hover"
+                    >
+                      <td className="py-3 px-6">{category.category_id}</td>
+                      <td className="py-3 px-6">
+                        <Image
+                          src={category.image || "/default-image.jpg"}
+                          alt={category.category_name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </td>
+                      <td className="py-3 px-6">{category.category_name}</td>
+                      <td className="py-3 px-6 whitespace-nowrap text-right">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setShowCategoryDetailModal(true);
+                            }}
+                            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteItem(category.category_id, "category")
+                            }
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
+                      No categories found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <div className="flex items-center justify-center p-4">
               <button
                 onClick={() => setShowAddCategoryModal(true)}
-                className="text-orange-500 text-lg font-medium hover:text-orange-600 transition-colors duration-200"
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
-                + Add Category
+                <Plus className="h-4 w-4 mr-2" />
+                Add Category
               </button>
             </div>
           </div>
         </section>
 
         <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6">Occasion</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {occasions.map((occasion) => (
-              <div
-                key={occasion.occasion_id}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition duration-200 flex flex-col items-center justify-center"
-              >
-                <Image
-                  src={occasion.occasion_image || "/default-image.jpg"}
-                  alt={occasion.name}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 rounded-full object-cover mx-auto mb-2"
-                />
-                <h3 className="text-lg font-semibold text-center mb-2">
-                  {occasion.name}
-                </h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedOccasion(occasion);
-                      setShowOccasionDetailModal(true);
-                    }}
-                    className="bg-orange-500 text-white px-4 py-2 rounded-lg text-center hover:bg-orange-600 transition-colors duration-200"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleEditOccasion(occasion)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleDeleteItem(occasion.occasion_id, "occasion")
-                    }
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-            <div className="flex items-center justify-center bg-gray-100 p-4 rounded-lg border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors duration-200">
+          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Occasions</h2>
+          <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
+                  <th className="py-3 px-6 text-left text-white">ID</th>
+                  <th className="py-3 px-6 text-left text-white">Image</th>
+                  <th className="py-3 px-6 text-left text-white">Name</th>
+                  <th className="py-3 px-6 text-right text-white">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
+                {occasions.length > 0 ? (
+                  occasions.map((occasion) => (
+                    <motion.tr
+                      key={occasion.occasion_id}
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      variants={rowVariants}
+                      whileHover="hover"
+                    >
+                      <td className="py-3 px-6">{occasion.occasion_id}</td>
+                      <td className="py-3 px-6">
+                        <Image
+                          src={occasion.occasion_image || "/default-image.jpg"}
+                          alt={occasion.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </td>
+                      <td className="py-3 px-6">{occasion.name}</td>
+                      <td className="py-3 px-6 whitespace-nowrap text-right">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => {
+                              setSelectedOccasion(occasion);
+                              setShowOccasionDetailModal(true);
+                            }}
+                            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditOccasion(occasion)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteItem(occasion.occasion_id, "occasion")
+                            }
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
+                      No occasions found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <div className="flex items-center justify-center p-4">
               <button
                 onClick={() => setShowAddOccasionModal(true)}
-                className="text-orange-500 text-lg font-medium hover:text-orange-600 transition-colors duration-200"
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
-                + Add Occasion
+                <Plus className="h-4 w-4 mr-2" />
+                Add Occasion
               </button>
             </div>
           </div>
@@ -277,6 +392,6 @@ export default function RecipeManagement() {
         onConfirm={handleConfirmDelete}
         itemType={deleteItemType}
       />
-    </main>
+    </motion.main>
   );
-}
+}  

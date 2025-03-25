@@ -1,4 +1,8 @@
+"use client";
+
 import React from "react";
+import { motion } from "framer-motion";
+import { AlertTriangle, XCircle } from "lucide-react"; // Icons
 
 type DeleteConfirmationModalProps = {
   isOpen: boolean;
@@ -13,33 +17,67 @@ const DeleteConfirmationModal = ({
   onConfirm,
   itemType,
 }: DeleteConfirmationModalProps) => {
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center  bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
-        <h3 className="text-2xl font-bold mb-4">
-          Are you sure you want to delete this {itemType}?
-        </h3>
-        <div className="flex justify-between">
+    <motion.div
+      className="fixed inset-0 z-50 flex justify-center items-center  bg-opacity-50"
+      variants={backdropVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
+      <motion.div
+        className="bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full"
+        variants={modalVariants}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />
+            Confirm Delete
+          </h3>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Confirmation Message */}
+        <p className="text-gray-700 dark:text-gray-300 mb-6">
+          Are you sure you want to delete this {itemType}? This action cannot be
+          undone.
+        </p>
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded focus:outline-none focus:shadow-outline transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
           <button
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-semibold rounded focus:outline-none focus:shadow-outline transition-colors"
           >
             Confirm Delete
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

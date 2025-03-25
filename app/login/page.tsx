@@ -8,41 +8,53 @@ import Link from "next/link";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-    setError("");
+    setErrorMessage("");
 
     try {
       // Fetch the user from the database
       const { data, error } = await supabase
         .from("users")
-        .select("*, role") // Changed select query to include role
+        .select("*, role, user_id") // Changed select query to include role and user_id
         .eq("email", email)
         .single();
 
       if (error || !data) {
-        throw new Error("User not found.");
+        throw new Error("Invalid username or password.");
       }
 
       // Password validation - replace with your hashing logic
-      // Assuming you have a function 'comparePasswords' that compares the entered password with the stored hash
-      // const passwordMatch = await comparePasswords(password, data.hashed_password);
+
       const passwordMatch = true; //This code will be removed
 
       if (!passwordMatch) {
-        throw new Error("Invalid password.");
+        throw new Error("Invalid username or password.");
       }
 
+      // Set the 'user' cookie with the user data
+      document.cookie = `user=${encodeURIComponent(
+        JSON.stringify({
+          id: data.user_id, // Include the user ID
+          email: data.email, // Include the user email
+          // Add other user data as needed
+        })
+      )}; path=/; max-age=${30 * 24 * 60 * 60}`;
+
       // On successful login, redirect the user based on their role
-      router.push(data.role === "Admin" ? "/admin/`${data.id}`/dashboard" : "user/`${data.id}`/add-recipe");
+      const redirectUrl =
+        data.role === "Admin"
+          ? `/admin/${data.user_id}/dashboard`
+          : `/user/${data.user_id}/home`;
+      router.push(redirectUrl);
     } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.message || "An error occurred during login. Please try again.");
+      console.error("Error during sign-in:", err);
+      setErrorMessage(err.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +66,9 @@ export default function LoginPage() {
         <div className="flex-grow">
           <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Welcome Back</h1>
 
-          {error && (
+          {errorMessage && (
             <p className="text-red-500 text-center mb-4 bg-red-100 border border-red-300 py-2 px-4 rounded-md">
-              {error}
+              {errorMessage}
             </p>
           )}
 

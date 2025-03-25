@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import UserLayout from "../../../components/UserLayout"; // Import UserLayout
 import { createClient } from "@supabase/supabase-js";
 
 // Create a Supabase client instance (adjust this to your project configuration)
@@ -61,7 +60,6 @@ export default function ResetPassword() {
   };
 
   return (
-    <UserLayout>
       <div className="container mx-auto px-10 py-10">
         <h1 className="text-3xl font-bold mb-6 ml-[100px]">Reset Password</h1>
         <div className="flex justify-center space-x-8">
@@ -105,6 +103,5 @@ export default function ResetPassword() {
           </div>
         </div>
       </div>
-    </UserLayout>
   );
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import { motion } from "framer-motion";
+import LogoutConfirmationModal from "../../components/LogoutConfirmationModal"; // Import the new component
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -13,34 +15,74 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminName, setAdminName] = useState<string | null>(null);
   const [adminImageUrl, setAdminImageUrl] = useState<string | null>(null);
-  const [adminEmail, setAdminEmail] = useState<string | null>(null); // Add email state
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-      router.push("/"); // Redirect to the home page after logout
+      router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
-      // Optionally display an error message to the user
     }
-  };
+  }, [router]);
+
+  const confirmLogout = useCallback(() => {
+    handleLogout();
+    setIsLogoutModalOpen(false);
+  }, [handleLogout]);
+
+  const openLogoutModal = useCallback((e) => {
+    e.preventDefault();
+    setIsLogoutModalOpen(true);
+  }, []);
 
   const menuItems = userId
-  ? [
-    { id: "home", href: "/", label: "Home", icon: "home" },
-    { id: "dashboard", href: `/admin/${userId}/dashboard`, label: "Dashboard", icon: "dashboard" },
-    { id: "users", href: `/admin/${userId}/users`, label: "Users", icon: "people" },
-    { id: "recipes", href: `/admin/${userId}/recipes`, label: "Recipes", icon: "restaurant_menu" },
-    { id: "events", href: `/admin/${userId}/events`, label: "Events", icon: "event" },
-    { id: "logout", href: "/", label: "Logout", icon: "logout", onClick: handleLogout }, // Added logout item
-  ]
-  : []; // If no user ID, menu is empty
+    ? [
+        { id: "home", href: "/", label: "Home", icon: "home" },
+        {
+          id: "dashboard",
+          href: `/admin/${userId}/dashboard`,
+          label: "Dashboard",
+          icon: "dashboard",
+        },
+        {
+          id: "users",
+          href: `/admin/${userId}/users`,
+          label: "Users",
+          icon: "people",
+        },
+        {
+          id: "recipes",
+          href: `/admin/${userId}/recipes`,
+          label: "Recipes",
+          icon: "restaurant_menu",
+        },
+        {
+          id: "events",
+          href: `/admin/${userId}/events`,
+          label: "Events",
+          icon: "event",
+        },
+        {
+          id: "logout",
+          href: "/",
+          label: "Logout",
+          icon: "logout",
+          onClick: openLogoutModal ,
+        },
+      ]
+    : [];
 
   const getUserIdFromCookies = () => {
     if (typeof document === "undefined") {
-      return; // Exit if document is not available (SSR)
+      return;
     }
     const cookies = document.cookie.split("; ");
     const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
@@ -55,17 +97,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getAdminProfile = async (userId: string | null) => {
-    // Accept potentially null userId
     if (!userId) {
       console.log("getAdminProfile: No userId available yet.");
-      return; // Exit if no userId
+      return;
     }
 
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("user_name, image_url, email") // Select email as well
-        .eq("user_id", userId) // Use user_id
+        .select("user_name, image_url, email")
+        .eq("user_id", userId)
         .single();
 
       if (error) {
@@ -74,7 +115,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         console.log("getAdminProfile: Data fetched:", data);
         setAdminName(data?.user_name || "Admin");
         setAdminImageUrl(data?.image_url || null);
-        setAdminEmail(data?.email || null); // Set the email state here!
+        setAdminEmail(data?.email || null);
       }
     } catch (error) {
       console.error("Error fetching admin profile:", error);
@@ -92,15 +133,31 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (isMounted && userId && adminName) {
+      setTimeout(() => {
+        setIsLayoutReady(true);
+      }, 100);
+    }
+  }, [isMounted, userId, adminName]);
+
+  useEffect(() => {
+    // Simulate a loading period
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const getInitials = (email: string | null, name: string | null) => {
     if (name) {
       const parts = name.split(" ");
       return parts.map((part) => part.charAt(0).toUpperCase()).join("");
     }
-    if (!email) return ""; // Fallback if no email
-    const username = email.split("@")[0]; // Get the part before the @
+    if (!email) return "";
+    const username = email.split("@")[0];
     const firstLetter = username.charAt(0).toUpperCase();
-    return firstLetter; // Or first two letters, etc.
+    return firstLetter;
   };
 
   if (!isMounted) {
@@ -108,37 +165,101 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   }
   const initials = getInitials(adminEmail, adminName);
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+  };
+
+  const handleSearchBlur = () => {
+    setIsSearchFocused(false);
+  };
+
+  const layoutVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const sidebarVariants = {
+    hidden: { x: "-100%" },
+    visible: { x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.4, delay: 0.2 } },
+  };
+
+  // Animation Variants for Menu Items
+  const menuItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+  };
+ if (isLoading) {
+    return <div className="flex justify-center items-center h-48">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+  </div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+    <motion.div
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row transition-colors duration-300"
+      variants={layoutVariants}
+      initial="hidden"
+      animate={isLayoutReady ? "visible" : "hidden"}
+    >
       {/* Sidebar */}
-      <aside
-        className={`bg-white shadow-md w-full md:w-64 fixed top-0 left-0 h-full z-40 transform transition-transform duration-300 ease-in-out md:relative ${
+      <motion.aside
+        className={`bg-white dark:bg-gray-800 shadow-md w-full md:w-64 fixed top-0 left-0 h-full z-40 transform transition-transform duration-300 ease-in-out md:relative ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
+        variants={sidebarVariants}
       >
         <div className="flex items-center justify-between p-4">
-          <Link href="/">
+          <Link href="/" className="flex items-center justify-center">
             <Image src="/logo.png" alt="CookBook Logo" width={90} height={90} />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="md:hidden focus:outline-none"
           >
-            <X className="h-6 w-6 text-gray-600" />
+            <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
         <nav className="mt-8">
-        <ul className="space-y-2">
+          <ul className="space-y-2">
             {menuItems.map(({ id, href, label, icon, onClick }) => (
-              <li key={id || label}>
+              <motion.li
+                key={id || label}
+                variants={menuItemVariants} // Apply animation variants
+                initial="hidden"
+                animate={isLayoutReady ? "visible" : "hidden"}
+              >
                 {href ? (
                   <Link
                     href={href}
-                    className={`flex items-center px-4 py-3 rounded-md hover:bg-gray-100 transition-colors duration-200 ${
+                    className={`flex items-center px-4 py-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 ${
                       pathname === href
-                        ? "bg-blue-500 text-white hover:bg-blue-600"
-                        : "text-gray-700"
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : "text-gray-700 dark:text-gray-300"
                     }`}
                   >
                     <span className="mr-3 material-icons">{icon}</span>
@@ -147,44 +268,50 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 ) : (
                   <button
                     onClick={onClick}
-                    className={`flex items-center px-4 py-3 rounded-md hover:bg-gray-100 transition-colors duration-200 text-gray-700 w-full text-left`}
+                    className={`flex items-center px-4 py-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300 w-full text-left`}
                   >
                     <span className="mr-3 material-icons">{icon}</span>
                     {label}
                   </button>
                 )}
-              </li>
+              </motion.li>
             ))}
           </ul>
         </nav>
-      </aside>
+      </motion.aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between p-4 bg-white shadow-sm">
+        <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-sm transition-colors duration-300">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="md:hidden focus:outline-none"
           >
-            <Menu className="h-6 w-6 text-gray-600" />
+            <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </button>
 
           {/* Search Bar */}
-          <div className="relative mx-5">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md px-4 py-2 w-full max-w-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10" 
-          />
-          <img
-            src="https://img.icons8.com/ios7/512/search.png"
-            alt="search icon"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2"
-            width="20"
-            height="20"
-          />
-        </div>
+          <div className="relative mx-5 w-full max-w-md">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+              className={`border rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+                isSearchFocused
+                  ? "shadow-md"
+                  : "border-gray-300 dark:border-gray-600"
+              }`}
+            />
+            <img
+              src="https://img.icons8.com/ios7/512/search.png"
+              alt="search icon"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+            />
+          </div>
 
           {/* Profile */}
           <div className="flex items-center space-x-3">
@@ -197,20 +324,35 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                 className="rounded-full object-cover"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-lg font-medium text-gray-700">
+              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
                   {initials}
                 </span>
               </div>
             )}
-            <span className="font-medium">{adminName || "Loading..."}</span>
+            <span className="font-medium dark:text-white">
+              {adminName || "Loading..."}
+            </span>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <motion.main
+          className="flex-1 overflow-x-hidden p-4"
+          variants={contentVariants}
+        >
+          <div className="bg-white dark:bg-gray-800 shadow-md rounded-md p-4 transition-colors duration-300">
+            {children}
+          </div>
+        </motion.main>
       </div>
-    </div>
+       {/* Logout Confirmation Modal */}
+       <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={confirmLogout}
+      />
+    </motion.div>
   );
 };
 
