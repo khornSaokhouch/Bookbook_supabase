@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Ensure this runs on the client side
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -18,43 +18,46 @@ export default function LoginPage() {
     setErrorMessage("");
 
     try {
-      // Fetch the user from the database
-      const { data, error } = await supabase
-        .from("users")
-        .select("*, role, user_id") // Changed select query to include role and user_id
-        .eq("email", email)
-        .single();
+      // Sign in the user using Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error || !data) {
-        throw new Error("Invalid username or password.");
+        throw new Error(error?.message || "Failed to sign in. Please check your credentials.");
       }
 
-      // Password validation - replace with your hashing logic
+      // Store user data in the cookie
+      const user = data.user;
+      // Get the user's metadata, assuming role is saved there
+      const { data: userMetadata, error: metadataError } = await supabase
+        .from("users")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
 
-      const passwordMatch = true; //This code will be removed
-
-      if (!passwordMatch) {
-        throw new Error("Invalid username or password.");
+      if (metadataError) {
+        throw new Error(metadataError.message || "Failed to fetch user metadata.");
       }
 
-      // Set the 'user' cookie with the user data
+      const role = userMetadata?.role || "User"; // Default to "User" if no role is found
+
+      // Store the user information in a cookie for later use
       document.cookie = `user=${encodeURIComponent(
         JSON.stringify({
-          id: data.user_id, // Include the user ID
-          email: data.email, // Include the user email
-          // Add other user data as needed
+          id: user.id,
+          email: user.email,
+          role: role, // Store the role in the cookie
         })
       )}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
-      // On successful login, redirect the user based on their role
+      // Redirect based on user role (Admin or User)
       const redirectUrl =
-        data.role === "Admin"
-          ? `/admin/${data.user_id}/dashboard`
-          : `/user/${data.user_id}/home`;
+        role === "Admin" ? `/admin/${user.id}/dashboard` : `/user/${user.id}/home`;
       router.push(redirectUrl);
     } catch (err: any) {
-      console.error("Error during sign-in:", err);
-      setErrorMessage(err.message || "Failed to sign in. Please check your credentials.");
+      setErrorMessage(err.message || "Failed to sign in. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +78,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                Username or Email
+                Email
               </label>
               <input
                 type="email"
@@ -83,7 +86,7 @@ export default function LoginPage() {
                 name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your username or email"
+                placeholder="Enter your email"
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 required
               />

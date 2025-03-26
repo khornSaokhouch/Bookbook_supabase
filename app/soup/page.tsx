@@ -1,5 +1,5 @@
 import SoupList from "../components/SoupList";
-import Navbar from "../components/Header";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const SoupPage = () => {

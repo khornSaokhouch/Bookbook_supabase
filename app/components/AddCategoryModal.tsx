@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion"; // Import framer-motion
-import { XCircle, ImageIcon } from "lucide-react"; // Import icons
+import { XCircle, ImageIcon, AlertTriangle } from "lucide-react"; // Import AlertTriangle
 
 interface AddCategoryModalProps {
   isOpen: boolean;

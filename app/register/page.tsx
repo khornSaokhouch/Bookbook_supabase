@@ -1,9 +1,8 @@
-"use client"; // Make sure this component is rendered on the client side
+"use client"; // Ensure this runs on the client side
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Use next/navigation for client-side routing in Next.js 13+
-import bcrypt from "bcryptjs";
-import { supabase } from "../lib/supabaseClient"; // Ensure you have Supabase initialized correctly
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -12,208 +11,125 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(""); // For displaying success message
-  const [isClient, setIsClient] = useState(false); // To track if we are on the client side
-  const router = useRouter(); // Initialize useRouter for redirection
+  const [successMessage, setSuccessMessage] = useState("");
 
-  useEffect(() => {
-    // Set isClient to true when the component is mounted on the client
-    setIsClient(true);
-  }, []);
+  const router = useRouter();
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
 
-    const response = await register({ name, email, password });
+    try {
+      // Supabase Auth - Sign Up
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name, role: "User" }, // Store extra user data
+        },
+      });
 
-    if (response.error) {
-      setError(response.error);
-      setSuccessMessage(""); // Clear success message if registration fails
-    } else {
-      // Set the success message to inform the user of successful registration
-      setSuccessMessage("Registration Successful! Redirecting to login...");
+      if (authError) {
+        throw authError;
+      }
 
-      // Redirect after 3 seconds
+      // After successful sign-up, insert the user data into the 'users' table
+      const { user } = data;
+
+      const { error: userError } = await supabase
+        .from("users")
+        .insert([
+          {
+            user_id: user.id, // Use user id from supabase.auth
+            user_name: name,
+            email: user.email,
+            role: "User", // Default role for new users
+            status: "Active",
+            created_at: new Date(),
+          },
+        ]);
+
+      if (userError) {
+        throw userError;
+      }
+
+      // Success message
+      setSuccessMessage("Registration Successful! Please check your email to confirm.");
+
+      // Redirect to login page after 3 seconds
       setTimeout(() => {
-        if (isClient) {
-          router.push("/login"); // Redirect to login after the success message
-        }
-      }, 3000); // 3-second delay before redirect
+        router.push("/login");
+      }, 3000);
+    } catch (error: any) {
+      setError(error.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-[900px] flex flex-col md:flex-row">
-        <div className="flex-grow">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-            Create Your Account
-          </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
 
-          {/* Error Display */}
-          {error && (
-            <p className="text-red-500 text-center mb-4 bg-red-100 border border-red-300 py-2 px-4 rounded-md">
-              {error}
-            </p>
-          )}
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        {successMessage && <p className="text-green-500 text-center">{successMessage}</p>}
 
-          {/* Success Message */}
-          {successMessage && (
-            <p className="text-green-500 text-center mb-4 bg-green-100 border border-green-300 py-2 px-4 rounded-md">
-              {successMessage}
-            </p>
-          )}
-
-          {/* Register Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                required
-              />
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                required
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                required
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Registering..." : "Register"}
-            </button>
-          </form>
-
-          {/* OAuth Buttons */}
-          <div className="flex flex-col space-y-4 mt-6">
-            <button
-              onClick={() => handleOAuth("google")}
-              className="flex items-center justify-center w-full py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none transition"
-            >
-              Log in with Google
-            </button>
-            <button
-              onClick={() => handleOAuth("facebook")}
-              className="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none transition"
-            >
-              Log in with Facebook
-            </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-700">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              className="w-full p-2 border rounded"
+              required
+            />
           </div>
 
-          {/* Already have an account? */}
-          <p className="mt-6 text-center text-gray-600">
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
-              Log in
-            </Link>
-          </p>
-        </div>
+          <div>
+            <label className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
 
-        {/* Illustration Section */}
-        <div className="hidden md:flex items-center justify-center md:ml-4 mt-6 md:mt-0">
-          <img
-            src="./auth/image.png"
-            alt="Register Illustration"
-            className="w-48 md:w-56 lg:w-104"
-          />
-        </div>
+          <div>
+            <label className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create a password"
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isLoading ? "Registering..." : "Register"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center">
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Log in
+          </Link>
+        </p>
       </div>
     </div>
   );
-}
-
-// Registration logic
-export async function register({ name, email, password }) {
-  if (!name || !email || !password) {
-    return { error: "All fields are required." };
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  try {
-    // Check if email already exists
-    const { data: existingUser, error: emailError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email);
-
-    if (emailError) throw emailError;
-    if (existingUser.length > 0) {
-      return { error: "Email already exists. Please use a different email." };
-    }
-
-    // Insert new user into database
-    const { error } = await supabase.from("users").insert([
-      {
-        user_name: name,
-        email,
-        password: hashedPassword,
-        role: "User",
-        status: true,
-      },
-    ]);
-
-    if (error) throw error;
-
-    const newUser = {
-      user_name: name,
-      email,
-      role: "User",
-    };
-
-    return {
-      success: true,
-      user: newUser,
-      message: "Registration successful!",
-    };
-  } catch (error) {
-    console.error("❌ Registration error:", error);
-    return { error: "Registration failed. Please try again." };
-  }
 }

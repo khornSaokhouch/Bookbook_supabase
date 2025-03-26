@@ -3,7 +3,7 @@
 
 import DetailsPage from "../components/DetailsPage"; // Adjust the path
 import React from "react";
-import Navbar from "../components/Header";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const RecipeDetails = () => {

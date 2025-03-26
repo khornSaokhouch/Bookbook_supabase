@@ -1,5 +1,5 @@
 import FriedList from "../components/FriedsList";
-import Navbar from "../components/Header";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const FriedPage = () => {
