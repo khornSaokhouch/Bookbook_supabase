@@ -38,7 +38,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     setIsLogoutModalOpen(false);
   }, [handleLogout]);
 
-  const openLogoutModal = useCallback((e) => {
+  const openLogoutModal = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsLogoutModalOpen(true);
   }, []);
