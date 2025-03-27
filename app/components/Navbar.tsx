@@ -204,7 +204,7 @@ export default function Header() {
                                         <Link href="/profile/save-recipe" className="hover:text-gray-700">
                                             <span className="material-icons text-gray-600 w-5 h-5">bookmark_border</span>
                                         </Link>
-                                        <Link href={`/user/${user.user_id}/profile`}>
+                                        <Link href={`/${user.user_id}/profile`}>
                                             <Image
                                                 src={imageUrl || "/default-avatar.png"}
                                                 alt={`Profile of ${user?.user_name || 'User'}`}

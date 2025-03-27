@@ -1,11 +1,12 @@
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import SidebarNav from "../components/SidebarNav";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { Menu } from "lucide-react";
 import { parseCookies } from "nookies"; // For managing cookies
-import { useRouter } from "next/navigation";  // To handle redirects
+import { useRouter } from "next/navigation"; // To handle redirects
 
 type User = {
   user_id: string;
@@ -24,14 +25,17 @@ const UserLayout = ({ children }: UserLayoutProps) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch user data from cookies or session
-    const cookies = parseCookies();
-    const userCookie = cookies.user ? JSON.parse(cookies.user) : null;
+    try {
+      const cookies = parseCookies();
+      const userCookie = cookies.user ? JSON.parse(cookies.user) : null;
 
-    if (userCookie) {
-      setUser(userCookie);
-    } else {
-      // Redirect to login if user is not found in cookies
+      if (userCookie) {
+        setUser(userCookie);
+      } else {
+        router.push("/login"); // Redirect if user not found
+      }
+    } catch (error) {
+      console.error("Error parsing user cookie:", error);
       router.push("/login");
     }
   }, [router]);
@@ -54,9 +58,12 @@ const UserLayout = ({ children }: UserLayoutProps) => {
           className="md:hidden bg-blue-500 text-white p-2 rounded-md focus:outline-none"
         >
           <Menu className="h-6 w-6" />
-          Toggle Sidebar
         </button>
 
+        {/* Sidebar with user prop */}
+        <div className="px-20">
+        <SidebarNav user={user} />
+        </div>
 
         {/* Main Content */}
         <main aria-label="Main Content" className="flex-1 p-6">

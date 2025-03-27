@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
+
 
 const PrivacyPolicy = () => {
     const [isVisible, setIsVisible] = useState(true);
@@ -46,7 +46,7 @@ const PrivacyPolicy = () => {
                 </div>
                 <div className="hidden md:block md:w-1/3">
                     <img
-                        src="/privacy.png" // Replace with your image path
+                        src="./privacy.png" // Replace with your image path
                         alt="Privacy Policy Illustration"
                         className="w-full h-auto"
                     />

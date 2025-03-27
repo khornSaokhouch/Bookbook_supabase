@@ -56,7 +56,7 @@ export default function RegisterPage() {
       }
 
       // Success message
-      setSuccessMessage("Registration Successful! Please check your email to confirm.");
+      setSuccessMessage("Registration Successful!");
 
       // Redirect to login page after 3 seconds
       setTimeout(() => {
