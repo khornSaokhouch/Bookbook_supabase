@@ -300,16 +300,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               onChange={handleSearchChange}
               onFocus={handleSearchFocus}
               onBlur={handleSearchBlur}
-              className={`border rounded-md px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
+              className={`border rounded-md px-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
                 isSearchFocused
                   ? "shadow-md"
-                  : "border-gray-300 dark:border-gray-600"
+                  : "border-gray-300 dark:border-gray-200"
               }`}
             />
             <img
               src="https://img.icons8.com/ios7/512/search.png"
               alt="search icon"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-200"
             />
           </div>
 
