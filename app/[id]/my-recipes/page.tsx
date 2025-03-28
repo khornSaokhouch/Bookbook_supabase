@@ -37,7 +37,7 @@ export default function MyRecipesPage() {
 
         // Fetch recipes only created by the logged-in user
         const { data, error } = await supabase
-          .from("recipes")
+          .from("recipe")
           .select("*")
           .eq("user_id", user.id) // Filter by current user
           .order("created_at", { ascending: false });

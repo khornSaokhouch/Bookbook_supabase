@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import { motion } from "framer-motion";
 import LogoutConfirmationModal from "../../components/LogoutConfirmationModal"; // Import the new component
+import CategoryIcon from "@mui/icons-material/Category";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -57,6 +58,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           href: `/admin/${userId}/users`,
           label: "Users",
           icon: "people",
+        },
+        {
+          id: "categories-occasions",
+          href: `/admin/${userId}/categories-occasions`,
+          label: "Categories-occasions",
+          icon: <CategoryIcon />,
         },
         {
           id: "recipes",

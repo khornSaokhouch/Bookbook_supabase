@@ -1,397 +1,129 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "../../../lib/supabaseClient";
-import Image from "next/image";
-import AddCategoryModal from "../../../components/AddCategoryModal";
-import AddOccasionModal from "../../../components/AddOccasionModal";
-import EditCategoryModal from "../../../components/EditCategoryModal";
-import EditOccasionModal from "../../../components/EditOccasionModal";
-import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
-import CategoryDetailModal from "../../../components/CategoryDetailModal";
-import OccasionDetailModal from "../../../components/OccasionDetailModal";
-import { motion } from "framer-motion";
-import { Plus, Edit, Trash2, Eye, CheckCircle, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/app/lib/supabaseClient";
+import { Button } from "../../../components/ui/button";
+import { Trash } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 
-type Category = {
-  category_id: string;
-  category_name: string;
-  image: string;
-};
-
-type Occasion = {
-  occasion_id: string;
-  name: string;
-  occasion_image: string;
-};
-
-export default function RecipeManagement() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [occasions, setOccasions] = useState<Occasion[]>([]);
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
-  const [showAddOccasionModal, setShowAddOccasionModal] = useState(false);
-  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
-  const [showEditOccasionModal, setShowEditOccasionModal] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [currentOccasion, setCurrentOccasion] = useState<Occasion | null>(
-    null
-  );
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [deleteItemType, setDeleteItemType] =
-    useState<"category" | "occasion">("category");
-  const [itemToDelete, setItemToDelete] = useState<string>("");
-  const [showCategoryDetailModal, setShowCategoryDetailModal] =
-    useState(false);
-  const [showOccasionDetailModal, setShowOccasionDetailModal] =
-    useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
-  const [selectedOccasion, setSelectedOccasion] = useState<Occasion | null>(
-    null
-  );
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+export default function RecipeList() {
+  const [recipes, setRecipes] = useState([]);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);  // State for success pop-up
+  const router = useRouter();
 
   useEffect(() => {
-    fetchCategories();
-    fetchOccasions();
+    fetchRecipes();
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase.from("category").select("*");
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error:any) {
-          setError(`Error fetching categories: ${error.message}`);
+  async function fetchRecipes() {
+    const { data, error } = await supabase
+      .from("recipe")
+      .select("recipe_id, recipe_name, category_id, occasion_id, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) console.error(error);
+    else setRecipes(data);
+  }
+
+  async function deleteRecipe(id) {
+    const { error } = await supabase.from("recipe").delete().eq("recipe_id", id);
+    if (error) {
+      console.error(error);
+    } else {
+      fetchRecipes();
+      setIsSuccessModalOpen(true); // Open the success modal
+      setTimeout(() => {
+        setIsSuccessModalOpen(false); // Close the success modal after 3 seconds
+      }, 3000);
     }
-  };
-
-  const fetchOccasions = async () => {
-    try {
-      const { data, error } = await supabase.from("occasion").select("*");
-      if (error) throw error;
-      setOccasions(data || []);
-    } catch (error:any) {
-      console.error("Error fetching occasions:", error);
-        setError(`Error fetching occasions: ${error.message}`);
-    }
-  };
-
-  const deleteCategory = async (id: string) => {
-    try {
-      const { error } = await supabase.from("category").delete().eq("category_id", id);
-      if (error) throw error;
-          setSuccessMessage("Category deleted successfully!");
-      fetchCategories();
-    } catch (error:any) {
-        setError(`Error deleting category: ${error.message}`);
-    }
-  };
-
-  const deleteOccasion = async (id: string) => {
-    try {
-      const { error } = await supabase.from("occasion").delete().eq("occasion_id", id);
-      if (error) throw error;
-        setSuccessMessage("Occasion deleted successfully!");
-      fetchOccasions();
-    } catch (error:any) {
-        setError(`Error deleting occasion: ${error.message}`);
-    }
-  };
-
-  const handleDeleteItem = (id: string, itemType: "category" | "occasion") => {
-    setItemToDelete(id);
-    setDeleteItemType(itemType);
-    setShowDeleteConfirmation(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteItemType === "category") {
-      deleteCategory(itemToDelete);
-    } else if (deleteItemType === "occasion") {
-      deleteOccasion(itemToDelete);
-    }
-    setShowDeleteConfirmation(false);
-  };
-
-  const handleEditCategory = (category: Category) => {
-    setCurrentCategory(category);
-    setShowEditCategoryModal(true);
-  };
-
-  const handleEditOccasion = (occasion: Occasion) => {
-    setCurrentOccasion(occasion);
-    setShowEditOccasionModal(true);
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
-  };
-
-    const tableVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    };
-
-    const rowVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-        hover: { backgroundColor: "#f9f9f9" },
-    };
-
+    setIsDeleteModalOpen(false); // Close the delete confirmation modal after deletion
+  }
 
   return (
-    <motion.main
-      className="container mx-auto p-4 md:p-8"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
-
-          {/* Error Message */}
-          {error && (
-              <motion.div
-                  className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
-                  exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
-              >
-                  <AlertTriangle className="w-5 h-5 mr-2" />
-                  {error}
-              </motion.div>
-          )}
-
-          {/* Success Message */}
-          {successMessage && (
-              <motion.div
-                  className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0, transition: { duration: 0.5 } }}
-                  exit={{ opacity: 0, x: 20, transition: { duration: 0.5 } }}
-              >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  {successMessage}
-              </motion.div>
-          )}
-
-        <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Recipe Categories</h2>
-          <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left text-white">ID</th>
-                  <th className="py-3 px-6 text-left text-white">Image</th>
-                  <th className="py-3 px-6 text-left text-white">Name</th>
-                  <th className="py-3 px-6 text-right text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
-                {categories.length > 0 ? (
-                  categories.map((category) => (
-                    <motion.tr
-                      key={category.category_id}
-                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
-                      variants={rowVariants}
-                      whileHover="hover"
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Recipe List</h1>
+      <table className="w-full border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-2 border">ID</th>
+            <th className="p-2 border">Recipe Name</th>
+            <th className="p-2 border">Category</th>
+            <th className="p-2 border">Occasion</th>
+            <th className="p-2 border">Created At</th>
+            <th className="p-2 border">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recipes.map((recipe) => (
+            <tr key={recipe.recipe_id} className="text-center border">
+              <td className="p-2 border">{recipe.recipe_id}</td>
+              <td className="p-2 border">{recipe.recipe_name}</td>
+              <td className="p-2 border">{recipe.category_id}</td>
+              <td className="p-2 border">{recipe.occasion_id}</td>
+              <td className="p-2 border">
+                {new Date(recipe.created_at).toLocaleDateString()}
+              </td>
+              <td className="p-2 border flex justify-center gap-2">
+                {/* Delete Button */}
+                <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedRecipe(recipe.recipe_id);
+                        setIsDeleteModalOpen(true);
+                      }}
                     >
-                      <td className="py-3 px-6">{category.category_id}</td>
-                      <td className="py-3 px-6">
-                        <Image
-                          src={category.image || "/default-image.jpg"}
-                          alt={category.category_name}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      </td>
-                      <td className="py-3 px-6">{category.category_name}</td>
-                      <td className="py-3 px-6 whitespace-nowrap text-right">
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => {
-                              setSelectedCategory(category);
-                              setShowCategoryDetailModal(true);
-                            }}
-                            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteItem(category.category_id, "category")
-                            }
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
-                      No categories found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <div className="flex items-center justify-center p-4">
-              <button
-                onClick={() => setShowAddCategoryModal(true)}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Category
-              </button>
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+
+                  {/* Modal content */}
+                  <DialogContent>
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this recipe? This action cannot be undone.
+                    </DialogDescription>
+                    {/* Manual footer with action buttons */}
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          deleteRecipe(selectedRecipe);
+                        }}
+                      >
+                        Confirm Delete
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Success Modal */}
+      {isSuccessModalOpen && (
+        <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+          <DialogContent>
+            <DialogTitle>Success</DialogTitle>
+            <DialogDescription>The recipe was successfully deleted!</DialogDescription>
+            <div className="flex justify-end mt-4">
+              <Button variant="outline" onClick={() => setIsSuccessModalOpen(false)}>
+                Close
+              </Button>
             </div>
-          </div>
-        </section>
-
-        <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Occasions</h2>
-          <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left text-white">ID</th>
-                  <th className="py-3 px-6 text-left text-white">Image</th>
-                  <th className="py-3 px-6 text-left text-white">Name</th>
-                  <th className="py-3 px-6 text-right text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
-                {occasions.length > 0 ? (
-                  occasions.map((occasion) => (
-                    <motion.tr
-                      key={occasion.occasion_id}
-                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
-                      variants={rowVariants}
-                      whileHover="hover"
-                    >
-                      <td className="py-3 px-6">{occasion.occasion_id}</td>
-                      <td className="py-3 px-6">
-                        <Image
-                          src={occasion.occasion_image || "/default-image.jpg"}
-                          alt={occasion.name}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      </td>
-                      <td className="py-3 px-6">{occasion.name}</td>
-                      <td className="py-3 px-6 whitespace-nowrap text-right">
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => {
-                              setSelectedOccasion(occasion);
-                              setShowOccasionDetailModal(true);
-                            }}
-                            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleEditOccasion(occasion)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 inline-flex items-center"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteItem(occasion.occasion_id, "occasion")
-                            }
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
-                      No occasions found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <div className="flex items-center justify-center p-4">
-              <button
-                onClick={() => setShowAddOccasionModal(true)}
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Occasion
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* Modals */}
-      <AddCategoryModal
-        isOpen={showAddCategoryModal}
-        onClose={() => setShowAddCategoryModal(false)}
-        onCategoryAdded={fetchCategories}
-      />
-      <AddOccasionModal
-        isOpen={showAddOccasionModal}
-        onClose={() => setShowAddOccasionModal(false)}
-        onOccasionAdded={fetchOccasions}
-      />
-      <EditCategoryModal
-        isOpen={showEditCategoryModal}
-        onClose={() => setShowEditCategoryModal(false)}
-        category={currentCategory}
-        onCategoryUpdated={fetchCategories}
-      />
-      <EditOccasionModal
-        isOpen={showEditOccasionModal}
-        onClose={() => setShowEditOccasionModal(false)}
-        occasion={currentOccasion}
-        onOccasionUpdated={fetchOccasions}
-      />
-
-      {/* Detail Modals */}
-      <CategoryDetailModal
-        isOpen={showCategoryDetailModal}
-        onClose={() => setShowCategoryDetailModal(false)}
-        category={selectedCategory}
-      />
-      <OccasionDetailModal
-        isOpen={showOccasionDetailModal}
-        onClose={() => setShowOccasionDetailModal(false)}
-        occasion={selectedOccasion}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={showDeleteConfirmation}
-        onClose={() => setShowDeleteConfirmation(false)}
-        onConfirm={handleConfirmDelete}
-        itemType={deleteItemType}
-      />
-    </motion.main>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
   );
-}  
+}

@@ -11,14 +11,7 @@ import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal
 import CategoryDetailModal from "../../../components/CategoryDetailModal";
 import OccasionDetailModal from "../../../components/OccasionDetailModal";
 import { motion } from "framer-motion";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Plus, Edit, Trash2, Eye, CheckCircle, AlertTriangle } from "lucide-react";
 
 type Category = {
   category_id: string;
@@ -40,22 +33,25 @@ export default function RecipeManagement() {
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showEditOccasionModal, setShowEditOccasionModal] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [currentOccasion, setCurrentOccasion] = useState<Occasion | null>(null);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [deleteItemType, setDeleteItemType] = useState<"category" | "occasion">(
-    "category"
+  const [currentOccasion, setCurrentOccasion] = useState<Occasion | null>(
+    null
   );
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteItemType, setDeleteItemType] =
+    useState<"category" | "occasion">("category");
   const [itemToDelete, setItemToDelete] = useState<string>("");
-  const [showCategoryDetailModal, setShowCategoryDetailModal] = useState(false);
-  const [showOccasionDetailModal, setShowOccasionDetailModal] = useState(false);
+  const [showCategoryDetailModal, setShowCategoryDetailModal] =
+    useState(false);
+  const [showOccasionDetailModal, setShowOccasionDetailModal] =
+    useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
   const [selectedOccasion, setSelectedOccasion] = useState<Occasion | null>(
     null
   );
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -67,8 +63,8 @@ export default function RecipeManagement() {
       const { data, error } = await supabase.from("category").select("*");
       if (error) throw error;
       setCategories(data || []);
-    } catch (error: any) {
-      setError(`Error fetching categories: ${error.message}`);
+    } catch (error:any) {
+          setError(`Error fetching categories: ${error.message}`);
     }
   };
 
@@ -77,37 +73,31 @@ export default function RecipeManagement() {
       const { data, error } = await supabase.from("occasion").select("*");
       if (error) throw error;
       setOccasions(data || []);
-    } catch (error: any) {
+    } catch (error:any) {
       console.error("Error fetching occasions:", error);
-      setError(`Error fetching occasions: ${error.message}`);
+        setError(`Error fetching occasions: ${error.message}`);
     }
   };
 
   const deleteCategory = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("category")
-        .delete()
-        .eq("category_id", id);
+      const { error } = await supabase.from("category").delete().eq("category_id", id);
       if (error) throw error;
-      setSuccessMessage("Category deleted successfully!");
+          setSuccessMessage("Category deleted successfully!");
       fetchCategories();
-    } catch (error: any) {
-      setError(`Error deleting category: ${error.message}`);
+    } catch (error:any) {
+        setError(`Error deleting category: ${error.message}`);
     }
   };
 
   const deleteOccasion = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("occasion")
-        .delete()
-        .eq("occasion_id", id);
+      const { error } = await supabase.from("occasion").delete().eq("occasion_id", id);
       if (error) throw error;
-      setSuccessMessage("Occasion deleted successfully!");
+        setSuccessMessage("Occasion deleted successfully!");
       fetchOccasions();
-    } catch (error: any) {
-      setError(`Error deleting occasion: ${error.message}`);
+    } catch (error:any) {
+        setError(`Error deleting occasion: ${error.message}`);
     }
   };
 
@@ -138,22 +128,20 @@ export default function RecipeManagement() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.5, staggerChildren: 0.1 },
-    },
+    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
   };
 
-  const tableVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  };
+    const tableVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    };
 
-  const rowVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-    hover: { backgroundColor: "#f9f9f9" },
-  };
+    const rowVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+        hover: { backgroundColor: "#f9f9f9" },
+    };
+
 
   return (
     <motion.main
@@ -163,44 +151,43 @@ export default function RecipeManagement() {
       animate="visible"
     >
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
-            exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
-          >
-            <AlertTriangle className="w-5 h-5 mr-2" />
-            {error}
-          </motion.div>
-        )}
 
-        {/* Success Message */}
-        {successMessage && (
-          <motion.div
-            className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0, transition: { duration: 0.5 } }}
-            exit={{ opacity: 0, x: 20, transition: { duration: 0.5 } }}
-          >
-            <CheckCircle className="w-5 h-5 mr-2" />
-            {successMessage}
-          </motion.div>
-        )}
+          {/* Error Message */}
+          {error && (
+              <motion.div
+                  className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+                  exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+              >
+                  <AlertTriangle className="w-5 h-5 mr-2" />
+                  {error}
+              </motion.div>
+          )}
+
+          {/* Success Message */}
+          {successMessage && (
+              <motion.div
+                  className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0, transition: { duration: 0.5 } }}
+                  exit={{ opacity: 0, x: 20, transition: { duration: 0.5 } }}
+              >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  {successMessage}
+              </motion.div>
+          )}
 
         <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
-            Recipe Categories
-          </h2>
+          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Recipe Categories</h2>
           <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left text-white">ID</th>
-                  <th className="py-3 px-6 text-left text-white">Image</th>
-                  <th className="py-3 px-6 text-left text-white">Name</th>
-                  <th className="py-3 px-6 text-right text-white">Actions</th>
+                  <th className="py-3 px-6 text-left text-black">ID</th>
+                  <th className="py-3 px-6 text-left text-black">Image</th>
+                  <th className="py-3 px-6 text-left text-black">Name</th>
+                  <th className="py-3 px-6 text-right text-black">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
@@ -208,7 +195,7 @@ export default function RecipeManagement() {
                   categories.map((category) => (
                     <motion.tr
                       key={category.category_id}
-                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-black"
                       variants={rowVariants}
                       whileHover="hover"
                     >
@@ -257,10 +244,7 @@ export default function RecipeManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="text-center py-6 text-gray-500 dark:text-gray-300"
-                    >
+                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
                       No categories found.
                     </td>
                   </tr>
@@ -280,17 +264,15 @@ export default function RecipeManagement() {
         </section>
 
         <section className="mb-8 md:mb-12">
-          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">
-            Occasions
-          </h2>
+          <h2 className="text-2xl font-bold mb-4 md:mb-6 text-gray-800 dark:text-white">Occasions</h2>
           <div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left text-white">ID</th>
-                  <th className="py-3 px-6 text-left text-white">Image</th>
-                  <th className="py-3 px-6 text-left text-white">Name</th>
-                  <th className="py-3 px-6 text-right text-white">Actions</th>
+                  <th className="py-3 px-6 text-left text-black">ID</th>
+                  <th className="py-3 px-6 text-left text-black">Image</th>
+                  <th className="py-3 px-6 text-left text-black">Name</th>
+                  <th className="py-3 px-6 text-right text-black">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
@@ -298,7 +280,7 @@ export default function RecipeManagement() {
                   occasions.map((occasion) => (
                     <motion.tr
                       key={occasion.occasion_id}
-                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-black"
                       variants={rowVariants}
                       whileHover="hover"
                     >
@@ -347,10 +329,7 @@ export default function RecipeManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={4}
-                      className="text-center py-6 text-gray-500 dark:text-gray-300"
-                    >
+                    <td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-300">
                       No occasions found.
                     </td>
                   </tr>
@@ -415,4 +394,4 @@ export default function RecipeManagement() {
       />
     </motion.main>
   );
-}
+}  

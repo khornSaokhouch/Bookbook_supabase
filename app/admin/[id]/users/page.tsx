@@ -169,12 +169,12 @@ const UserManagement = () => {
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
-                  <th className="py-3 px-6 text-left text-white">ID</th>
-                  <th className="py-3 px-6 text-left text-white">Name</th>
-                  <th className="py-3 px-6 text-left text-white">Email</th>
-                  <th className="py-3 px-6 text-left text-white">Role</th>
-                  <th className="py-3 px-6 text-left text-white">Date Created</th>
-                  <th className="py-3 px-6 text-left text-white">Actions</th>
+                  <th className="py-3 px-6 text-left text-black">ID</th>
+                  <th className="py-3 px-6 text-left text-black">Name</th>
+                  <th className="py-3 px-6 text-left text-black">Email</th>
+                  <th className="py-3 px-6 text-left text-black">Role</th>
+                  <th className="py-3 px-6 text-left text-black">Date Created</th>
+                  <th className="py-3 px-6 text-left text-black">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 dark:text-gray-400 text-sm font-light">
@@ -182,7 +182,7 @@ const UserManagement = () => {
                   users.map((user) => (
                     <motion.tr
                       key={user.user_id}
-                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-white"
+                      className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-black"
                       variants={rowVariants}
                       whileHover="hover"
                     >
