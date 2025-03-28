@@ -63,7 +63,7 @@ export default function LoginPage() {
       )}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
       const redirectUrl =
-        role === "Admin" ? `/admin/${user.id}/dashboard` : `/`;
+        role === "Admin" ? `/${user.id}/dashboard` : `/`;
       router.push(redirectUrl);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to sign in. Please try again.");

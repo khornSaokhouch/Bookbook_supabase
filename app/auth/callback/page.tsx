@@ -41,7 +41,7 @@ export default function AuthCallback() {
             const role = userMetadata?.role || "User";
 
             // Redirect based on role
-            router.replace(role === "Admin" ? `/admin/${userId}/dashboard` : "/");
+            router.replace(role === "Admin" ? `/${userId}/dashboard` : "/");
           } catch (error) {
             console.error("Authentication error:", error);
             router.replace("/"); // Fallback to home
