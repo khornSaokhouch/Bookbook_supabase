@@ -10,19 +10,19 @@ const Footer: React.FC = () => {
         <div className="footer-menu flex flex-col items-center md:items-start mb-8 md:mb-0 w-full md:w-1/2">
           <ul className="flex flex-wrap justify-center md:justify-start list-none text-base">
             <li className="px-2 md:px-4 py-1">
-              <Link href="/user/about-us" className="hover:text-blue-600">ABOUT US</Link>
+              <Link href="/user/${userId}/about-us" className="hover:text-blue-600">ABOUT US</Link>
             </li>
             <li className="px-2 md:px-4 py-1">
-              <Link href="/user/contact-us" className="hover:text-blue-600">CONTACT US</Link>
+              <Link href="/user/${userId}/contact-us" className="hover:text-blue-600">CONTACT US</Link>
             </li>
             <li className="px-2 md:px-4 py-1">
-              <Link href="/faq" className="hover:text-blue-600">FAQ</Link>
+              <Link href="/user/${userId}/faq" className="hover:text-blue-600">FAQ</Link>
             </li>
             <li className="px-2 md:px-4 py-1">
-              <Link href="#" className="hover:text-blue-600">PRIVACY POLICY</Link>
+              <Link href="/user/${userId}/privacy" className="hover:text-blue-600">PRIVACY POLICY</Link>
             </li>
             <li className="px-2 md:px-4 py-1">
-              <Link href="#" className="hover:text-blue-600">DISCLAIMER</Link>
+              <Link href="/user/${userId}/disclaimar" className="hover:text-blue-600">DISCLAIMER</Link>
             </li>
           </ul>
           <div className="logo-footer mt-4">
