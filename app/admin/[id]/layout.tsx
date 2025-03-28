@@ -72,7 +72,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         },
         {
           id: "logout",
-          href: "/",
+          href: "/login",
           label: "Logout",
           icon: "logout",
           onClick: openLogoutModal ,
@@ -128,10 +128,15 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (userId) {
-      getAdminProfile(userId);
-    }
-  }, [userId]);
+    if (!isMounted || !userId) return;
+    setIsLoading(true);
+    getAdminProfile(userId)
+      .then(() => setIsLoading(false))  // Set loading to false after profile is fetched.
+      .catch((err) => {
+        console.error("Error fetching admin profile:", err);
+        setIsLoading(false);
+      });
+  }, [isMounted, userId]);
 
   useEffect(() => {
     if (isMounted && userId && adminName) {

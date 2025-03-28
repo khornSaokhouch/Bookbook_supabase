@@ -39,7 +39,14 @@ const AddRecipe = () => {
             if (userCookie) {
                 try {
                     const user = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
-                    return user.id; // Assuming user object has an 'id' property
+                    const userId = user.id;
+                    // Check if the userId is a valid UUID
+                    if (isValidUUID(userId)) {
+                        return userId;
+                    } else {
+                        console.error("Invalid UUID format for userId:", userId);
+                        return null;
+                    }
                 } catch (error) {
                     console.error("Error parsing user cookie:", error);
                     return null;
@@ -47,6 +54,13 @@ const AddRecipe = () => {
             }
             return null;
         };
+        
+        // Helper function to validate if the userId is a valid UUID
+        const isValidUUID = (id) => {
+            const regex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+            return regex.test(id);
+        };
+        
 
         const fetchData = async () => {
             try {
@@ -78,18 +92,24 @@ const AddRecipe = () => {
 
 
     const handleCategorySelect = async (category: { category_id: number; category_name: string }, occasion: { occasion_id: number; name: string }) => {
-        setCategoryId(category.category_id);
-        setOccasionId(occasion.occasion_id);
-        setIsModalOpen(false);
-        setShowCategoryModal(false);  // Close the modal after selection
+        // Setting the category and occasion ids
+        setCategoryId(category.category_id); 
+        setOccasionId(occasion.occasion_id); 
+    
+        // Close the modal
+        setIsModalOpen(false); 
+        setShowCategoryModal(false);
+    
+        // Now you can call actuallySubmit
         await actuallySubmit();  // Submit after category is selected
     };
+    
 
    const uploadImage = async (file: File | null, path: string) => {
     if (!file) return null;
 
     const { data, error } = await supabase.storage
-        .from("add-recipe")  // Changed to 'add-recipe' bucket
+        .from("recipes")  // Changed to 'add-recipe' bucket
         .upload(`${path}/${file.name}`, file, {
             cacheControl: "3600",
             upsert: false,
@@ -107,7 +127,7 @@ const getImageUrl = async (imagePath: string | null) => {
     if (!imagePath) return null;
 
     const { data } = await supabase.storage
-        .from("add-recipe")  // Changed to 'add-recipe' bucket
+        .from("recipes")  // Changed to 'add-recipe' bucket
         .getPublicUrl(imagePath);
     return data.publicUrl;
 };

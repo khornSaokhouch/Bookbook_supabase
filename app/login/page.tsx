@@ -1,34 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, Facebook } from "lucide-react";
-
-const GoogleIcon = () => {
-  const [Google, setGoogle] = useState(null);
-
-  useEffect(() => {
-    const loadGoogleIcon = async () => {
-      try {
-        const { Google } = await import('lucide-react');
-        setGoogle(Google);
-      } catch (error) {
-        console.error("Failed to load Google icon:", error);
-      }
-    };
-
-    loadGoogleIcon();
-  }, []);
-
-  if (!Google) {
-    return <span>Loading...</span>; // Or a placeholder icon
-  }
-
-  return <Google className="w-5 h-5 mr-2" />;
-};
+import { FcGoogle } from "react-icons/fc";
 
 // Animation Variants
 const containerVariants = {
@@ -93,6 +71,20 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   }
+
+  async function handleGoogleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  
+    if (error) {
+      setErrorMessage(error.message || "Google sign-in failed.");
+    }
+  }
+  
 
   return (
     <motion.div
@@ -174,9 +166,12 @@ export default function LoginPage() {
               <Facebook className="w-5 h-5 mr-2" />
               Facebook
             </button>
-            <button className="flex items-center justify-center w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 focus:outline-none transition">
-              <GoogleIcon />
-              Google
+            <button
+              onClick={handleGoogleLogin}
+              className="flex items-center justify-center w-full py-3 bg-white border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-white font-semibold rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <FcGoogle className="w-6 h-6 mr-2" />
+              Sign in with Google
             </button>
           </div>
 
