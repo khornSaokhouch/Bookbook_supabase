@@ -84,13 +84,13 @@ export default function ResetPasswordPage() {
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center min-h-screen px-4 bg-gray-100 dark:bg-gray-900"
+      className="flex flex-col items-center justify-center dark:bg-gray-900"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.div
-        className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl border dark:border-gray-700"
+        className="w-full max-w-3xl bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl border dark:border-gray-700"
         variants={itemVariants}
       >
         <div className="flex items-center justify-center mb-4">

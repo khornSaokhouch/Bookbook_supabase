@@ -525,7 +525,7 @@ const AddRecipe = () => {
             type="submit"
             className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition duration-300"
           >
-            Save
+            Next
           </button>
         </div>
 
@@ -538,7 +538,7 @@ const AddRecipe = () => {
 
         {/* Success Modal */}
         {showSuccessModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 shadow-lg text-center">
               <h2 className="text-3xl font-semibold text-green-600 mb-4">
                 Success!

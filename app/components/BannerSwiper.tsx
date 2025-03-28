@@ -21,7 +21,7 @@ export default function BannerSwiper() {
         autoplay={{ delay: 2000, disableOnInteraction: false }} // Auto slide every 4 seconds
         pagination={{ clickable: true }}
         modules={[Autoplay, Pagination]}
-        className="w-full h-[400px]"
+        className="w-full h-[600px]"
       >
         {banners.map((banner) => (
           <SwiperSlide key={banner.id}>
