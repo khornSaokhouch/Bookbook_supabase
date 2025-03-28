@@ -12,8 +12,8 @@ export const metadata: Metadata = {
       {
         rel: "icon",
         sizes: "any",
-        url: "/image/favicon.png", // Corrected path
-        href: "/image/favicon.png", // Corrected path
+        url: "/logo.png", // Corrected path
+        href: "/logo.png", // Corrected path
       },
     ],
   },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import ProfileImageModal from "../../components/ProfileImageModal"; // Import the modal
+import { motion } from "framer-motion";
 
 type UserProfile = {
   user_id: string;
@@ -11,6 +12,40 @@ type UserProfile = {
   email: string;
   about_me: string;
   image_url?: string | null;
+};
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      delayChildren: 0.3,
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+    },
+  },
+};
+
+const imageVariants = {
+  hover: {
+    scale: 1.1,
+    transition: {
+      duration: 0.3,
+    },
+  },
 };
 
 export default function ProfilePage() {
@@ -100,22 +135,42 @@ export default function ProfilePage() {
     : "/default-avatar.png";
 
   return (
-    <div className="container mx-auto px-10 py-10">
+    <motion.div
+      className="container mx-auto py-10"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       <div className="flex justify-center space-x-8">
-        <div className="w-3/4 bg-white rounded-lg shadow-lg flex flex-col p-6">
-          <div className="flex items-center">
+        <motion.div
+          className="w-3/4 bg-white rounded-lg shadow-lg flex flex-col p-6"
+          variants={itemVariants}
+        >
+          <motion.div className="flex items-center" variants={itemVariants}>
             {/* Pass the imageUrl to the modal component */}
-            <ProfileImageModal imageUrl={imageUrl} />
+            <motion.div variants={itemVariants} whileHover="hover">
+              <ProfileImageModal imageUrl={imageUrl} />
+            </motion.div>
             <div className="ml-4">
-              <h1 className="text-2xl font-bold">{user.user_name}</h1>
-              <p className="text-gray-600">{user.email}</p>
+              <motion.h1 className="text-2xl font-bold" variants={itemVariants}>
+                {user.user_name}
+              </motion.h1>
+              <motion.p className="text-gray-600" variants={itemVariants}>
+                {user.email}
+              </motion.p>
             </div>
-          </div>
+          </motion.div>
 
-          <h2 className="text-2xl font-semibold mt-6">About Me</h2>
-          <p className="mt-2">{user.about_me || "No information available."}</p>
-        </div>
+          
+
+          <motion.h2 className="text-2xl font-semibold mt-6" variants={itemVariants}>
+            About Me
+          </motion.h2>
+          <motion.p className="mt-2" variants={itemVariants}>
+            {user.about_me || "No information available."}
+          </motion.p>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

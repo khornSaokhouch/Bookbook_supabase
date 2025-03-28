@@ -1,9 +1,45 @@
-"use client"; // Ensure this runs on the client side
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Mail, Lock, Facebook } from "lucide-react";
+
+const GoogleIcon = () => {
+  const [Google, setGoogle] = useState(null);
+
+  useEffect(() => {
+    const loadGoogleIcon = async () => {
+      try {
+        const { Google } = await import('lucide-react');
+        setGoogle(Google);
+      } catch (error) {
+        console.error("Failed to load Google icon:", error);
+      }
+    };
+
+    loadGoogleIcon();
+  }, []);
+
+  if (!Google) {
+    return <span>Loading...</span>; // Or a placeholder icon
+  }
+
+  return <Google className="w-5 h-5 mr-2" />;
+};
+
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+};
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,7 +54,6 @@ export default function LoginPage() {
     setErrorMessage("");
 
     try {
-      // Sign in the user using Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -28,9 +63,7 @@ export default function LoginPage() {
         throw new Error(error?.message || "Failed to sign in. Please check your credentials.");
       }
 
-      // Store user data in the cookie
       const user = data.user;
-      // Get the user's metadata, assuming role is saved there
       const { data: userMetadata, error: metadataError } = await supabase
         .from("users")
         .select("role")
@@ -41,20 +74,18 @@ export default function LoginPage() {
         throw new Error(metadataError.message || "Failed to fetch user metadata.");
       }
 
-      const role = userMetadata?.role || "User"; // Default to "User" if no role is found
+      const role = userMetadata?.role || "User";
 
-      // Store the user information in a cookie for later use
       document.cookie = `user=${encodeURIComponent(
         JSON.stringify({
           id: user.id,
           email: user.email,
-          role: role, // Store the role in the cookie
+          role: role,
         })
       )}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
-      // Redirect based on user role (Admin or User)
       const redirectUrl =
-        role === "Admin" ? `/admin/${user.id}/dashboard` : `/user/${user.id}/home`;
+        role === "Admin" ? `/admin/${user.id}/dashboard` : `/`;
       router.push(redirectUrl);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to sign in. Please try again.");
@@ -64,61 +95,72 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-[900px] flex flex-col md:flex-row">
+    <motion.div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-[900px] flex flex-col md:flex-row">
         <div className="flex-grow">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Welcome Back</h1>
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">Welcome Back</h1>
 
           {errorMessage && (
-            <p className="text-red-500 text-center mb-4 bg-red-100 border border-red-300 py-2 px-4 rounded-md">
+            <div className="text-red-500 text-center mb-4 bg-red-100 dark:bg-red-700 border border-red-300 dark:border-red-500 py-3 px-4 rounded-md">
               {errorMessage}
-            </p>
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+              <label htmlFor="email" className="block text-gray-700 dark:text-gray-200 font-medium mb-2">
                 Email
               </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                required
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition shadow-sm"
+                  required
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
+              <label htmlFor="password" className="block text-gray-700 dark:text-gray-200 font-medium mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                required
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition shadow-sm"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {isLoading ? "Logging in..." : "Log In"}
+              {isLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Log In"}
             </button>
 
-            <div className="flex justify-between mt-4">
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+            <div className="flex justify-between mt-4 text-sm">
+              <label className="flex items-center text-gray-600 dark:text-gray-300">
+                <input type="checkbox" className="mr-2 rounded text-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600" />
                 Remember me
               </label>
               <Link href="/forgot-password" className="text-blue-500 hover:underline">
@@ -128,17 +170,17 @@ export default function LoginPage() {
           </form>
 
           <div className="flex flex-col space-y-4 mt-6">
-            <button className="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none transition">
-              <img src="./auth/path_to_facebook_icon.png" alt="Facebook" className="w-5 h-5 mr-2" />
-              Log in with Facebook
+            <button className="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:outline-none transition">
+              <Facebook className="w-5 h-5 mr-2" />
+              Facebook
             </button>
-            <button className="flex items-center justify-center w-full py-3 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none transition">
-              <img src="./auth/path_to_google_icon.png" alt="Google" className="w-5 h-5 mr-2" />
-              Log in with Google
+            <button className="flex items-center justify-center w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 focus:outline-none transition">
+              <GoogleIcon />
+              Google
             </button>
           </div>
 
-          <p className="mt-6 text-center text-gray-600">
+          <p className="mt-6 text-center text-gray-600 dark:text-gray-300 text-sm">
             Don't have an account?{" "}
             <Link href="/register" className="text-blue-500 hover:underline">
               Sign Up
@@ -150,6 +192,6 @@ export default function LoginPage() {
           <img src="./auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

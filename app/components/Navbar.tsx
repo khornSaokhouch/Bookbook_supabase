@@ -80,7 +80,6 @@ export default function Header() {
             const { data: { user: authUser }, error: sessionError } = await supabase.auth.getUser();
 
             if (sessionError) {
-                console.error("❌ Error fetching session:", sessionError.message);
                 return;
             }
 
@@ -154,7 +153,7 @@ export default function Header() {
                     <div className="flex justify-between items-center h-[110px]">
                         {/* Logo */}
                         <div className="flex items-center">
-                            <Link href="/" className="flex items-center">
+                            <Link href={`/`}className="flex items-center">
                                 <Image
                                     src="/logo.png"
                                     alt="CookBook Logo"
@@ -167,9 +166,9 @@ export default function Header() {
 
                         {/* Navigation Links */}
                         <div className="hidden md:flex space-x-10 text-lg">
-                            <Link href="/" className="text-gray-600 hover:text-blue-600 font-medium">Home</Link>
-                            <Link href="/user/recipe" className="text-gray-600 hover:text-blue-600 font-medium">Recipe</Link>
-                            <Link href="/user/about-us" className="text-gray-600 hover:text-blue-600 font-medium">About Us</Link>
+                            <Link href={`/`} className="text-gray-600 hover:text-blue-600 font-medium">Home</Link>
+                            <Link href={`/user/${user?.user_id}/recipe`} className="text-gray-600 hover:text-blue-600 font-medium">Recipe</Link>
+                            <Link href={`/user/${user?.user_id}/about-us`}className="text-gray-600 hover:text-blue-600 font-medium">About Us</Link>
                         </div>
 
                         {/* Right Section (Search, Add Recipe, Profile) */}
@@ -191,17 +190,26 @@ export default function Header() {
                             </div>
 
                             {/* Add Recipe Link */}
-                            <Link href={`/user/${user?.user_id}/add-recipe`} className="text-lg font-medium text-blue-600 hover:text-blue-800">
-                                + Add a Recipe
-                            </Link>
+<Link
+  href={user ? `/user/${user?.user_id}/add-recipe` : "/login"}
+  className="text-lg font-medium text-blue-600 hover:text-blue-800"
+  onClick={(e) => {
+    if (!user) {
+      e.preventDefault(); // Prevent navigation
+      router.push("/login"); // Redirect to login page
+    }
+  }}
+>
+  + Add a Recipe
+</Link>
 
                             {/* Profile Section */}
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-6">
                                 {isLoading ? (
                                     <span>Loading...</span>
                                 ) : user ? (
                                     <>
-                                        <Link href="/profile/save-recipe" className="hover:text-gray-700">
+                                        <Link href={`/${user?.user_id}/save-recipe`} className="hover:text-gray-700">
                                             <span className="material-icons text-gray-600 w-5 h-5">bookmark_border</span>
                                         </Link>
                                         <Link href={`/${user.user_id}/profile`}>
@@ -210,10 +218,10 @@ export default function Header() {
                                                 alt={`Profile of ${user?.user_name || 'User'}`}
                                                 width={40}
                                                 height={40}
-                                                className="w-10 h-10 rounded-full border border-gray-300 object-cover"
+                                                className="w-15 h-15 rounded-full border border-gray-300 object-cover"
                                             />
                                         </Link>
-                                        <span>{user.user_name}</span>
+                                        <span className="text-xl">{user.user_name}</span>
                     
                                     </>
                                 ) : (
