@@ -6,7 +6,9 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import BannerSwiper from "./components/BannerSwiper";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react"; // Import heart icon
+import { Heart } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image"; // Import Image component
 
 // Recipe Type
 type Recipe = {
@@ -47,29 +49,18 @@ export default function Home() {
 
         const { data: sessionData } = await supabase.auth.getSession();
         const user = sessionData?.session?.user;
-        if (!user) {
-          return; // Don't redirect, just don't fetch data if not logged in
+        if (user) {
+          setUserId(user.id); // Set user ID
         }
-        setUserId(user.id); // Set user ID
 
         // Fetch New Recipes with Images
         const { data: recipesData, error: recipesError } = await supabase
-          .from("recipe")
-          .select(
-            `
-            recipe_id,
-            recipe_name,
-            description,
-            ingredients,
-            instructions,
-            created_at,
-            prep_time,
-            cook_time,
-            image_recipe ( image_url )
-          `
-          )
-          .order("created_at", { ascending: false })
-          .limit(4);
+            .from("recipe")
+            .select(
+                `recipe_id, recipe_name, description, ingredients, instructions, created_at, prep_time, cook_time, image_recipe ( image_url )`
+            )
+            .order("created_at", { ascending: false })
+            .limit(8);
 
         if (recipesError) throw recipesError;
 
@@ -77,28 +68,33 @@ export default function Home() {
 
         // Fetch All Reviews
         const { data: reviewsData, error: reviewsError } = await supabase
-          .from("reviews")
-          .select("*");
+            .from("reviews")
+            .select("*");
 
         if (reviewsError) throw reviewsError;
 
         setReviews(reviewsData as Review[]);
 
-        // Fetch Saved Recipe IDs for the user
-        const { data: savedData, error: savedError } = await supabase
-          .from("saved_recipes")
-          .select("recipe_id")
-          .eq("user_id", user.id);
+        // Fetch Saved Recipe IDs for the user if logged in
+        if (user) {
+          const { data: savedData, error: savedError } = await supabase
+              .from("saved_recipes")
+              .select("recipe_id")
+              .eq("user_id", user.id);
 
-        if (savedError) throw savedError;
+          if (savedError) throw savedError;
 
-        // Extract just the recipe_id values
-        const savedRecipeIds = savedData ? savedData.map((item) => item.recipe_id.toString()) : [];
-        setSavedRecipes(savedRecipeIds);
+          const savedRecipeIds = savedData ? savedData.map((item) => item.recipe_id.toString()) : [];
+          setSavedRecipes(savedRecipeIds);
+        }
 
-      } catch (err: any) {
-        setError(`Failed to load data: ${err.message}`);
-        console.error("Error fetching data:", err);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(`Failed to load data: ${err.message}`);
+          console.error("Error fetching data:", err);
+        } else {
+          setError("An unknown error occurred.");
+        }
       } finally {
         setLoading(false);
       }
@@ -118,31 +114,30 @@ export default function Home() {
       if (isCurrentlySaved) {
         // Unsave the recipe
         const { error: deleteError } = await supabase
-          .from("saved_recipes")
-          .delete()
-          .eq("user_id", userId)
-          .eq("recipe_id", parseInt(recipeId));
+            .from("saved_recipes")
+            .delete()
+            .eq("user_id", userId)
+            .eq("recipe_id", parseInt(recipeId));
 
         if (deleteError) throw deleteError;
         setSavedRecipes(savedRecipes.filter((id) => id !== recipeId));
       } else {
         // Save the recipe
         const { error: insertError } = await supabase
-          .from("saved_recipes")
-          .insert([{ user_id: userId, recipe_id: parseInt(recipeId) }]);
+            .from("saved_recipes")
+            .insert([{ user_id: userId, recipe_id: parseInt(recipeId) }]);
 
         if (insertError) throw insertError;
         setSavedRecipes([...savedRecipes, recipeId]);
       }
-    } catch (err: any) {
-      setError(`Error saving recipe: ${err.message}`);
-      console.error("Error saving recipe:", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(`Error saving recipe: ${err.message}`);
+        console.error("Error saving recipe:", err);
+      } else {
+        setError("An unknown error occurred while saving the recipe.");
+      }
     }
-  };
-
-  const handleRating = (rating: number) => {
-    // Implement rating submission logic here
-    console.log("Rating submitted: ", rating);
   };
 
   const recipeCardVariants = {
@@ -167,7 +162,7 @@ export default function Home() {
           </h2>
           <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
             {loading ? (
-              <div className="flex justify-center items-center h-64">
+              <div className="flex justify-center items-center m-auto h-64">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
                 <p className="mt-4 text-xl">Loading recipes...</p>
               </div>
@@ -191,47 +186,51 @@ export default function Home() {
                     animate="animate"
                     whileHover="hover"
                   >
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={recipe.recipe_name}
-                        className="w-full h-48 object-cover rounded-t-lg"
-                      />
-                    ) : (
-                      <p className="text-center text-gray-400">
-                        No image available
-                      </p>
-                    )}
-
-                    {/* Title and Save Button */}
-                    <div className="flex justify-between items-center mt-2">
-                      <h3 className="text-xl font-semibold">{recipe.recipe_name}</h3>
-                      <button
-                        onClick={() => handleSaveRecipe(recipe.recipe_id)}
-                        className={`p-2 rounded-full ${savedRecipes.includes(recipe.recipe_id) ? "bg-red-500 text-white" : "bg-gray-200"
-                          }`}
-                      >
-                        <Heart className="h-5 w-5" />  {/* Heart Icon */}
-                      </button>
-                    </div>
-
-                    <p className="text-sm text-gray-600">
-                      Cooking Time: {recipe.cook_time}
-                    </p>
-
-                    {/* Rating Component */}
-                    <div className="flex items-center mt-2">
-                      <span className="text-yellow-500">★</span>
-                      {recipeReviews.length > 0 ? (
-                        <span className="ml-2">
-                          {recipeReviews.reduce((acc, review) => acc + review.rating, 0) /
-                            recipeReviews.length}{" "}
-                          / 5
-                        </span>
+                    <Link href={`/${recipe.recipe_id}/detailspage`} className="block"> {/* Wrap in Link */}
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl}
+                          alt={recipe.recipe_name}
+                          width={500} // Specify width
+                          height={300} // Specify height
+                          className="w-full h-48 object-cover rounded-t-lg"
+                        />
                       ) : (
-                        <span className="ml-2">No ratings yet</span>
+                        <p className="text-center text-gray-400">No image available</p>
                       )}
-                    </div>
+
+                      {/* Title and Save Button */}
+                      <div className="flex justify-between items-center mt-2">
+                        <h3 className="text-xl font-semibold">{recipe.recipe_name}</h3>
+                        {userId && (
+                          <button
+                            onClick={() => handleSaveRecipe(recipe.recipe_id)}
+                            className={`p-2 rounded-full ${savedRecipes.includes(recipe.recipe_id) ? "bg-red-500 text-white" : "bg-gray-200"
+                            }`}
+                          >
+                            <Heart className="h-5 w-5" />  {/* Heart Icon */}
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-gray-600">
+                        Cooking Time: {recipe.cook_time}
+                      </p>
+
+                      {/* Rating Component */}
+                      <div className="flex items-center mt-2">
+                        <span className="text-yellow-500">★</span>
+                        {recipeReviews.length > 0 ? (
+                          <span className="ml-2">
+                            {recipeReviews.reduce((acc, review) => acc + review.rating, 0) /
+                            recipeReviews.length}{" "}
+                            / 5
+                          </span>
+                        ) : (
+                          <span className="ml-2">No ratings yet</span>
+                        )}
+                      </div>
+                    </Link>
 
                     <div className="mt-4">
                       <h4 className="font-semibold">Reviews:</h4>

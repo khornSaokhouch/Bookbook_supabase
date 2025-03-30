@@ -24,7 +24,7 @@ async function getEvents(): Promise<Event[]> {
     }
 
     return data || [];
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching events:", error);
     return [];
   }
@@ -61,7 +61,7 @@ async function getUser(): Promise<User> {
     }
 
     return { user_id: data.user_id, name: data.user_name };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in getUser function:", error);
     return { user_id: 0, name: "Admin" }; // Fallback user - Int 0
   }
@@ -69,7 +69,7 @@ async function getUser(): Promise<User> {
 
 export default function EventsManagement() {
   const [events, setEvents] = useState<Event[]>([]);
-  const [user, setUser] = useState<User>({ user_id: "Admin", name: "Admin" });
+  const [user, setUser] = useState<User>({ user_id: 0, name: "Admin" });
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -105,9 +105,7 @@ export default function EventsManagement() {
         setUser(userData);
         console.log("Fetched User Data:", userData);
         if (userData && userData.user_id) {
-          // **Log the user_id here!**
           console.log("Using user_id from userData:", userData.user_id);
-
           setNewEvent((prevState) => ({
             ...prevState,
             admin_id: userData.user_id,
@@ -118,8 +116,8 @@ export default function EventsManagement() {
         }
         const eventsData = await getEvents();
         setEvents(eventsData);
-      } catch (fetchError: any) {
-        setError(fetchError.message || "Failed to load data.");
+      } catch (fetchError: unknown) {
+        setError(fetchError instanceof Error ? fetchError.message : "Failed to load data.");
       } finally {
         setLoading(false);
       }
@@ -141,9 +139,9 @@ export default function EventsManagement() {
         setSuccessMessage("Event deleted successfully!");
         clearSuccessMessage();
       }
-    } catch (deleteError: any) {
+    } catch (deleteError: unknown) {
       console.error("Error during delete operation:", deleteError);
-      setError(`An unexpected error occurred while deleting the event: ${deleteError.message}`);
+      setError(`An unexpected error occurred while deleting the event: ${deleteError instanceof Error ? deleteError.message : "Unknown error"}`);
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -171,7 +169,6 @@ export default function EventsManagement() {
         if (uploadResult && uploadResult.publicURL) {
           imageUrlToUpdate = uploadResult.publicURL; //Use the return
         } else {
-          // Handle upload error (already handled in handleImageUpload, but you can add more specific logic here)
           return; // Stop saving the event if image upload fails
         }
       }
@@ -192,15 +189,15 @@ export default function EventsManagement() {
         setError(`An error occurred while saving the event: ${error.message}`);
       } else {
         setEvents(
-          events.map((e) => (e.event_id === updatedEvent.event_id ? { ...updatedEvent, image_url: imageUrlToUpdate } : e)) //Also correct image when update
+          events.map((e) => (e.event_id === updatedEvent.event_id ? { ...updatedEvent, image_url: imageUrlToUpdate } : e))
         );
         setShowEditModal(false);
         setSuccessMessage("Event updated successfully!");
         clearSuccessMessage();
       }
-    } catch (updateError: any) {
+    } catch (updateError: unknown) {
       console.error("Error during edit operation:", updateError);
-      setError(`An unexpected error occurred while saving the event: ${updateError.message}`);
+      setError(`An unexpected error occurred while saving the event: ${updateError instanceof Error ? updateError.message : "Unknown error"}`);
     }
   };
 
@@ -210,54 +207,53 @@ export default function EventsManagement() {
         setError("Please select an image to upload.");
         return null;
       }
-  
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `events/${fileName}`;
-  
+
       const { data, error } = await supabase.storage
         .from('event') // **CORRECTED BUCKET NAME: 'event'**
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });
-  
+
       if (error) {
         console.error("Error uploading image:", error);
         setError(`Failed to upload image: ${error.message}`);
         return null;
       }
-  
-      // Construct URL for public access - **CORRECTED URL PATH to 'event'**
+
       const publicURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event/${filePath}`;
-  
+
       return { publicURL }; // return publicURL
-    } catch (uploadError: any) {
+    } catch (uploadError: unknown) {
       console.error("Error during image upload:", uploadError);
-      setError(`An unexpected error occurred while uploading the image: ${uploadError.message}`);
+      setError(`An unexpected error occurred while uploading the image: ${uploadError instanceof Error ? uploadError.message : "Unknown error"}`);
       return null;
     }
   };
 
-  const handleCreateEvent = async (event: Event) => { //the event to save
+  const handleCreateEvent = async (event: Event) => {
     if (!event.title || !event.start_date || !event.end_date) {
       setError("Please fill in all required fields.");
       return;
     }
 
     try {
-      // Check for null or empty admin_id BEFORE validation query
+      // Validate admin_id
       if (!event.admin_id) {
         console.warn("Admin ID is null or empty. Skipping validation.");
         setError("Invalid admin ID: Admin ID cannot be empty.");
         return;
       }
-            // Ensure admin_id exists in users table before insertion
-            const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("user_id")
-            .eq("user_id", parseInt(event.admin_id)) // Parse Int
-            .single();
+
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("user_id")
+        .eq("user_id", parseInt(event.admin_id)) // Parse Int
+        .single();
 
       if (userError) {
         console.error("Error validating admin ID:", userError);
@@ -273,21 +269,18 @@ export default function EventsManagement() {
 
       setCreating(true);
       let imageUrlToInsert = event.image_url;
-      // Upload the image if a new image has been selected
       if (imageFile) {
         const uploadResult = await handleImageUpload(imageFile);
         if (uploadResult && uploadResult.publicURL) {
-          imageUrlToInsert = uploadResult.publicURL; //Use the return
+          imageUrlToInsert = uploadResult.publicURL; // Use the return
         } else {
-          // Handle upload error (already handled in handleImageUpload, but you can add more specific logic here)
-          return; // Stop saving the event if image upload fails
+          return; // Stop saving if image upload fails
         }
       }
 
-      // Proceed to create the event
       const { data, error } = await supabase
         .from("event")
-        .insert([{ ...event, image_url: imageUrlToInsert }]); //Include image
+        .insert([{ ...event, image_url: imageUrlToInsert }]);
 
       if (error) {
         console.error("Error creating event:", error);
@@ -307,9 +300,9 @@ export default function EventsManagement() {
           image_url: "",
         });
       }
-    } catch (createError: any) {
+    } catch (createError: unknown) {
       console.error("Error during event creation:", createError);
-      setError(createError.message || "An unexpected error occurred while creating the event.");
+      setError(createError instanceof Error ? createError.message : "An unexpected error occurred while creating the event.");
     } finally {
       setCreating(false);
     }

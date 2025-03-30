@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, AlertTriangle, User as UserIcon } from "lucide-react";
+import { AlertTriangle, User as UserIcon } from "lucide-react";
 
 type User = {
   user_id: string;

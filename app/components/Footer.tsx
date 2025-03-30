@@ -1,62 +1,120 @@
 // components/Footer.tsx
-import Link from 'next/link';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import Link from "next/link";
+import Image from "next/image";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faFacebook,
+  faLinkedin,
+  faTwitter,
+  faInstagram,
+  faYoutube,
+} from "@fortawesome/free-brands-svg-icons";
+import { faLocationDot, faPhone } from "@fortawesome/free-solid-svg-icons";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="footer-container px-4 sm:px-10 md:px-20 py-8 border-t-2 border-b-2 border-blue-300 mb-6">
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center md:items-start">
-        {/* Footer Menu */}
-        <div className="footer-menu flex flex-col items-center md:items-start mb-8 md:mb-0 w-full md:w-1/2">
-          <ul className="flex flex-wrap justify-center md:justify-start list-none text-base">
-            <li className="px-2 md:px-4 py-1">
-              <Link href="/user/${userId}/about-us" className="hover:text-blue-600">ABOUT US</Link>
-            </li>
-            <li className="px-2 md:px-4 py-1">
-              <Link href="/user/${userId}/contact-us" className="hover:text-blue-600">CONTACT US</Link>
-            </li>
-            <li className="px-2 md:px-4 py-1">
-              <Link href="/user/${userId}/faq" className="hover:text-blue-600">FAQ</Link>
-            </li>
-            <li className="px-2 md:px-4 py-1">
-              <Link href="/user/${userId}/privacy" className="hover:text-blue-600">PRIVACY POLICY</Link>
-            </li>
-            <li className="px-2 md:px-4 py-1">
-              <Link href="/user/${userId}/disclaimar" className="hover:text-blue-600">DISCLAIMER</Link>
-            </li>
-          </ul>
-          <div className="logo-footer mt-4">
-            <img src="/logo.png" alt="Logo" className="w-[80px] sm:w-[120px] md:w-[150px] mx-auto md:ml-0" /> {/*Center logo on small screens*/}
+    <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-8">
+      <div className="container mx-auto px-24 sm:px-6 lg:px-8">
+        <div className="md:flex md:items-center md:justify-between">
+          {/* Footer Menu & Logo */}
+          <div className="mb-6 md:mb-0">
+            <nav className="flex flex-wrap justify-center md:justify-start">
+              <Link
+                href="/about-us"
+                className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                About Us
+              </Link>
+              <Link
+                href="/contact-us"
+                className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                Contact Us
+              </Link>
+              <Link
+                href="/faq"
+                className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                FAQ
+              </Link>
+              <Link
+                href="/privacy"
+                className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/disclaimer"
+                className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                Disclaimer
+              </Link>
+            </nav>
+            <div className="mt-4 flex justify-center md:justify-start">
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/logo.png"
+                  alt="Your Logo"
+                  width={120}
+                  height={120}
+                  priority
+                />
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Footer Info */}
-        <div className="footer-info flex flex-col items-center md:items-start w-full md:w-1/2 mt-8 md:mt-0">
-          <div className="contact flex items-center mb-4 justify-center md:justify-start">
-            <i className="fa-solid fa-location-dot text-blue-600 pr-2"></i>
-            <span className="text-sm sm:text-base">Royal University Of Phnom Penh, Faculty Engineering, Department ITE</span>
-          </div>
-          <div className="contact flex items-center mb-4 justify-center md:justify-start">
-            <i className="fa-solid fa-phone text-blue-600 pr-2"></i>
-            <span className="text-sm sm:text-base">(855) 456-7890</span>
-          </div>
-          <div className="social-media flex items-center justify-center md:justify-start">
-            <p className="text-lg pr-4">Follow Us:</p>
-            <a href="#" target="_blank" className="text-blue-600 pr-4 text-xl">
-              <i className="fa-brands fa-facebook"></i>
-            </a>
-            <a href="#" target="_blank" className="text-blue-600 pr-4 text-xl">
-              <i className="fa-brands fa-linkedin"></i>
-            </a>
-            <a href="#" target="_blank" className="text-blue-600 pr-4 text-xl">
-              <i className="fa-brands fa-twitter"></i>
-            </a>
-            <a href="#" target="_blank" className="text-blue-600 pr-4 text-xl">
-              <i className="fa-brands fa-instagram"></i>
-            </a>
-            <a href="#" target="_blank" className="text-blue-600 text-xl">
-              <i className="fa-brands fa-youtube"></i>
-            </a>
+          {/* Footer Info */}
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm text-center md:text-right">
+              © {new Date().getFullYear()} CookBook. All rights reserved.
+            </p>
+            <div className="mt-4 text-center md:text-right">
+              <div className="mb-2 text-gray-600 dark:text-gray-300">
+                <FontAwesomeIcon icon={faLocationDot} className="mr-2 text-blue-500" />
+                Royal University Of Phnom Penh, Faculty Engineering, Department ITE
+              </div>
+              <div className="mb-2 text-gray-600 dark:text-gray-300">
+                <FontAwesomeIcon icon={faPhone} className="mr-2 text-blue-500" />
+                (855) 456-7890
+              </div>
+              <div className="flex justify-center md:justify-end space-x-4">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                  aria-label="Facebook"
+                >
+                  <FontAwesomeIcon icon={faFacebook} size="lg" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                  aria-label="LinkedIn"
+                >
+                  <FontAwesomeIcon icon={faLinkedin} size="lg" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                  aria-label="Twitter"
+                >
+                  <FontAwesomeIcon icon={faTwitter} size="lg" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                  aria-label="Instagram"
+                >
+                  <FontAwesomeIcon icon={faInstagram} size="lg" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+                  aria-label="YouTube"
+                >
+                  <FontAwesomeIcon icon={faYoutube} size="lg" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,32 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async headers() {
-    return [
-      {
-        // Matching all API routes
-        source: "/api/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT" },
-          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
-        ],
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**', // Allow all hostnames for HTTPS
-        port: '', // Allow any port
-        pathname: '**', // Allow all paths
+        hostname: process.env.NEXT_PUBLIC_SUPABASE_URL?.replace("https://", "").split(".")[0] + ".supabase.co",
+        port: '',
+        pathname: '/storage/v1/object/**',
       },
       {
-        protocol: 'http',
-        hostname: '**', // Allow all hostnames for HTTP
-        port: '', // Allow any port
-        pathname: '**', // Allow all paths
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.icons8.com', // Add this pattern for img.icons8.com
+        port: '',
+        pathname: '**', // You can further specify the path if needed
       },
     ],
   },

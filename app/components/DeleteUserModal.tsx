@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { XCircle, AlertTriangle } from "lucide-react"; // Import icons
+import { AlertTriangle } from "lucide-react"; // Import icons
 
 interface DeleteUserModalProps {
   userId: string; // Changed type to string

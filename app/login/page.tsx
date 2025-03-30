@@ -7,16 +7,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, Facebook } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import Image from "next/image";
 
 // Animation Variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 export default function LoginPage() {
@@ -65,8 +61,12 @@ export default function LoginPage() {
       const redirectUrl =
         role === "Admin" ? `/${user.id}/dashboard` : `/`;
       router.push(redirectUrl);
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to sign in. Please try again.");
+    } catch (err: unknown) { // Type guard to check if it's an instance of Error
+      if (err instanceof Error) {
+        setErrorMessage(err.message || "Failed to sign in. Please try again.");
+      } else {
+        setErrorMessage("Failed to sign in. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -79,12 +79,11 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-  
+
     if (error) {
       setErrorMessage(error.message || "Google sign-in failed.");
     }
   }
-  
 
   return (
     <motion.div
@@ -176,7 +175,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-gray-600 dark:text-gray-300 text-sm">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/register" className="text-blue-500 hover:underline">
               Sign Up
             </Link>
@@ -184,7 +183,7 @@ export default function LoginPage() {
         </div>
 
         <div className="hidden md:flex items-center justify-center md:ml-4 mt-6 md:mt-0">
-          <img src="./auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" />
+          <Image src="/auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" width={400} height={400} />
         </div>
       </div>
     </motion.div>

@@ -5,11 +5,17 @@ import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { XCircle, ImageIcon, AlertTriangle } from "lucide-react";
+import Image from "next/image";
 
 interface AddOccasionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOccasionAdded: () => void;
+}
+
+interface fetchCategoriesType {
+  category_id: number;
+  category_name: string;
 }
 
 const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
@@ -39,7 +45,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
           setError(error.message);
         } else {
           setCategories(
-            data.map((cat) => ({
+            data.map((cat: fetchCategoriesType) => ({
               category_id: cat.category_id,
               category_name: cat.category_name,
             }))
@@ -48,7 +54,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
             setCategoryId(data[0].category_id); // Set the first category as default
           }
         }
-      } catch (err: any) {
+      } catch (err: Error) {
         console.error("Error fetching categories:", err);
         setError(err.message || "An unexpected error occurred.");
       }
@@ -92,7 +98,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
         // Upload the image to Supabase Storage
-        const { data: storageData, error: storageError } =
+        const { error: storageError } =
           await supabase.storage
             .from("occasion") // Change this to "images" to match your bucket name
             .upload(fileName, imageFile, {
@@ -109,7 +115,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
 
         // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`; // Construct the full URL
-      } catch (uploadErr: any) {
+      } catch (uploadErr: Error) {
         console.error("Error uploading image:", uploadErr);
         setError(
           uploadErr.message ||
@@ -138,7 +144,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
         onOccasionAdded(); // Refresh the occasion list
         onClose(); // Close the modal
       }
-    } catch (err: any) {
+    } catch (err: Error) {
       console.error("Error adding occasion:", err);
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -231,10 +237,12 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
               />
             </label>
             {imagePreview && (
-              <img
+              <Image
                 src={imagePreview}
                 alt="Occasion Preview"
-                className="mt-2 w-24 h-24 object-cover rounded-full mx-auto"
+                width={96}
+                height={96}
+                className="mt-2 object-cover rounded-full mx-auto"
               />
             )}
           </div>

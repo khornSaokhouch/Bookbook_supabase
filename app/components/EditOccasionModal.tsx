@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
@@ -78,7 +78,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
         // Upload the new image to Supabase Storage
-        const { data, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("occasion") // Make sure to use your correct bucket name
           .upload(fileName, imageFile, {
             cacheControl: "3600",
@@ -94,8 +94,8 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
 
         // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`;
-      } catch (uploadErr: any) {
-        console.error("Image Upload Error:", uploadErr);
+      } catch (uploadErr: Error) {
+        console.error("Image Upload Error:", uploadErr.message);
         setError(`Image upload failed: ${uploadErr.message}`);
         setLoading(false);
         return;
@@ -103,7 +103,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
     }
 
     try {
-      const { error } = await supabase
+      const {  error } = await supabase
         .from("occasion")
         .update({ name: occasionName, occasion_image: imageUrl })
         .eq("occasion_id", occasion.occasion_id);
@@ -117,8 +117,8 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
 
       onOccasionUpdated(); // Refresh the list of occasions
       onClose(); // Close the modal
-    } catch (dbError: any) {
-      console.error("Database Update Error:", dbError);
+    } catch (dbError: Error) {
+      console.error("Database Update Error:", dbError.message);
       setError(`Failed to update occasion: ${dbError.message}`);
     } finally {
       setLoading(false);
@@ -232,7 +232,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-700 text-white font-semibold rounded focus:outline-none focus:shadow-outline transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded focus:outline-none focus:shadow-outline transition-colors disabled:opacity-50"
               disabled={loading}
             >
               {loading ? "Saving..." : "Save Changes"}

@@ -6,7 +6,6 @@ import {
   XCircle,
   CalendarDays,
   FileImage,
-  AlertTriangle,
   PlusCircle,
 } from "lucide-react"; // Import icons
 

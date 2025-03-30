@@ -33,10 +33,15 @@ export default function AuthCallback() {
 
             // Fetch user role from Supabase database
             const { data: userMetadata, error: roleError } = await supabase
-              .from("users")
-              .select("role")
-              .eq("user_id", userId)
-              .single();
+  .from("users")
+  .select("role")
+  .eq("user_id", userId)
+  .single();
+
+if (roleError) {
+  console.error("Error fetching user role:", roleError.message);
+}
+
 
             const role = userMetadata?.role || "User";
 

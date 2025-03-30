@@ -26,37 +26,33 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+        console.log(data); // ADD THIS LINE FOR DEBUGGING
+        setUsers(data as User[]);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(`Error fetching users: ${err.message}`);
+        } else {
+          setError("An unknown error occurred while fetching users.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setUsers(data as User[]);
-    } catch (err: any) {
-      setError(`Error fetching users: ${err.message}`);
-      console.error("Fetch users error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (user_id: string) => {
     try {
@@ -66,10 +62,13 @@ const UserManagement = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user.user_id !== user_id));
       setIsDeleteModalOpen(false);
       setSuccessMessage("User deleted successfully!");
-    } catch (err: any) {
-      console.error("Error deleting user:", err);
-      setError(`Error deleting user: ${err.message}`);
-    }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(`Error deleting user: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while deleting the user.");
+      }
+    }    
   };
 
   const handleEdit = (user: User) => {
@@ -98,10 +97,14 @@ const UserManagement = () => {
       );
       setIsEditModalOpen(false);
       setSuccessMessage("User updated successfully!");
-    } catch (err: any) {
-      console.error("Unexpected error updating user:", err);
-      setError(`Error updating user: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(`Error updating user: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while updating the user.");
+      }
     }
+    
   };
 
   const containerVariants = {

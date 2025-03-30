@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
 import { Button } from "../../../components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -22,7 +21,7 @@ export default function RecipeList() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const router = useRouter();
+
 
   useEffect(() => {
     fetchRecipes();

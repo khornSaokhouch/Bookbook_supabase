@@ -318,11 +318,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   : "border-gray-300 dark:border-gray-200"
               }`}
             />
-            <img
-              src="https://img.icons8.com/ios7/512/search.png"
-              alt="search icon"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-200"
-            />
+           <Image
+  src="https://img.icons8.com/ios7/512/search.png"
+  alt="search icon"
+  width={20}
+  height={20}
+  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200"
+/>
           </div>
 
           {/* Profile */}

@@ -33,49 +33,41 @@ export default function RecipeManagement() {
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showEditOccasionModal, setShowEditOccasionModal] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [currentOccasion, setCurrentOccasion] = useState<Occasion | null>(
-    null
-  );
+  const [currentOccasion, setCurrentOccasion] = useState<Occasion | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [deleteItemType, setDeleteItemType] =
-    useState<"category" | "occasion">("category");
+  const [deleteItemType, setDeleteItemType] = useState<"category" | "occasion">("category");
   const [itemToDelete, setItemToDelete] = useState<string>("");
-  const [showCategoryDetailModal, setShowCategoryDetailModal] =
-    useState(false);
-  const [showOccasionDetailModal, setShowOccasionDetailModal] =
-    useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
-  );
-  const [selectedOccasion, setSelectedOccasion] = useState<Occasion | null>(
-    null
-  );
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+  const [showCategoryDetailModal, setShowCategoryDetailModal] = useState(false);
+  const [showOccasionDetailModal, setShowOccasionDetailModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<Occasion | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
     fetchOccasions();
   }, []);
 
+
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase.from("category").select("*");
       if (error) throw error;
       setCategories(data || []);
-    } catch (error:any) {
-          setError(`Error fetching categories: ${error.message}`);
+    } catch (error) {
+      setError(`Error fetching categories: ${(error as Error).message}`);
     }
   };
+
 
   const fetchOccasions = async () => {
     try {
       const { data, error } = await supabase.from("occasion").select("*");
       if (error) throw error;
       setOccasions(data || []);
-    } catch (error:any) {
-      console.error("Error fetching occasions:", error);
-        setError(`Error fetching occasions: ${error.message}`);
+    } catch (error) {
+      setError(`Error fetching occasions: ${(error as Error).message}`);
     }
   };
 
@@ -83,10 +75,10 @@ export default function RecipeManagement() {
     try {
       const { error } = await supabase.from("category").delete().eq("category_id", id);
       if (error) throw error;
-          setSuccessMessage("Category deleted successfully!");
+      setSuccessMessage("Category deleted successfully!");
       fetchCategories();
-    } catch (error:any) {
-        setError(`Error deleting category: ${error.message}`);
+    } catch (error) {
+      setError(`Error deleting category: ${(error as Error).message}`);
     }
   };
 
@@ -94,10 +86,10 @@ export default function RecipeManagement() {
     try {
       const { error } = await supabase.from("occasion").delete().eq("occasion_id", id);
       if (error) throw error;
-        setSuccessMessage("Occasion deleted successfully!");
+      setSuccessMessage("Occasion deleted successfully!");
       fetchOccasions();
-    } catch (error:any) {
-        setError(`Error deleting occasion: ${error.message}`);
+    } catch (error) {
+      setError(`Error deleting occasion: ${(error as Error).message}`);
     }
   };
 
@@ -130,11 +122,6 @@ export default function RecipeManagement() {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
   };
-
-    const tableVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    };
 
     const rowVariants = {
         hidden: { opacity: 0, y: 10 },

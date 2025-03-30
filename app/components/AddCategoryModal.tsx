@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion"; // Import framer-motion
 import { XCircle, ImageIcon, AlertTriangle } from "lucide-react"; // Import AlertTriangle
+import Image from "next/image";
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -53,7 +54,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       try {
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
-        const { data: storageData, error: storageError } =
+        const { error: storageError } =
           await supabase.storage
             .from("images") // Change this to "images" to match your bucket name
             .upload(fileName, imageFile, {
@@ -82,8 +83,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         }
 
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`; // Ensure 'images' matches your bucket name
-      } catch (uploadErr: any) {
-        console.error("Image Upload Error:", uploadErr); // Log the full error
+      } catch (uploadErr: Error) {
+        console.error("Image Upload Error:", uploadErr.message); // Log the full error
         setError(
           `Image upload failed: ${
             uploadErr.message || "An unexpected error occurred."
@@ -109,8 +110,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         onCategoryAdded();
         onClose();
       }
-    } catch (dbErr: any) {
-      console.error("Database Insert Error:", dbErr); // Log the full error
+    } catch (dbErr: Error) {
+      console.error("Database Insert Error:", dbErr.message); // Log the full error
       setError(
         `Category creation failed: ${
           dbErr.message || "An unexpected error occurred."
@@ -206,10 +207,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
               />
             </label>
             {imagePreview && (
-              <img
+              <Image
                 src={imagePreview}
                 alt="Category Preview"
-                className="mt-2 w-24 h-24 object-cover rounded-full mx-auto"
+                width={96}
+                height={96}
+                className="mt-2 object-cover rounded-full mx-auto"
               />
             )}
           </div>

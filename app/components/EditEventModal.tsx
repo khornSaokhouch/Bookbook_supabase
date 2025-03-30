@@ -6,10 +6,8 @@ import {
   Edit,
   XCircle,
   CalendarDays,
-  FileImage,
-  AlertTriangle,
   ImageIcon,
-} from "lucide-react"; // Import icons
+} from "lucide-react"; // Removed 'FileImage' and 'AlertTriangle'
 
 type EditEventModalProps = {
   selectedEvent: Event;
@@ -160,39 +158,40 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           </div>
 
           <div>
-  <label className="block text-gray-700 text-sm font-bold mb-2">
-    Image (Optional):
-  </label>
-  <label
-    htmlFor="imageUpload"
-    className={`relative cursor-pointer bg-gray-100 dark:bg-gray-700 border border-dashed border-gray-400 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 w-full ${
-      localImageUrl ? "h-48" : "" // Set a height when an image is present
-    }`}
-    style={{
-      backgroundImage: localImageUrl ? `url('${localImageUrl}')` : "none",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    <input
-      type="file"
-      accept="image/*"
-      onChange={handleImageChange}
-      className="absolute inset-0 w-full h-full opacity-0"
-      id="imageUpload"
-    />
-    <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-500">
-      {localImageUrl ? (
-        <div className="text-white bg-black bg-opacity-50 rounded p-2">Change Image</div> // Change Image Label
-      ) : (
-        <>
-          <ImageIcon className="w-6 h-6 mb-2" />
-          Click to Upload
-        </>
-      )}
-    </div>
-  </label>
-</div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Image (Optional):
+            </label>
+            <label
+              htmlFor="imageUpload"
+              className={`relative cursor-pointer bg-gray-100 dark:bg-gray-700 border border-dashed border-gray-400 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 w-full ${
+                localImageUrl ? "h-48" : "" // Set a height when an image is present
+              }`}
+              style={{
+                backgroundImage: localImageUrl ? `url('${localImageUrl}')` : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="absolute inset-0 w-full h-full opacity-0"
+                id="imageUpload"
+              />
+              <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-500">
+                {localImageUrl ? (
+                  <div className="text-white bg-black bg-opacity-50 rounded p-2">Change Image</div> // Change Image Label
+                ) : (
+                  <>
+                    <ImageIcon className="w-6 h-6 mb-2" />
+                    Click to Upload
+                  </>
+                )}
+              </div>
+            </label>
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end space-x-2">
             <button

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, CheckCircle, AlertTriangle } from "lucide-react";
+import { Mail, Lock, User, CheckCircle } from "lucide-react"; // Removed AlertTriangle import
+import Image from "next/image"; // Import Image component for better performance
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,16 +51,14 @@ export default function RegisterPage() {
 
       const { error: userError } = await supabase
         .from("users")
-        .insert([
-          {
-            user_id: user.id,
-            user_name: name,
-            email: user.email,
-            role: "User",
-            status: "Active",
-            created_at: new Date(),
-          },
-        ]);
+        .insert([{
+          user_id: user.id,
+          user_name: name,
+          email: user.email,
+          role: "User",
+          status: "Active",
+          created_at: new Date(),
+        }]);
 
       if (userError) {
         throw userError;
@@ -70,8 +69,12 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 3000);
-    } catch (error: any) {
-      setError(error.message || "Registration failed. Please try again.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || "Registration failed. Please try again.");
+      } else {
+        setError("An unknown error occurred.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -179,7 +182,13 @@ export default function RegisterPage() {
         </div>
 
         <div className="hidden md:flex items-center justify-center md:ml-4 mt-6 md:mt-0">
-          <img src="./auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" />
+          <Image
+            src="/auth/image.png" // Use the path or URL to your image
+            alt="Login Illustration"
+            width={200} // Specify width
+            height={200} // Specify height
+            className="w-48 md:w-56 lg:w-104"
+          />
         </div>
       </motion.div>
     </motion.div>

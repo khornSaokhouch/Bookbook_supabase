@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { XCircle, ImageIcon, AlertTriangle } from "lucide-react";
+import Image from "next/image";
 
 type Category = {
   category_id: string;
@@ -67,7 +68,7 @@ const EditCategoryModal = ({
       try {
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
-        const { data: storageData, error: storageError } = await supabase
+        const { error: storageError } = await supabase
           .storage
           .from("images") // Change this to your bucket name
           .upload(fileName, imageFile, {
@@ -78,7 +79,7 @@ const EditCategoryModal = ({
         if (storageError) throw storageError;
 
         updatedImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
-      } catch (error: any) {
+      } catch (error: Error) {
         console.error("Error uploading image:", error);
         setError("Image upload failed. Please try again.");
         setLoading(false);
@@ -97,7 +98,7 @@ const EditCategoryModal = ({
 
         onCategoryUpdated(); // Callback to refresh data
         onClose(); // Close modal
-      } catch (error: any) {
+      } catch (error: Error) {
         console.error("Error updating category:", error);
         setError("Category update failed. Please try again.");
       } finally {
@@ -191,10 +192,12 @@ const EditCategoryModal = ({
                   />
                 </label>
                 {imagePreview && (
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Preview"
-                    className="mt-2 w-24 h-24 object-cover rounded-full mx-auto"
+                    width={96}
+                    height={96}
+                    className="mt-2 object-cover rounded-full mx-auto"
                   />
                 )}
               </div>
