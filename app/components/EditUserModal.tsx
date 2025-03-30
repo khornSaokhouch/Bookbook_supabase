@@ -9,23 +9,25 @@ type User = {
   user_name: string;
   email: string;
   role: string;
+  created_at: string;
 };
 
 type EditUserModalProps = {
   user: User;
   onClose: () => void;
-  onSave: (updatedUser: User) => void;
+  onSave: (updatedUser: User) => Promise<void>; // Ensure it is Async Function
 };
 
 const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) => {
   const [updatedUser, setUpdatedUser] = useState<User>({ ...user });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Function to handle input change for fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setUpdatedUser((prevUser) => ({
       ...prevUser,
-      [name]: value.trim(),
+      [name]: value.trim(), // Trimming input directly here
     }));
   };
 
@@ -34,6 +36,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
       ...updatedUser,
       user_name: updatedUser.user_name.trim(),
       email: updatedUser.email.trim(),
+      role: updatedUser.role,
+      created_at: updatedUser.created_at, //added created_at value
     };
 
     if (!trimmedUser.user_name || !trimmedUser.email) {
@@ -53,7 +57,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
       return;
     }
 
+    // Clear the error message if everything is valid
     setErrorMessage(null);
+
+    // Pass the updated user data to the parent onSave function
     onSave(trimmedUser);
   };
 

@@ -66,19 +66,21 @@ const fetchUserProfile = useCallback(async (userId: string) => {
   }
 }, []);
 
-
-  /** Fetch signed image URL */
- /** Fetch signed image URL */
 const fetchSignedImageUrl = useCallback(async (imagePath: string | undefined) => {
   if (!imagePath) return "/default-avatar.png";
   try {
-    const { data, error } = await supabase.storage.from("image-user").createSignedUrl(imagePath, 60);
-    if (error) return "/default-avatar.png";
+    const { data, error } = await supabase.storage.from("image-user").createSignedUrl(imagePath, 600);
+    if (error) {
+      console.error("Error fetching signed URL: ", error);
+      return "/default-avatar.png";
+    }
     return data?.signedUrl || "/default-avatar.png";
-  } catch {
+  } catch (err) {
+    console.error("Unexpected error:", err);
     return "/default-avatar.png";
   }
 }, []);
+
 
 
   /** Load user data */

@@ -28,18 +28,26 @@ const ContactUs = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     let isValid = true;
-    const newErrors: { [key: string]: string } = {};
-
+  
+    // Initialize newErrors with the correct structure
+    const newErrors: { firstName: string; lastName: string; email: string; phone: string; message: string } = {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      message: "",
+    };
+  
     if (!formData.firstName) {
       newErrors.firstName = "First name is required";
       isValid = false;
     }
-
+  
     if (!formData.lastName) {
       newErrors.lastName = "Last name is required";
       isValid = false;
     }
-
+  
     if (!formData.email) {
       newErrors.email = "Email is required";
       isValid = false;
@@ -47,25 +55,26 @@ const ContactUs = () => {
       newErrors.email = "Invalid email format";
       isValid = false;
     }
-
+  
     if (!formData.phone) {
       newErrors.phone = "Phone number is required";
       isValid = false;
     }
-
+  
     if (!formData.message) {
       newErrors.message = "Message is required";
       isValid = false;
     }
-
-    setErrors(newErrors);
-
+  
+    setErrors(newErrors); // Now this will work without a TypeScript error
+  
     if (isValid) {
       // Simulate form submission
       alert("Form submitted successfully!");
       setFormData({ firstName: "", lastName: "", email: "", phone: "", message: "" }); // Reset form
     }
   };
+  
 
   const containerVariants = {
     hidden: { opacity: 0 },

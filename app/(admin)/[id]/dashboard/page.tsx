@@ -32,7 +32,6 @@ type Occasion = {
   occasion_image: string;
 };
 
-// Fetch dashboard stats
 async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const [{ count: userCount }, { count: recipeCount }, { count: eventCount }, { count: categoryCount }] =
@@ -43,7 +42,13 @@ async function getDashboardStats(): Promise<DashboardStats> {
         supabase.from("category").select("*", { head: true, count: "exact" }),
       ]);
 
-    return { userCount, recipeCount, eventCount, categoryCount };
+    // Ensure the counts are not null
+    return {
+      userCount: userCount ?? 0,
+      recipeCount: recipeCount ?? 0,
+      eventCount: eventCount ?? 0,
+      categoryCount: categoryCount ?? 0,
+    };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     return {

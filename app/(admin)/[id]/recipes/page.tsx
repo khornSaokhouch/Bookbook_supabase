@@ -16,12 +16,20 @@ import {
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 
+// Define the type for a single recipe
+interface Recipe {
+  recipe_id: string; // Change to 'string' if it's a string, otherwise 'number'
+  recipe_name: string;
+  category_id: string; // Adjust the type if needed
+  occasion_id: string; // Adjust the type if needed
+  created_at: string; // Adjust the type if needed
+}
+
 export default function RecipeList() {
-  const [recipes, setRecipes] = useState([]);
-  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]); // Explicitly define the state type
+  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null); // Recipe ID (string or null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-
 
   useEffect(() => {
     fetchRecipes();
@@ -34,10 +42,10 @@ export default function RecipeList() {
       .order("created_at", { ascending: false });
 
     if (error) console.error(error);
-    else setRecipes(data);
+    else setRecipes(data); // TypeScript now understands the type of 'data'
   }
 
-  async function deleteRecipe(id) {
+  async function deleteRecipe(id: string) {
     const { error } = await supabase.from("recipe").delete().eq("recipe_id", id);
     if (error) {
       console.error(error);
@@ -122,7 +130,9 @@ export default function RecipeList() {
                       <Button
                         variant="destructive"
                         onClick={() => {
-                          deleteRecipe(selectedRecipe);
+                          if (selectedRecipe) {
+                            deleteRecipe(selectedRecipe);
+                          }
                         }}
                       >
                         Confirm Delete
