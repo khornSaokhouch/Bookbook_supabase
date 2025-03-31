@@ -21,6 +21,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
   const [userId, setUserId] = useState<string | null>(null);
   const [comments, setComments] = useState<Review[]>(reviews);
   const [username, setUsername] = useState<string | null>(null);
+  const [showAllComments, setShowAllComments] = useState(false); // Toggle to show all comments
 
   useEffect(() => {
     const getUserIdFromCookies = () => {
@@ -97,6 +98,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
     }
   };
 
+  const displayedComments = showAllComments ? comments : comments.slice(0, 1); // Show only the first comment by default
+
   return (
     <div>
       <h4 className="font-semibold text-gray-800 dark:text-gray-200">Reviews:</h4>
@@ -116,8 +119,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
         </button>
       </form>
 
-      {comments.length > 0 ? (
-        comments.map((review) => (
+      {displayedComments.length > 0 ? (
+        displayedComments.map((review) => (
           <motion.div
             key={review.review_id}
             className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
@@ -136,6 +139,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
         ))
       ) : (
         <p className="text-gray-500 dark:text-gray-400 mt-2">No reviews yet. Be the first to review!</p>
+      )}
+
+      {comments.length > 1 && !showAllComments && (
+        <button
+          onClick={() => setShowAllComments(true)}
+          className="text-blue-500 hover:underline mt-2"
+        >
+          View all comments
+        </button>
+      )}
+
+      {showAllComments && (
+        <button
+          onClick={() => setShowAllComments(false)}
+          className="text-blue-500 hover:underline mt-2"
+        >
+          Show less
+        </button>
       )}
     </div>
   );

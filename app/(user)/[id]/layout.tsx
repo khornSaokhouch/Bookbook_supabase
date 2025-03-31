@@ -1,17 +1,10 @@
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import { parseCookies } from "nookies"; // Handle cookies
-import { useRouter } from "next/navigation";  
-
-type User = {
-  user_id: string;
-  user_name: string;
-  email: string;
-  image_url?: string | null;
-};
+import React, { ReactNode, useEffect, useState, useCallback } from "react";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import { supabase } from "@/app/lib/supabaseClient"; // Ensure correct import path
+import { User } from "@/app/types"; // Import shared User type
 
 interface UserLayoutProps {
   children: ReactNode;
@@ -20,21 +13,49 @@ interface UserLayoutProps {
 const UserLayout = ({ children }: UserLayoutProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Prevents flashing content
-  const router = useRouter();
+
+  /** Fetch user profile data (user_name and image_url) by user_id */
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("user_name, email, image_url")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+
+      return {
+        user_id: userId,
+        user_name: data?.user_name || "User",
+        email: data?.email || "",
+        image_url: data?.image_url || "/default-avatar.png", // Fallback to default image
+      };
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
-    const cookies = parseCookies();
-    const userCookie = cookies.user ? JSON.parse(cookies.user) : null;
+    const fetchUser = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user;
 
-    // Redirect to login if user_id is missing or invalid
-    if (!userCookie) {
-      return;
-    }
+        if (sessionUser) {
+          const profile = await fetchUserProfile(sessionUser.id);
+          setUser(profile);
+        }
+      } catch (err) {
+        console.error("Error fetching user session:", err);
+      } finally {
+        setIsLoading(false); // Allow unauthenticated users to view the page
+      }
+    };
 
-    // Set user if authenticated
-    setUser(userCookie);
-    setIsLoading(false);
-  }, [router]);
+    fetchUser();
+  }, [fetchUserProfile]);
 
   // Show loading while checking authentication
   if (isLoading) {

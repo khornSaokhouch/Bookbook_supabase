@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useState } from "react";
+import { supabase } from "../lib/supabaseClient"; // Ensure correct import path
 import HomeIcon from "@mui/icons-material/Home";
 import EditIcon from "@mui/icons-material/Edit";
 import WorkIcon from "@mui/icons-material/Work";
@@ -13,47 +13,31 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/app/components/ui/dialog";
 import { Button } from "@/app/components/ui/button";
+import { User } from "@/app/types"; // Import shared User type
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+interface SidebarNavProps {
+  user: User | null; // Accept user as a prop
+}
 
-const SidebarNav = () => {
+const SidebarNav = ({ user }: SidebarNavProps) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false); // State for logout popup
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-      } else {
-        console.error("Error fetching user:", error);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   // Logout function
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setUserId(null);
-    router.push("/"); // Redirect to login page
+    router.push("/"); // Redirect to home page
   };
 
   // Define menu items based on user authentication
-  const menuItems = userId
+  const menuItems = user
     ? [
-        { href: `/${userId}/profile`, label: "Profile", icon: <HomeIcon /> },
-        { href: `/${userId}/edit-profile`, label: "Edit Profile", icon: <EditIcon /> },
-        { href: `/${userId}/my-recipes`, label: "My Recipes", icon: <WorkIcon /> },
-        { href: `/${userId}/reset-password`, label: "Reset Password", icon: <LockIcon /> },
-        { href: `/${userId}/save-recipe`, label: "Saved Recipes", icon: <BookmarkIcon /> },
+        { href: `/${user.user_id}/profile`, label: "Profile", icon: <HomeIcon /> },
+        { href: `/${user.user_id}/edit-profile`, label: "Edit Profile", icon: <EditIcon /> },
+        { href: `/${user.user_id}/my-recipes`, label: "My Recipes", icon: <WorkIcon /> },
+        { href: `/${user.user_id}/reset-password`, label: "Reset Password", icon: <LockIcon /> },
+        { href: `/${user.user_id}/save-recipe`, label: "Saved Recipes", icon: <BookmarkIcon /> },
       ]
     : [];
 
@@ -84,7 +68,7 @@ const SidebarNav = () => {
           ))}
 
           {/* Logout Button with Popup */}
-          {userId && (
+          {user && (
             <motion.li variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: menuItems.length * 0.1 }}>
               <button
                 onClick={() => setIsLogoutOpen(true)}

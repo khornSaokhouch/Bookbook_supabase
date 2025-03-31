@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
 import { Button } from "../../../components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, CheckCircle } from "lucide-react";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -14,20 +13,18 @@ import {
   DialogFooter,
 } from "@/app/components/ui/dialog";
 import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
 
-// Define the type for a single recipe
 interface Recipe {
-  recipe_id: string; // Change to 'string' if it's a string, otherwise 'number'
+  recipe_id: string;
   recipe_name: string;
-  category_id: string; // Adjust the type if needed
-  occasion_id: string; // Adjust the type if needed
-  created_at: string; // Adjust the type if needed
+  category_id: string;
+  occasion_id: string;
+  created_at: string;
 }
 
 export default function RecipeList() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]); // Explicitly define the state type
-  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null); // Recipe ID (string or null)
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
@@ -41,55 +38,58 @@ export default function RecipeList() {
       .select("recipe_id, recipe_name, category_id, occasion_id, created_at")
       .order("created_at", { ascending: false });
 
-    if (error) console.error(error);
-    else setRecipes(data); // TypeScript now understands the type of 'data'
+    if (error) {
+      console.error("Error fetching recipes:", error);
+      return;
+    }
+    setRecipes(data);
   }
 
-  async function deleteRecipe(id: string) {
-    const { error } = await supabase.from("recipe").delete().eq("recipe_id", id);
-    if (error) {
-      console.error(error);
-    } else {
-      fetchRecipes();
-      setIsSuccessModalOpen(true);
-      setTimeout(() => {
-        setIsSuccessModalOpen(false);
-      }, 3000);
+  async function deleteRecipe() {
+    if (!selectedRecipe) {
+      console.error("No recipe selected for deletion.");
+      return;
     }
+    
+    console.log("Attempting to delete recipe:", selectedRecipe);
+
+    const { error } = await supabase
+      .from("recipe")
+      .delete()
+      .eq("recipe_id", selectedRecipe);
+
+    if (error) {
+      console.error("Error deleting recipe:", error);
+      return;
+    }
+
+    console.log("Recipe deleted successfully.");
+    setRecipes(recipes.filter((recipe) => recipe.recipe_id !== selectedRecipe));
     setIsDeleteModalOpen(false);
+    setIsSuccessModalOpen(true);
+
+    setTimeout(() => {
+      setIsSuccessModalOpen(false);
+    }, 3000);
   }
 
   return (
-    <motion.div
-      className="p-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.5 } }}
-    >
-      <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
-        Recipe List
-      </h1>
-      <motion.table
-        className="w-full border-collapse border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } }}
-      >
-        <thead className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+    <motion.div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Recipe List</h1>
+      <table className="w-full border border-gray-200 rounded-lg shadow-md">
+        <thead className="bg-gray-100">
           <tr className="text-center">
-            <th className="p-3 border font-semibold uppercase text-sm">ID</th>
-            <th className="p-3 border font-semibold uppercase text-sm">Recipe Name</th>
-            <th className="p-3 border font-semibold uppercase text-sm">Category</th>
-            <th className="p-3 border font-semibold uppercase text-sm">Occasion</th>
-            <th className="p-3 border font-semibold uppercase text-sm">Created At</th>
-            <th className="p-3 border font-semibold uppercase text-sm">Actions</th>
+            <th className="p-3 border">ID</th>
+            <th className="p-3 border">Recipe Name</th>
+            <th className="p-3 border">Category</th>
+            <th className="p-3 border">Occasion</th>
+            <th className="p-3 border">Created At</th>
+            <th className="p-3 border">Actions</th>
           </tr>
         </thead>
         <tbody>
           {recipes.map((recipe) => (
-            <motion.tr
-              key={recipe.recipe_id}
-              className="text-center border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-              whileHover={{ scale: 1.02 }}
-            >
+            <tr key={recipe.recipe_id} className="text-center border">
               <td className="p-3 border">{recipe.recipe_id}</td>
               <td className="p-3 border">{recipe.recipe_name}</td>
               <td className="p-3 border">{recipe.category_id}</td>
@@ -98,75 +98,62 @@ export default function RecipeList() {
                 {new Date(recipe.created_at).toLocaleDateString()}
               </td>
               <td className="p-3 border flex justify-center gap-2">
-                {/* Delete Button */}
-                <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedRecipe(recipe.recipe_id);
-                        setIsDeleteModalOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </DialogTrigger>
-
-                  {/* Modal content */}
-                  <DialogContent className="max-w-md bg-white border rounded-lg shadow-md overflow-hidden">
-                    <DialogHeader className="px-6 py-4 bg-gray-50 dark:bg-white">
-                      <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Confirm Deletion
-                      </DialogTitle>
-                      <DialogDescription className="text-gray-600 dark:text-gray-400">
-                        Are you sure you want to delete this recipe? This action cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          if (selectedRecipe) {
-                            deleteRecipe(selectedRecipe);
-                          }
-                        }}
-                      >
-                        Confirm Delete
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    console.log("Opening delete modal for:", recipe.recipe_id);
+                    setSelectedRecipe(recipe.recipe_id);
+                    setIsDeleteModalOpen(true);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </td>
-            </motion.tr>
+            </tr>
           ))}
         </tbody>
-      </motion.table>
+      </table>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border rounded-lg shadow-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this recipe? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteRecipe}>
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Success Modal */}
-      {isSuccessModalOpen && (
-        <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-          <DialogContent className="max-w-md bg-white border dark:border-gray-700 rounded-lg shadow-md overflow-hidden">
-            <DialogHeader className="px-6 py-4 bg-green-100">
-              <DialogTitle className="text-lg font-semibold text-green-700 flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Success!
-              </DialogTitle>
-              <DialogDescription className="text-green-700">
-                The recipe was successfully deleted!
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="px-6 py-4 bg-green-100 flex justify-end">
-              <Button variant="outline" onClick={() => setIsSuccessModalOpen(false)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="max-w-md bg-white border rounded-lg shadow-md">
+          <DialogHeader className="px-6 py-4 bg-green-100">
+            <DialogTitle className="text-green-700 flex items-center">
+              <CheckCircle className="w-5 h-5 mr-2" />
+              Success!
+            </DialogTitle>
+            <DialogDescription className="text-green-700">
+              The recipe was successfully deleted!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="px-6 py-4 bg-green-100 flex justify-end">
+            <Button variant="outline" onClick={() => setIsSuccessModalOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

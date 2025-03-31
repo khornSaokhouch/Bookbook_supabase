@@ -9,6 +9,7 @@ import StarRating from "../../../components/StarRating"; // Create this componen
 import CommentSection from "../../../components/CommentSection"; // Create this component
 import Link from "next/link";
 import Image from "next/image"; // Import next/image
+import { User } from "@/app/types"; // Import shared User type
 
 // Define Recipe type
 type Recipe = {
@@ -40,38 +41,76 @@ const AllRecipesPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [savedRecipes, setSavedRecipes] = useState<number[]>([]); // Store recipe IDs
-  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null); // Store user object
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [recipesData, reviewsData] = await Promise.all([
-          supabase
-            .from("recipe")
-            .select(`
-                recipe_id,
-                recipe_name,
-                description,
-                ingredients,
-                instructions,
-                created_at,
-                prep_time,
-                cook_time,
-                note,
-                image_recipe ( image_url )
-              `),
-          supabase
-            .from("reviews")
-            .select("review_id, recipe_id, user_id, comment, rating, created_at"),
-        ]);
 
-        if (recipesData.error) throw new Error(recipesData.error.message);
-        if (reviewsData.error) throw new Error(reviewsData.error.message);
+        // Fetch user session
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user;
 
-        setRecipes(recipesData.data as Recipe[]);
-        setReviews(reviewsData.data as Review[]);
+        if (sessionUser) {
+          const { data, error } = await supabase
+            .from("users")
+            .select("user_name, email, image_url")
+            .eq("user_id", sessionUser.id)
+            .single();
+
+          if (!error && data) {
+            setUser({
+              user_id: sessionUser.id,
+              user_name: data.user_name || "User",
+              email: data.email || "",
+              image_url: data.image_url || "/default-avatar.png",
+            });
+
+            // Fetch saved recipes for logged-in users
+            const { data: savedData, error: savedError } = await supabase
+              .from("saved_recipes")
+              .select("recipe_id")
+              .eq("user_id", sessionUser.id);
+
+            if (savedError) throw savedError;
+
+            const savedRecipeIds = savedData
+              ? savedData.map((item) => item.recipe_id)
+              : [];
+            setSavedRecipes(savedRecipeIds);
+          }
+        }
+
+        // Fetch all recipes
+        const { data: recipesData, error: recipesError } = await supabase
+          .from("recipe")
+          .select(`
+            recipe_id,
+            recipe_name,
+            description,
+            ingredients,
+            instructions,
+            created_at,
+            prep_time,
+            cook_time,
+            note,
+            image_recipe ( image_url )
+          `);
+
+        if (recipesError) throw recipesError;
+
+        setRecipes(recipesData as Recipe[]);
+
+        // Fetch all reviews
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from("reviews")
+          .select("review_id, recipe_id, user_id, comment, rating, created_at");
+
+        if (reviewsError) throw reviewsError;
+
+        setReviews(reviewsData as Review[]);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(`Error fetching data: ${err.message}`);
@@ -84,33 +123,11 @@ const AllRecipesPage = () => {
       }
     };
 
-    const getUserIdFromCookies = () => {
-      if (typeof document === "undefined") {
-        return null; // Exit if document is not available (SSR)
-      }
-      const cookies = document.cookie.split("; ");
-      const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
-      if (userCookie) {
-        try {
-          const user = JSON.parse(decodeURIComponent(userCookie.split("=")[1]));
-          return user.id;
-        } catch (error) {
-          console.error("Error parsing user cookie:", error);
-          return null;
-        }
-      }
-      return null;
-    };
-    const fetchedUserId = getUserIdFromCookies();
-    if (fetchedUserId) {
-      setUserId(fetchedUserId);
-    }
-
     fetchAllData();
   }, []);
 
   const handleSaveRecipe = async (recipeId: number) => {
-    if (!userId) {
+    if (!user) {
       console.warn("User not logged in. Cannot save recipe.");
       return;
     }
@@ -123,7 +140,7 @@ const AllRecipesPage = () => {
     try {
       const { error } = await supabase.from("saved_recipes").insert([
         {
-          user_id: userId,
+          user_id: user.user_id,
           recipe_id: recipeId,
         },
       ]);
@@ -193,16 +210,18 @@ const AllRecipesPage = () => {
 
                       <div className="flex justify-between items-center mt-2">
                         <h3 className="text-xl font-semibold">{recipe.recipe_name}</h3>
-                        <button
-                          onClick={() => handleSaveRecipe(recipe.recipe_id)}
-                          className={`p-2 rounded-full ${
-                            savedRecipes.includes(recipe.recipe_id)
-                              ? "bg-red-500 text-white"
-                              : "bg-gray-200"
-                          }`}
-                        >
-                          <Heart className="h-5 w-5" />
-                        </button>
+                        {user && (
+                          <button
+                            onClick={() => handleSaveRecipe(recipe.recipe_id)}
+                            className={`p-2 rounded-full ${
+                              savedRecipes.includes(recipe.recipe_id)
+                                ? "bg-red-500 text-white"
+                                : "bg-gray-200"
+                            }`}
+                          >
+                            <Heart className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
 
                       <p className="text-sm text-gray-600">Cooking Time: {recipe.cook_time}</p>

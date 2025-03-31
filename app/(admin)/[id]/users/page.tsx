@@ -51,11 +51,10 @@ const UserManagement = () => {
       if (error) throw error;
       setUsers(data as User[]);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(`Error fetching users: ${err.message}`);
-      } else {
-        setError("An unknown error occurred while fetching users.");
-      }
+      setError(`Error fetching users: ${err.message}`);
+      console.error("Fetch users error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,13 +66,9 @@ const UserManagement = () => {
       setUsers((prevUsers) => prevUsers.filter((user) => user.user_id !== user_id));
       setIsDeleteModalOpen(false);
       setSuccessMessage("User deleted successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000); // Hide success message after 3 seconds
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(`Error deleting user: ${err.message}`);
-      } else {
-        setError("An unknown error occurred while deleting the user.");
-      }
+      console.error("Error deleting user:", err);
+      setError(`Error deleting user: ${err.message}`);
     }
   };
 
@@ -82,7 +77,7 @@ const UserManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSave = async (updatedUser: User): Promise<void> => {
+  const handleSave = async (updatedUser: User) => {
     try {
       const validRoles = ["Admin", "User"];
       const role = validRoles.includes(updatedUser.role) ? updatedUser.role : "User";
@@ -103,32 +98,40 @@ const UserManagement = () => {
       );
       setIsEditModalOpen(false);
       setSuccessMessage("User updated successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000); // Hide success message after 3 seconds
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(`Error updating user: ${err.message}`);
-      } else {
-        setError("An unknown error occurred while updating the user.");
-      }
+      console.error("Unexpected error updating user:", err);
+      setError(`Error updating user: ${err.message}`);
     }
   };
 
-  const handleCloseDeleteModal = () => {
-    setDeleteUserId(null);
-    setIsDeleteModalOpen(false);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+  };
+
+  const tableVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    hover: { backgroundColor: "#f9f9f9" },
   };
 
   return (
     <motion.div
       className="container mx-auto p-4 md:p-8"
-      variants={{ visible: { opacity: 1, transition: { duration: 0.5 } }, hidden: { opacity: 0 } }}
+      variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-4 md:p-8 rounded-lg shadow-md">
         <h1 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">Users</h1>
+        <p className="mb-4 text-gray-600 dark:text-gray-400">Manage users here. You can edit or remove users.</p>
 
-        {/* Success and Error Messages */}
+        {/* Success Message */}
         {successMessage && (
           <motion.div
             className="fixed top-4 right-4 bg-green-100 border border-green-500 text-green-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
@@ -140,6 +143,8 @@ const UserManagement = () => {
             {successMessage}
           </motion.div>
         )}
+
+        {/* Error Message */}
         {error && (
           <motion.div
             className="fixed top-4 right-4 bg-red-100 border border-red-500 text-red-700 py-3 px-4 rounded-md shadow-md z-50 flex items-center"
@@ -152,13 +157,13 @@ const UserManagement = () => {
           </motion.div>
         )}
 
-        {/* Loading Indicator */}
         {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-          </div>
+          <div className="text-center text-gray-500 dark:text-gray-300">Loading users...</div>
         ) : (
-          <motion.div className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <motion.div
+            className="overflow-x-auto mt-6 bg-white dark:bg-gray-800 rounded-lg shadow"
+            variants={tableVariants}
+          >
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-sm leading-normal">
@@ -176,7 +181,8 @@ const UserManagement = () => {
                     <motion.tr
                       key={user.user_id}
                       className="border-b dark:border-gray-700 hover:bg-gray-500 hover:text-black transition-colors duration-200 text-black"
-                      variants={{ visible: { opacity: 1, y: 0 }, hidden: { opacity: 0, y: 10 } }}
+                      variants={rowVariants}
+                      whileHover="hover"
                     >
                       <td className="py-3 px-6">{user.user_id}</td>
                       <td className="py-3 px-6">{user.user_name}</td>
@@ -218,7 +224,7 @@ const UserManagement = () => {
           </motion.div>
         )}
 
-        {/* Modals */}
+        {/* Edit User Modal */}
         {isEditModalOpen && selectedUser && (
           <EditUserModal
             user={selectedUser}
@@ -226,11 +232,13 @@ const UserManagement = () => {
             onSave={handleSave}
           />
         )}
+
+        {/* Delete User Modal */}
         {isDeleteModalOpen && deleteUserId && (
           <DeleteUserModal
             userId={deleteUserId}
             onDelete={handleDelete}
-            onClose={handleCloseDeleteModal}
+            onClose={() => setIsDeleteModalOpen(false)}
           />
         )}
       </div>

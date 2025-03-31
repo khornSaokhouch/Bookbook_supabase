@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./lib/supabaseClient";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import BannerSwiper from "./components/BannerSwiper";
+import Navbar from "@/app/components/Navbar"; // Ensure correct import path
+import Footer from "@/app/components/Footer"; // Ensure correct import path
+import BannerSwiper from "@/app/components/BannerSwiper"; // Ensure correct import path
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image"; // Import Image component
+import { User } from "@/app/types"; // Import shared User type
 
 // Recipe Type
 type Recipe = {
@@ -33,34 +34,79 @@ type Review = {
   created_at: string;
 };
 
+const constructImageUrl = (path: string | null) => {
+  if (!path) return "/default-image.jpg"; // Fallback to a default image
+  if (path.startsWith("http://") || path.startsWith("https://")) return path; // Already a valid URL
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`; // Construct full URL
+};
+
 export default function Home() {
   const [newRecipes, setNewRecipes] = useState<Recipe[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedRecipes, setSavedRecipes] = useState<string[]>([]); // Store recipe_id strings
-  const [userId, setUserId] = useState<string | null>(null); // Store user ID
+  const [savedRecipes, setSavedRecipes] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(null); // Store user object
+
+  /** Fetch user profile data (user_name and image_url) by user_id */
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("user_name, email, image_url")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+
+      return {
+        user_id: userId,
+        user_name: data?.user_name || "User",
+        email: data?.email || "",
+        image_url: data?.image_url || null,
+      };
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchRecipesAndReviews = async () => {
+    const fetchUserAndData = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        // Fetch user session
         const { data: sessionData } = await supabase.auth.getSession();
-        const user = sessionData?.session?.user;
-        if (user) {
-          setUserId(user.id); // Set user ID
+        const sessionUser = sessionData?.session?.user;
+
+        if (sessionUser) {
+          const profile = await fetchUserProfile(sessionUser.id);
+          setUser(profile);
+
+          // Fetch saved recipes for logged-in users
+          const { data: savedData, error: savedError } = await supabase
+            .from("saved_recipes")
+            .select("recipe_id")
+            .eq("user_id", sessionUser.id);
+
+          if (savedError) throw savedError;
+
+          const savedRecipeIds = savedData
+            ? savedData.map((item) => item.recipe_id.toString())
+            : [];
+          setSavedRecipes(savedRecipeIds);
         }
 
         // Fetch New Recipes with Images
         const { data: recipesData, error: recipesError } = await supabase
-            .from("recipe")
-            .select(
-                `recipe_id, recipe_name, description, ingredients, instructions, created_at, prep_time, cook_time, image_recipe ( image_url )`
-            )
-            .order("created_at", { ascending: false })
-            .limit(8);
+          .from("recipe")
+          .select(
+            `recipe_id, recipe_name, description, ingredients, instructions, created_at, prep_time, cook_time, image_recipe ( image_url )`
+          )
+          .order("created_at", { ascending: false })
+          .limit(8);
 
         if (recipesError) throw recipesError;
 
@@ -68,26 +114,12 @@ export default function Home() {
 
         // Fetch All Reviews
         const { data: reviewsData, error: reviewsError } = await supabase
-            .from("reviews")
-            .select("*");
+          .from("reviews")
+          .select("*");
 
         if (reviewsError) throw reviewsError;
 
         setReviews(reviewsData as Review[]);
-
-        // Fetch Saved Recipe IDs for the user if logged in
-        if (user) {
-          const { data: savedData, error: savedError } = await supabase
-              .from("saved_recipes")
-              .select("recipe_id")
-              .eq("user_id", user.id);
-
-          if (savedError) throw savedError;
-
-          const savedRecipeIds = savedData ? savedData.map((item) => item.recipe_id.toString()) : [];
-          setSavedRecipes(savedRecipeIds);
-        }
-
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(`Failed to load data: ${err.message}`);
@@ -100,11 +132,11 @@ export default function Home() {
       }
     };
 
-    fetchRecipesAndReviews();
-  }, []);
+    fetchUserAndData();
+  }, [fetchUserProfile]);
 
   const handleSaveRecipe = async (recipeId: string) => {
-    if (!userId) {
+    if (!user) {
       console.warn("User not logged in. Cannot save recipe.");
       return;
     }
@@ -114,18 +146,18 @@ export default function Home() {
       if (isCurrentlySaved) {
         // Unsave the recipe
         const { error: deleteError } = await supabase
-            .from("saved_recipes")
-            .delete()
-            .eq("user_id", userId)
-            .eq("recipe_id", parseInt(recipeId));
+          .from("saved_recipes")
+          .delete()
+          .eq("user_id", user.user_id)
+          .eq("recipe_id", parseInt(recipeId));
 
         if (deleteError) throw deleteError;
         setSavedRecipes(savedRecipes.filter((id) => id !== recipeId));
       } else {
         // Save the recipe
         const { error: insertError } = await supabase
-            .from("saved_recipes")
-            .insert([{ user_id: userId, recipe_id: parseInt(recipeId) }]);
+          .from("saved_recipes")
+          .insert([{ user_id: user.user_id, recipe_id: parseInt(recipeId) }]);
 
         if (insertError) throw insertError;
         setSavedRecipes([...savedRecipes, recipeId]);
@@ -148,7 +180,7 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar />
+      <Navbar user={user} />
 
       <div className="m-auto py-5">
         <BannerSwiper />
@@ -172,10 +204,14 @@ export default function Home() {
               <p className="text-center text-gray-500">No new recipes available.</p>
             ) : (
               newRecipes.map((recipe) => {
-                const imageUrl = recipe.image_recipe[0]?.image_url || "";
+                const imageUrl = constructImageUrl(recipe.image_recipe[0]?.image_url);
+
                 const recipeReviews = reviews.filter(
                   (review) => review.recipe_id === recipe.recipe_id.toString()
                 );
+
+                const firstComment =
+                  recipeReviews.length > 0 ? recipeReviews[0].comment : null;
 
                 return (
                   <motion.div
@@ -186,13 +222,13 @@ export default function Home() {
                     animate="animate"
                     whileHover="hover"
                   >
-                    <Link href={`/${recipe.recipe_id}/detailspage`} className="block"> {/* Wrap in Link */}
+                    <Link href={`/${recipe.recipe_id}/detailspage`} className="block">
                       {imageUrl ? (
                         <Image
                           src={imageUrl}
                           alt={recipe.recipe_name}
-                          width={500} // Specify width
-                          height={300} // Specify height
+                          width={500}
+                          height={300}
                           className="w-full h-48 object-cover rounded-t-lg"
                         />
                       ) : (
@@ -202,13 +238,16 @@ export default function Home() {
                       {/* Title and Save Button */}
                       <div className="flex justify-between items-center mt-2">
                         <h3 className="text-xl font-semibold">{recipe.recipe_name}</h3>
-                        {userId && (
+                        {user && (
                           <button
                             onClick={() => handleSaveRecipe(recipe.recipe_id)}
-                            className={`p-2 rounded-full ${savedRecipes.includes(recipe.recipe_id) ? "bg-red-500 text-white" : "bg-gray-200"
+                            className={`p-2 rounded-full ${
+                              savedRecipes.includes(recipe.recipe_id)
+                                ? "bg-red-500 text-white"
+                                : "bg-gray-200"
                             }`}
                           >
-                            <Heart className="h-5 w-5" />  {/* Heart Icon */}
+                            <Heart className="h-5 w-5" />
                           </button>
                         )}
                       </div>
@@ -222,36 +261,24 @@ export default function Home() {
                         <span className="text-yellow-500">★</span>
                         {recipeReviews.length > 0 ? (
                           <span className="ml-2">
-                            {recipeReviews.reduce((acc, review) => acc + review.rating, 0) /
-                            recipeReviews.length}{" "}
+                            {(
+                              recipeReviews.reduce((acc, review) => acc + review.rating, 0) /
+                              recipeReviews.length
+                            ).toFixed(1)}{" "}
                             / 5
                           </span>
                         ) : (
                           <span className="ml-2">No ratings yet</span>
                         )}
                       </div>
-                    </Link>
 
-                    <div className="mt-4">
-                      <h4 className="font-semibold">Reviews:</h4>
-                      {recipeReviews.length > 0 ? (
-                        recipeReviews.map((review) => (
-                          <div
-                            key={review.review_id}
-                            className="border-t border-gray-200 pt-2 mt-2"
-                          >
-                            <p className="font-semibold">{review.user_id}</p>
-                            <p>{review.comment}</p>
-                            <p>Rating: {review.rating} ★</p>
-                            <p className="text-xs text-gray-400">
-                              {new Date(review.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <p>No reviews yet. Be the first to review!</p>
+                      {/* First Comment */}
+                      {firstComment && (
+                        <p className="mt-2 text-sm text-gray-500 italic">
+                          "{firstComment}"
+                        </p>
                       )}
-                    </div>
+                    </Link>
                   </motion.div>
                 );
               })
