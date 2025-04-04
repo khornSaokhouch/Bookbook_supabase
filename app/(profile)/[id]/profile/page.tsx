@@ -1,11 +1,14 @@
-"use client";
+"use client";  // Mark this as a Client Component
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import { motion } from "framer-motion";
-import ProfileImageModal from "../../../components/ProfileImageModal";  // Import ProfileImageModal
+import dynamic from "next/dynamic";  // Import dynamic for SSR control
+import Image from "next/image"; // ✅ at the top
 
+// Dynamically import ProfileImageModal with no SSR
+const ProfileImageModal = dynamic(() => import("../../../components/ProfileImageModal"), { ssr: false });
 
 type UserProfile = {
   user_id: string;
@@ -44,6 +47,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const router = useRouter();
   const bucketName = "image-user";  // Explicit bucket name
 
@@ -102,11 +106,16 @@ export default function ProfilePage() {
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${path}`;
   };
 
+  // Toggle modal visibility
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-        <p className="mt-4">Loading your profile...</p>
+        <p className="mt-4 text-lg">Loading your profile...</p>
       </div>
     );
   }
@@ -123,23 +132,33 @@ export default function ProfilePage() {
 
   return (
     <motion.div
-      className="container mx-auto py-10"
+      className="container mx-auto py-10 px-6 sm:px-12 lg:px-24"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <div className="flex justify-center">
         <motion.div
-          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+          className="w-full max-w-3xl bg-white rounded-xl shadow-lg overflow-hidden"
           variants={itemVariants}
         >
-          <div className="p-8">
-            <div className="flex items-start">
-              {/* Use ProfileImageModal here */}
-              <ProfileImageModal imageUrl={imageUrl} />
+          <div className="p-8 space-y-8">
+            <div className="flex items-center space-x-6">
+              {/* Profile Image with Modal */}
+              <div className="relative">
+              <Image
+  src={imageUrl}
+  alt="Profile Image"
+  width={128} // or whatever size you want
+  height={128}
+  className="w-32 h-32 rounded-full border-4 border-indigo-500 shadow-lg object-cover cursor-pointer"
+  onClick={toggleModal}
+/>
+              </div>
+
               <div className="flex-1">
                 <motion.h1
-                  className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2"
+                  className="text-3xl font-bold text-gray-800 dark:text-gray-100"
                   variants={itemVariants}
                 >
                   {user.user_name}
@@ -157,14 +176,22 @@ export default function ProfilePage() {
               className="mt-8"
               variants={itemVariants}
             >
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">About Me</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">About Me</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {user.about_me || "No information available."}
               </p>
-            </motion.div>
+            </motion.div>     
           </div>
         </motion.div>
       </div>
+
+      {/* Profile Image Modal */}
+      {isModalOpen && (
+        <ProfileImageModal
+          imageUrl={imageUrl}
+          onClose={toggleModal} // Close the modal on click outside or close button
+        />
+      )}
     </motion.div>
   );
 }

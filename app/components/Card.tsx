@@ -100,31 +100,42 @@ const Card: React.FC<RecipeData> = ({
       </div>
 
       <div className="relative h-48">
-        <Image
-          className="w-full h-full object-cover"
-          src={image_url || "/default-recipe.jpg"}
-          alt={recipe_name}
-          width={320}
-          height={192}
-          priority
-        />
+        {image_url ? (
+          <Image
+            src={image_url}
+            alt={recipe_name}
+            width={500}
+            height={200}
+            className="w-full h-48 object-cover rounded-md"
+            priority
+            unoptimized
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-48 bg-gray-200 rounded-md">
+            <p className="text-gray-500">No image available</p>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">{recipe_name}</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Cooking time: {cook_time} </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Cooking time: {cook_time}</p>
 
         <div className="flex items-center mt-2">
           {Array.from({ length: 5 }, (_, index) => (
             <FaStar
               key={index}
               className={`h-5 w-5 cursor-pointer ${
-                index < (rating !== null ? rating : currentAverageRating) ? "text-green-800" : "text-yellow-200"
+                index < (rating !== null ? rating : Math.round(currentAverageRating))
+                  ? "text-yellow-400"
+                  : "text-gray-300"
               }`}
               onClick={() => handleStarClick(index)}
             />
           ))}
-          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">({currentAverageRating.toFixed(1)})</span>
+          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            ({currentAverageRating.toFixed(1)})
+          </span>
         </div>
 
         <div className="mt-4">

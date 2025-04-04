@@ -91,6 +91,25 @@ const AddRecipe = () => {
     []
   );
 
+  const uploadImage = async (file: File | null, path: string) => {
+    if (!file) return null;
+
+    const fileName = `${uuidv4()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from("recipes") // Use the "recipes" bucket
+      .upload(`${path}/${fileName}`, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      throw new Error(error.message);
+    }
+
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/${path}/${fileName}`; // Construct the full URL
+  };
+
   const actuallySubmit = useCallback(async () => {
     setUploadError(null);
     setSuccessMessage(null);
@@ -109,7 +128,7 @@ const AddRecipe = () => {
     try {
       const recipeId = uuidv4();
 
-      const imagePaths = await Promise.all(
+      const imageUrls = await Promise.all(
         imageFiles.map(async (file) => {
           if (file) {
             return await uploadImage(file, `${recipeId}/images`);
@@ -118,7 +137,7 @@ const AddRecipe = () => {
         })
       );
 
-      const imageUrls = imagePaths.filter((path): path is string => path !== null);
+      const filteredImageUrls = imageUrls.filter((url): url is string => url !== null);
 
       const prepTimeInterval = `PT${prepTime}M`;
       const cookTimeInterval = `PT${cookTime}M`;
@@ -149,13 +168,13 @@ const AddRecipe = () => {
         return;
       }
 
-      for (const imageUrl of imageUrls) {
+      for (const imageUrl of filteredImageUrls) {
         const { error: imageError } = await supabase
           .from("image_recipe")
           .insert([
             {
               recipe_id: data.recipe_id,
-              image_url: imageUrl,
+              image_url: imageUrl, // Insert the full image URL
             },
           ]);
 
@@ -215,24 +234,6 @@ const AddRecipe = () => {
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
     router.push("/");
-  };
-
-  const uploadImage = async (file: File | null, path: string) => {
-    if (!file) return null;
-
-    const { data, error } = await supabase.storage
-      .from("recipes")
-      .upload(`${path}/${file.name}`, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Error uploading image:", error);
-      throw new Error(error.message);
-    }
-
-    return data?.path;
   };
 
   const handleSubmit = (e: FormEvent) => {

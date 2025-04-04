@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Trash2 } from "lucide-react"; // Import Trash2 Icon
-import Image from "next/image"; // Import next/image for optimization
+import { Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 // Define the Recipe type
 type Recipe = {
@@ -15,7 +16,13 @@ type Recipe = {
   ingredients: string;
   instructions: string;
   created_at: string;
-  image_url?: string; // Add optional image_url
+  image_url?: string;
+};
+
+const constructImageUrl = (path: string | null) => {
+  if (!path) return "/default-image.jpg"; // Fallback to a default image
+  if (path.startsWith("http://") || path.startsWith("https://")) return path; // Already a valid URL
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`; // Construct full URL
 };
 
 export default function SavedRecipesPage() {
@@ -43,7 +50,7 @@ export default function SavedRecipesPage() {
         const { data, error } = await supabase
           .from("saved_recipes")
           .select(
-            `id, created_at, recipe:recipe_id (recipe_name, overview, ingredients, instructions, description, images:image_recipe (image_url))`
+            `id, created_at, recipe:recipe_id (recipe_name, description, ingredients, instructions, image_recipe (image_url))`
           )
           .eq("user_id", user.id);
 
@@ -53,12 +60,12 @@ export default function SavedRecipesPage() {
         const formattedRecipes =
           data?.map((savedRecipe) => ({
             id: savedRecipe.id,
-            title: savedRecipe.recipe?.recipe_name || "Unknown", 
+            title: savedRecipe.recipe?.recipe_name || "Unknown",
             description: savedRecipe.recipe?.description || "No description available",
             ingredients: savedRecipe.recipe?.ingredients || "No ingredients listed",
             instructions: savedRecipe.recipe?.instructions || "No instructions provided",
             created_at: savedRecipe.created_at,
-            image_url: savedRecipe.recipe?.images?.[0]?.image_url || "/placeholder.jpg", 
+            image_url: constructImageUrl(savedRecipe.recipe?.image_recipe?.[0]?.image_url),
           })) || [];
 
         setSavedRecipes(formattedRecipes);
@@ -145,14 +152,23 @@ export default function SavedRecipesPage() {
               animate="animate"
               whileHover="hover"
             >
-              {/* Display Recipe Image */}
-              <Image
-                src={recipe.image_url}
-                alt={recipe.title}
-                width={500}
-                height={200}
-                className="w-full h-48 object-cover rounded-md mb-4"
-              />
+              <Link href={`/${recipe.id}/detailspage`} className="block">
+                {recipe.image_url ? (
+                  <Image
+                    src={recipe.image_url}
+                    alt={recipe.title}
+                    width={500}
+                    height={200}
+                    className="w-full h-48 object-cover rounded-md mb-4"
+                    priority
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-48 bg-gray-200 rounded-md">
+                    <p className="text-gray-500">No image available</p>
+                  </div>
+                )}
+              </Link>
 
               <h3 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
                 {recipe.title}
@@ -170,7 +186,6 @@ export default function SavedRecipesPage() {
                 Saved on: {new Date(recipe.created_at).toLocaleDateString()}
               </p>
 
-              {/* Remove Button with Icon */}
               <button
                 onClick={() => handleRemoveSavedRecipe(recipe.id)}
                 className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 inline-flex items-center"

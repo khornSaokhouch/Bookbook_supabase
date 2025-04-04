@@ -6,10 +6,12 @@ import Navbar from "@/app/components/Navbar"; // Ensure correct import path
 import Footer from "@/app/components/Footer"; // Ensure correct import path
 import BannerSwiper from "@/app/components/BannerSwiper"; // Ensure correct import path
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image"; // Import Image component
 import { User } from "@/app/types"; // Import shared User type
+
+import { Heart, Star } from "lucide-react";
+
 
 // Recipe Type
 type Recipe = {
@@ -180,114 +182,114 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar user={user} />
+    <Navbar user={user} />
 
-      <div className="m-auto py-5">
-        <BannerSwiper />
-      </div>
-
-      <main className="container mx-auto p-6">
-        {/* Display New Posts */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold text-center mb-4">
-            New Posts
-          </h2>
-          <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {loading ? (
-              <div className="flex justify-center items-center m-auto h-64">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-                <p className="mt-4 text-xl">Loading recipes...</p>
-              </div>
-            ) : error ? (
-              <div className="text-red-500 text-center">{error}</div>
-            ) : newRecipes.length === 0 ? (
-              <p className="text-center text-gray-500">No new recipes available.</p>
-            ) : (
-              newRecipes.map((recipe) => {
-                const imageUrl = constructImageUrl(recipe.image_recipe[0]?.image_url);
-
-                const recipeReviews = reviews.filter(
-                  (review) => review.recipe_id === recipe.recipe_id.toString()
-                );
-
-                const firstComment =
-                  recipeReviews.length > 0 ? recipeReviews[0].comment : null;
-
-                return (
-                  <motion.div
-                    key={recipe.recipe_id}
-                    className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col"
-                    variants={recipeCardVariants}
-                    initial="initial"
-                    animate="animate"
-                    whileHover="hover"
-                  >
-                    <Link href={`/${recipe.recipe_id}/detailspage`} className="block">
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={recipe.recipe_name}
-                          width={500}
-                          height={300}
-                          className="w-full h-48 object-cover rounded-t-lg"
-                        />
-                      ) : (
-                        <p className="text-center text-gray-400">No image available</p>
-                      )}
-
-                      {/* Title and Save Button */}
-                      <div className="flex justify-between items-center mt-2">
-                        <h3 className="text-xl font-semibold">{recipe.recipe_name}</h3>
-                        {user && (
-                          <button
-                            onClick={() => handleSaveRecipe(recipe.recipe_id)}
-                            className={`p-2 rounded-full ${
-                              savedRecipes.includes(recipe.recipe_id)
-                                ? "bg-red-500 text-white"
-                                : "bg-gray-200"
-                            }`}
-                          >
-                            <Heart className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-
-                      <p className="text-sm text-gray-600">
-                        Cooking Time: {recipe.cook_time}
-                      </p>
-
-                      {/* Rating Component */}
-                      <div className="flex items-center mt-2">
-                        <span className="text-yellow-500">★</span>
-                        {recipeReviews.length > 0 ? (
-                          <span className="ml-2">
-                            {(
-                              recipeReviews.reduce((acc, review) => acc + review.rating, 0) /
-                              recipeReviews.length
-                            ).toFixed(1)}{" "}
-                            / 5
-                          </span>
-                        ) : (
-                          <span className="ml-2">No ratings yet</span>
-                        )}
-                      </div>
-
-                      {/* First Comment */}
-                      {firstComment && (
-                        <p className="mt-2 text-sm text-gray-500 italic">
-                          "{firstComment}"
-                        </p>
-                      )}
-                    </Link>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-        </section>
-      </main>
-
-      <Footer />
+    <div className="m-auto py-5">
+      <BannerSwiper />
     </div>
+
+    <main className="container mx-auto p-6">
+      {/* Display New Posts */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold text-center mb-4">New Posts</h2>
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          {loading ? (
+            <div className="flex justify-center items-center m-auto h-64">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+              <p className="mt-4 text-xl">Loading recipes...</p>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center">{error}</div>
+          ) : newRecipes.length === 0 ? (
+            <p className="text-center text-gray-500">No new recipes available.</p>
+          ) : (
+            newRecipes.map((recipe) => {
+              const imageUrl = constructImageUrl(recipe.image_recipe[0]?.image_url);
+
+              // Filter and sort reviews by created_at (latest first)
+              const recipeReviews = reviews
+                .filter((review) => review.recipe_id === recipe.recipe_id.toString())
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); // Sort reviews by most recent
+
+              const latestUserReview = recipeReviews.length > 0 ? recipeReviews[0] : null; // Get the most recent review
+
+              return (
+                <motion.div
+                  key={recipe.recipe_id}
+                  className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow flex flex-col"
+                  variants={recipeCardVariants}
+                  initial="initial"
+                  animate="animate"
+                  whileHover="hover"
+                >
+                  <Link href={`/${recipe.recipe_id}/detailspage`} className="block">
+                    <Image
+                      src={imageUrl}
+                      alt={recipe.recipe_name}
+                      width={300}
+                      height={200}
+                      className="w-full h-48 object-cover rounded-lg"
+                      priority
+                      unoptimized
+                    />
+                    <div className="flex justify-between items-center mt-3">
+                      <h3 className="text-lg font-semibold">{recipe.recipe_name}</h3>
+                      {user && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleSaveRecipe(recipe.recipe_id);
+                          }}
+                          className={`p-2 rounded-full ${
+                            savedRecipes.includes(recipe.recipe_id)
+                              ? "bg-red-500 text-white"
+                              : "bg-gray-200"
+                          }`}
+                        >
+                          <Heart className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Cook Time: {recipe.cook_time}</p>
+                  </Link>
+
+                  <div className="mt-3">
+                    {/* Add Rating */}
+                    <div className="flex items-center gap-1">
+                      {recipeReviews.length > 0 &&
+                        Array.from({ length: 5 }, (_, index) => {
+                          const rating = index + 1;
+                          return (
+                            <Star
+                              key={rating}
+                              className={`h-5 w-5 ${
+                                rating <= latestUserReview?.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          );
+                        })}
+                    </div>
+
+                    {/* Show latest user comment if exists */}
+                    {latestUserReview ? (
+                      <div className="mt-2 text-sm text-gray-700">
+                        <strong>Your comment:</strong> {latestUserReview.comment}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-500">No comment yet.</p>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
+        </div>
+      </section>
+    </main>
+
+    <Footer />
+  </div>
   );
 }

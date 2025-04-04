@@ -6,9 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import RecipeCard from "../../../components/Card";
 import { supabase } from "../../../lib/supabaseClient";
-import Navbar from "@/app/components/Navbar"; // Import Navbar
-import Footer from "@/app/components/Footer"; // Import Footer
-import { User } from "@/app/types"; // Import shared User type
 
 interface Recipe {
   recipe_id: number;
@@ -20,7 +17,6 @@ interface Recipe {
   average_rating: number;
   ingredients: string;
   author: string;
-  date: string;
 }
 
 interface DatabaseRecipeType {
@@ -30,9 +26,9 @@ interface DatabaseRecipeType {
   prep_time: string;
   cook_time: string;
   image_recipe: { image_url: string }[];
-  users: { user_name: string }[]; // Updated to an array
+  users: { user_name: string }[];
   reviews: { rating: number }[];
-  ingredients: string; // Added ingredients property
+  ingredients: string;
 }
 
 interface ReviewType {
@@ -52,33 +48,6 @@ const CategoryPage: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null); // Add user state
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const sessionUser = sessionData?.session?.user;
-
-      if (sessionUser) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("user_name, email, image_url")
-          .eq("user_id", sessionUser.id)
-          .single();
-
-        if (!error && data) {
-          setUser({
-            user_id: sessionUser.id,
-            user_name: data.user_name || "User",
-            email: data.email || "",
-            image_url: data.image_url || "/default-avatar.png",
-          });
-        }
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   useEffect(() => {
     if (!category_id) return;
@@ -98,18 +67,20 @@ const CategoryPage: React.FC = () => {
             cook_time,
             image_recipe(image_url),
             users(user_name),
-            reviews(rating)
+            reviews(rating),
+            ingredients
           `)
           .eq("category_id", category_id); // Filter by category_id
 
         if (error) {
+          console.error("Supabase Error:", error); // Log Supabase error
           throw error;
         }
 
         const recipesData = data.map((recipe: DatabaseRecipeType) => {
-          const ratings = recipe.reviews.map(
+          const ratings = recipe.reviews?.map(
             (review: ReviewType) => review.rating
-          );
+          ) || [];
           const averageRating =
             ratings.length > 0
               ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
@@ -117,22 +88,21 @@ const CategoryPage: React.FC = () => {
 
           return {
             recipe_id: recipe.recipe_id,
-            recipe_name: recipe.recipe_name,
-            description: recipe.description,
-            prep_time: recipe.prep_time,
-            cook_time: recipe.cook_time,
+            recipe_name: recipe.recipe_name || "Unknown Recipe",
+            description: recipe.description || "No description available",
+            prep_time: recipe.prep_time || "N/A",
+            cook_time: recipe.cook_time || "N/A",
             image_url: constructImageUrl(recipe.image_recipe?.[0]?.image_url), // Use constructImageUrl
             average_rating: averageRating,
             ingredients: recipe.ingredients || "No ingredients provided",
             author: recipe.users?.[0]?.user_name || "Unknown Author",
-            date: recipe.date || "Unknown date",
           };
         });
 
         setRecipes(recipesData);
       } catch (err: unknown) {
         setError("Error fetching recipes. Please try again later.");
-        console.error("Error fetching recipes:", err);
+        console.error("Error fetching recipes:", err); // Log error
       } finally {
         setLoading(false);
       }
@@ -142,7 +112,7 @@ const CategoryPage: React.FC = () => {
   }, [category_id]);
 
   if (loading) {
-    return <div>Loading recipes...</div>;
+    return <div className="text-center text-gray-500">Loading recipes...</div>;
   }
 
   if (error) {
@@ -155,8 +125,6 @@ const CategoryPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
-      <Navbar user={user} />
 
       {/* Main Content */}
       <main className="flex-1">
@@ -175,9 +143,6 @@ const CategoryPage: React.FC = () => {
           ))}
         </div>
       </main>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

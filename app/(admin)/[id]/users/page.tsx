@@ -51,7 +51,11 @@ const UserManagement = () => {
       if (error) throw error;
       setUsers(data as User[]);
     } catch (err: unknown) {
-      setError(`Error fetching users: ${err.message}`);
+      if (err instanceof Error) {
+        setError(`Error fetching users: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while fetching users.");
+      }
       console.error("Fetch users error:", err);
     } finally {
       setLoading(false);
@@ -68,7 +72,11 @@ const UserManagement = () => {
       setSuccessMessage("User deleted successfully!");
     } catch (err: unknown) {
       console.error("Error deleting user:", err);
-      setError(`Error deleting user: ${err.message}`);
+      if (err instanceof Error) {
+        setError(`Error deleting user: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while deleting the user.");
+      }
     }
   };
 
@@ -100,7 +108,11 @@ const UserManagement = () => {
       setSuccessMessage("User updated successfully!");
     } catch (err: unknown) {
       console.error("Unexpected error updating user:", err);
-      setError(`Error updating user: ${err.message}`);
+      if (err instanceof Error) {
+        setError(`Error updating user: ${err.message}`);
+      } else {
+        setError("An unknown error occurred while updating the user.");
+      }
     }
   };
 

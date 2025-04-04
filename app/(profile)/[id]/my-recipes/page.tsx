@@ -5,16 +5,23 @@ import { supabase } from "../../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 // Recipe Type
 type Recipe = {
-  recipe_id: string; // Ensure this is unique for each recipe
-  title: string;
+  recipe_id: string;
+  recipe_name: string;
   description: string;
   ingredients: string;
   instructions: string;
   created_at: string;
-  images: { image_url: string }[]; // Add an images property to hold image URLs
+  images: { image_url: string }[];
+};
+
+const constructImageUrl = (path: string | null) => {
+  if (!path) return "/default-image.jpg"; // Fallback to a default image
+  if (path.startsWith("http://") || path.startsWith("https://")) return path; // Already a valid URL
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`; // Construct full URL
 };
 
 export default function MyRecipesPage() {
@@ -28,7 +35,7 @@ export default function MyRecipesPage() {
       try {
         setLoading(true);
         setError(null);
-  
+
         // Get the logged-in user
         const { data: sessionData } = await supabase.auth.getSession();
         const user = sessionData?.session?.user;
@@ -36,8 +43,8 @@ export default function MyRecipesPage() {
           router.push("/login");
           return;
         }
-  
-        // Fetch recipes only created by the logged-in user and join with image data
+
+        // Fetch recipes created by the logged-in user
         const { data, error } = await supabase
           .from("recipe")
           .select(
@@ -51,19 +58,19 @@ export default function MyRecipesPage() {
           )
           .eq("user_id", user.id) // Filter by current user
           .order("created_at", { ascending: false });
-  
+
         if (error) throw error;
-  
+
         // Ensure each recipe has an images array
         const recipesWithImages = data.map((recipe: Recipe) => ({
           ...recipe,
           images: recipe.image_recipe || [],
         }));
-  
+
         setRecipes(recipesWithImages);
       } catch (err: unknown) {
         if (err instanceof Error) {
-          setError(err.message); // If it's an instance of Error, you can safely access err.message
+          setError(err.message);
         } else {
           setError("An unknown error occurred.");
         }
@@ -71,10 +78,9 @@ export default function MyRecipesPage() {
         setLoading(false);
       }
     };
-  
+
     fetchRecipes();
   }, [router]);
-  
 
   return (
     <motion.div
@@ -84,7 +90,6 @@ export default function MyRecipesPage() {
     >
       <h1 className="text-3xl font-bold mb-8 text-center">My Recipes</h1>
 
-      {/* Display Recipes */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
@@ -96,37 +101,46 @@ export default function MyRecipesPage() {
         <p className="text-center text-gray-500">No recipes found.</p>
       ) : (
         <motion.div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {recipes.map((recipe) => (
-            <motion.div
-              key={recipe.recipe_id} // Make sure this `id` is unique and properly passed to `key`
-              className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-              whileHover={{ scale: 1.02 }}
-            >
-              {/* Display Image if available */}
-              {recipe.images.length > 0 ? (
-                <Image
-                  src={recipe.images[0].image_url} // Use the first image URL from the images array
-                  alt={recipe.recipe_name}
-                  width={500} // Set width for optimization
-                  height={300} // Set height for optimization
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                />
-              ) : (
-                <p className="text-center text-gray-400">No image available</p>
-              )}
+          {recipes.map((recipe) => {
+            const imageUrl = constructImageUrl(recipe.images[0]?.image_url);
 
-              <p className="text-gray-600 mb-4">{recipe.description}</p>
-              <p className="text-sm text-gray-500">
-                Ingredients: {recipe.ingredients}
-              </p>
-              <p className="text-sm text-gray-500 mt-2">
-                Instructions: {recipe.instructions}
-              </p>
-              <p className="text-xs text-gray-400 mt-4">
-                Added on: {new Date(recipe.created_at).toLocaleDateString()}
-              </p>
-            </motion.div>
-          ))}
+            return (
+              <motion.div
+                key={recipe.recipe_id}
+                className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+                whileHover={{ scale: 1.02 }}
+              >
+                <Link href={`/${recipe.recipe_id}/detailspage`} className="block">
+                  {recipe.images.length > 0 ? (
+                    <Image
+                      src={imageUrl}
+                      alt={recipe.recipe_name}
+                      width={300}
+                      height={200}
+                      className="w-full h-48 object-cover rounded-lg"
+                      priority
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-48 bg-gray-200 rounded-lg">
+                      <p className="text-gray-500">No image available</p>
+                    </div>
+                  )}
+                </Link>
+                <h3 className="text-lg font-semibold mt-4">{recipe.recipe_name}</h3>
+                <p className="text-gray-600 mt-2">{recipe.description}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Ingredients: {recipe.ingredients}
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Instructions: {recipe.instructions}
+                </p>
+                <p className="text-xs text-gray-400 mt-4">
+                  Added on: {new Date(recipe.created_at).toLocaleDateString()}
+                </p>
+              </motion.div>
+            );
+          })}
         </motion.div>
       )}
     </motion.div>

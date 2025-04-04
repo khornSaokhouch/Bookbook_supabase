@@ -9,6 +9,7 @@ interface Review {
   user_id: string;
   comment: string;
   created_at: string;
+  key: string; // Add key to the Review type
 }
 
 interface CommentSectionProps {
@@ -90,7 +91,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
       } else {
         console.log("Comment submitted successfully!", data);
         setComment("");
-        fetchUsername(userId);
         setComments((prevComments) => [...prevComments, data]);
       }
     } catch (error) {
@@ -110,10 +110,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
           placeholder="Add a review..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
+          disabled={!userId} // Disable input if not logged in
         />
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2 focus:outline-none focus:shadow-outline"
+          disabled={!comment.trim()} // Disable submit button if comment is empty
         >
           Submit
         </button>
@@ -122,7 +124,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
       {displayedComments.length > 0 ? (
         displayedComments.map((review) => (
           <motion.div
-            key={review.review_id}
+            key={review.key} // Use the key prop from the Review type
             className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
