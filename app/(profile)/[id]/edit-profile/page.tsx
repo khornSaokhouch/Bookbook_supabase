@@ -119,7 +119,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from("image-user")
           .upload(filePath, selectedFile, {
             cacheControl: "3600",
@@ -135,8 +135,8 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         }
 
         imagePath = filePath;
-      } catch (uploadError: Error) {
-        console.error("Error during image upload:", uploadError.message);
+      } catch (uploadError: unknown) {
+        console.error("Error during image upload:", uploadError);
         setError("Failed to upload image.");
         setLoading(false);
         setIsModalOpen(false);
@@ -156,13 +156,10 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
 
       if (result.success) {
         setSuccessMessage(result.message);
-        const updatedProfile = await getUserById(user?.id || "");
-        if (updatedProfile) {
-          setUser(updatedProfile);
-        } else {
-          console.warn("Could not reload profile after update.");
-          setError("Profile updated, but could not reload.");
-        }
+        setUser((prevUser) => ({
+          ...prevUser!,
+          ...updatedUser,
+        }));
       } else {
         setError(result.error || "An error occurred while updating profile.");
       }
