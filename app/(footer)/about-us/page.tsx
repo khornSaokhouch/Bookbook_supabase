@@ -67,13 +67,13 @@ const AboutUs = () => {
             />
             <p className="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-200">Mr. Sen Vibol</p>
             <div className="flex justify-center gap-4 mt-4">
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
+              <a href="https://www.facebook.com/vibolsen02" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
                 <FontAwesomeIcon icon={faFacebook} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
+              <a href="https://t.me/vibolsen" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
                 <FontAwesomeIcon icon={faTelegram} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
+              <a href="https://github.com/VibolSen" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
                 <FontAwesomeIcon icon={faGithub} size="lg" />
               </a>
             </div>
@@ -92,13 +92,13 @@ const AboutUs = () => {
             />
             <p className="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-200">Mr. Khorn Soukhouch</p>
             <div className="flex justify-center gap-4 mt-4">
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
+              <a href="https://www.facebook.com/khorn.saokhouch.2025" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
                 <FontAwesomeIcon icon={faFacebook} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
+              <a href="https://t.me/khouch04" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
                 <FontAwesomeIcon icon={faTelegram} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
+              <a href="https://github.com/khornSaokhouch" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
                 <FontAwesomeIcon icon={faGithub} size="lg" />
               </a>
             </div>
@@ -117,13 +117,13 @@ const AboutUs = () => {
             />
             <p className="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-200">Ms. Sam Nisa</p>
             <div className="flex justify-center gap-4 mt-4">
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
+              <a href="https://www.facebook.com/sam.nisa.35/" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Facebook">
                 <FontAwesomeIcon icon={faFacebook} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
+              <a href="https://t.me/Samnisa21" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="Telegram">
                 <FontAwesomeIcon icon={faTelegram} size="lg" />
               </a>
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
+              <a href="https://github.com/Sam-Nisa" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors duration-300" aria-label="GitHub">
                 <FontAwesomeIcon icon={faGithub} size="lg" />
               </a>
             </div>
