@@ -146,9 +146,15 @@ export default function Navbar({ user }: NavbarProps) {
               <div className="flex items-center space-x-2 md:space-x-6">
                 {user ? (
                   <>
-                    <Link href={`/${user.user_id}/save-recipe`} className="hover:text-gray-700 dark:hover:text-gray-300">
-                      <span className="material-icons text-gray-600 dark:text-gray-400 w-5 h-5">bookmark_border</span>
+                    <Link href={`/${user.user_id}/save-recipe`} className="group flex flex-col items-center">
+                      <span className="material-icons text-gray-600 dark:text-gray-400 w-5 h-5 group-hover:text-gray-700 dark:group-hover:text-gray-300">
+                        bookmark_border
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        Save
+                      </span>
                     </Link>
+
                     <Link href={`/${user.user_id}/profile`}>
                       <Image
                         src={imageUrl}
