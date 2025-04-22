@@ -1,16 +1,48 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import { supabase } from "@/app/lib/supabaseClient"; // adjust to your setup
 import "swiper/css";
 import "swiper/css/pagination";
 
+type Event = {
+  event_id: number;
+  title: string;
+  image_url: string;
+};
+
 export default function BannerSwiper() {
-  const banners = [
-    { id: 1, image: "/banner.png", title: "Discover New Recipes" },
-    { id: 2, image: "/banner.png", title: "Cook with Love" },
-    { id: 3, image: "/banner.png", title: "Healthy & Delicious" },
-  ];
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("event")
+        .select("event_id, title, image_url")
+        .order("start_date", { ascending: true });
+
+      if (error) {
+        setError("Failed to load events.");
+        console.error("Supabase error:", error.message);
+      } else {
+        setEvents(data || []);
+      }
+
+      setLoading(false);
+    };
+
+    fetchEvents();
+  }, []);
+
+  if (loading) return <div className="text-center py-10 text-gray-600">Loading events...</div>;
+  if (error) return <div className="text-center py-10 text-red-600">{error}</div>;
 
   return (
     <div className="w-full">
@@ -18,20 +50,17 @@ export default function BannerSwiper() {
         spaceBetween={0}
         slidesPerView={1}
         loop={true}
-        autoplay={{ delay: 2000, disableOnInteraction: false }} // Auto slide every 4 seconds
+        autoplay={{ delay: 2000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         modules={[Autoplay, Pagination]}
         className="w-full h-[600px]"
       >
-        {banners.map((banner) => (
-          <SwiperSlide key={banner.id}>
+        {events.map((event) => (
+          <SwiperSlide key={event.event_id}>
             <div
               className="relative w-full h-[500px] bg-cover bg-center flex items-center justify-center text-white"
-              style={{ backgroundImage: `url(${banner.image})` }}
+              style={{ backgroundImage: `url(${event.image_url})` }}
             >
-              <div className="bg-black bg-opacity-50 p-6 rounded-lg">
-                <h2 className="text-3xl font-bold">{banner.title}</h2>
-              </div>
             </div>
           </SwiperSlide>
         ))}
