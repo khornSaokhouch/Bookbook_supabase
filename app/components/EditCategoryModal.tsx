@@ -79,9 +79,13 @@ const EditCategoryModal = ({
         if (storageError) throw storageError;
 
         updatedImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
-      } catch (error: Error) {
+      } catch (error: unknown) { // Change type to 'unknown'
         console.error("Error uploading image:", error);
-        setError("Image upload failed. Please try again.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred during image upload."
+        );
         setLoading(false);
         return;
       }
@@ -98,9 +102,13 @@ const EditCategoryModal = ({
 
         onCategoryUpdated(); // Callback to refresh data
         onClose(); // Close modal
-      } catch (error: Error) {
+      } catch (error: unknown) { // Change type to 'unknown'
         console.error("Error updating category:", error);
-        setError("Category update failed. Please try again.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred while updating the category."
+        );
       } finally {
         setLoading(false);
       }
@@ -163,7 +171,7 @@ const EditCategoryModal = ({
                   id="categoryName"
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
               </div>

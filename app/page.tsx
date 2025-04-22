@@ -263,7 +263,7 @@ export default function Home() {
                             <Star
                               key={rating}
                               className={`h-5 w-5 ${
-                                rating <= latestUserReview?.rating
+                                rating <= (latestUserReview?.rating ?? 0) // Provide a default value of 0
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-muted-foreground"
                               }`}

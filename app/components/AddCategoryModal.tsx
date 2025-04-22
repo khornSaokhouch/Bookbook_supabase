@@ -83,12 +83,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         }
 
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${fileName}`; // Ensure 'images' matches your bucket name
-      } catch (uploadErr: Error) {
-        console.error("Image Upload Error:", uploadErr.message); // Log the full error
+      } catch (uploadErr: unknown) { // Change type to 'unknown'
+        console.error("Image Upload Error:", uploadErr); // Log the full error
         setError(
           `Image upload failed: ${
-            uploadErr.message || "An unexpected error occurred."
-          }. Please check the console for details.`
+            uploadErr instanceof Error ? uploadErr.message : "Unknown error"
+          }`
         );
         setLoading(false);
         return;
@@ -110,11 +110,11 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         onCategoryAdded();
         onClose();
       }
-    } catch (dbErr: Error) {
-      console.error("Database Insert Error:", dbErr.message); // Log the full error
+    } catch (dbErr: unknown) {
+      console.error("Database Insert Error:", dbErr); // Log the full error
       setError(
         `Category creation failed: ${
-          dbErr.message || "An unexpected error occurred."
+          dbErr instanceof Error ? dbErr.message : "Unknown error"
         }. Please check the console for details.`
       );
     } finally {
@@ -176,7 +176,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             <input
               type="text"
               id="categoryName"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               required

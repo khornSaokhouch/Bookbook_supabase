@@ -94,9 +94,13 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
 
         // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`;
-      } catch (uploadErr: Error) {
-        console.error("Image Upload Error:", uploadErr.message);
-        setError(`Image upload failed: ${uploadErr.message}`);
+      } catch (error: unknown) { // Change type to 'unknown'
+        console.error("Error uploading image:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred during image upload."
+        );
         setLoading(false);
         return;
       }
@@ -117,9 +121,13 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
 
       onOccasionUpdated(); // Refresh the list of occasions
       onClose(); // Close the modal
-    } catch (dbError: Error) {
-      console.error("Database Update Error:", dbError.message);
-      setError(`Failed to update occasion: ${dbError.message}`);
+    } catch (error: unknown) { // Change type to 'unknown'
+      console.error("Error updating category:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while updating the category."
+      );
     } finally {
       setLoading(false);
     }

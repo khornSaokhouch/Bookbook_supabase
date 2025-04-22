@@ -49,6 +49,10 @@ export default function RegisterPage() {
 
       const { user } = data;
 
+      if (!user) {
+        throw new Error("User registration failed. Please try again.");
+      }
+
       const { error: userError } = await supabase
         .from("users")
         .insert([{

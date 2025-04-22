@@ -54,9 +54,9 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
             setCategoryId(data[0].category_id); // Set the first category as default
           }
         }
-      } catch (err: Error) {
+      } catch (err: unknown) { // Change type to 'unknown'
         console.error("Error fetching categories:", err);
-        setError(err.message || "An unexpected error occurred.");
+        setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       }
     };
 
@@ -69,7 +69,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
       const reader = new FileReader(); // Use FileReader to read the file
       reader.onload = (event) => {
         setImageFile(file);
-        setImagePreview(event.target.result as string); // Set the preview to the result from FileReader
+        setImagePreview(event.target?.result as string); // Use optional chaining
       };
       reader.readAsDataURL(file);
     } else {
@@ -115,11 +115,12 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
 
         // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`; // Construct the full URL
-      } catch (uploadErr: Error) {
+      } catch (uploadErr: unknown) { // Change type to 'unknown'
         console.error("Error uploading image:", uploadErr);
         setError(
-          uploadErr.message ||
-            "An unexpected error occurred during image upload."
+          uploadErr instanceof Error
+            ? uploadErr.message
+            : "An unexpected error occurred during image upload."
         );
         setLoading(false);
         return;
@@ -144,9 +145,9 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
         onOccasionAdded(); // Refresh the occasion list
         onClose(); // Close the modal
       }
-    } catch (err: Error) {
+    } catch (err: unknown) {
       console.error("Error adding occasion:", err);
-      setError(err.message || "An unexpected error occurred.");
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -206,7 +207,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
             <input
               type="text"
               id="occasionName"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               value={occasionName}
               onChange={(e) => setOccasionName(e.target.value)}
               required
@@ -256,7 +257,7 @@ const AddOccasionModal: React.FC<AddOccasionModalProps> = ({
             </label>
             <select
               id="categoryId"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               value={categoryId || ""}
               onChange={(e) => setCategoryId(parseInt(e.target.value))}
             >

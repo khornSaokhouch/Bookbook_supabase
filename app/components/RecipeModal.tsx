@@ -45,9 +45,13 @@ const RecipeModal: React.FC<RecipeModalProps> = ({
           throw new Error(occasionsError.message);
         }
         setOccasions(occasionsData || []); // Ensure it's an array
-      } catch (err: unknown) {
-        console.error("Error fetching categories and occasions:", err);
-        setError(err.message || "Failed to load categories and occasions.");
+      } catch (error: unknown) { // Change type to 'unknown'
+        console.error("Error updating category:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred while updating the category."
+        );
       } finally {
         setLoading(false);
       }

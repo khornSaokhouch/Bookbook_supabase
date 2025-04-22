@@ -181,7 +181,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Link href={`/${user?.user_id}/recipe`} className="block py-2 text-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Recipe</Link>
             <Link href={`/about-us`} className="block py-2 text-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">About Us</Link>
             <Link href={user ? `/${user?.user_id}/add-recipe` : "/login"} className="block py-2 text-lg text-blue-600 dark:text-blue-400 hover:text-blue-800" onClick={(e) => { if (!user) { e.preventDefault(); router.push("/login"); } }}>+ Add a Recipe</Link>
-            {user ? null : <Link href="/login" className="block py-2 text-lg bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition">Login</Link>}
+            {user ? null : <Link href="/login" className="block py-2 text-lg bg-blue-500 text-white px-4 rounded-full hover:bg-blue-600 transition">Login</Link>}
           </div>
         )}
       </nav>
