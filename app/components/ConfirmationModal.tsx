@@ -7,12 +7,16 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title: string; // Add title prop
+  message: string; // Add message prop
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  title, // Destructure title
+  message, // Destructure message
 }) => {
   const backdropVariants = {
     hidden: { opacity: 0 },
@@ -39,10 +43,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         variants={modalVariants}
       >
         <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
-          Are you sure you want to update your profile?
+          {title} {/* Use title prop */}
         </h2>
         <p className="text-gray-700 text-center mb-8">
-          This action cannot be undone.
+          {message} {/* Use message prop */}
         </p>
         <div className="flex justify-center space-x-4">
           <button

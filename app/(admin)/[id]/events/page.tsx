@@ -60,9 +60,9 @@ const EventsPage = () => {
         .order("start_date", { ascending: true });
 
       if (error) throw error;
-      setEvents(data as EventType[]); // Specify EventType[] instead of any
-    } catch (err: unknown) {
-      setError((err as Error).message); // Cast err to Error
+      setEvents(data as EventType[]);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -100,10 +100,12 @@ const EventsPage = () => {
       return null;
     }
 
-    const { data } = supabase.storage.from("event").getPublicUrl(fileName);
+    const { data, error: urlError } = supabase.storage
+      .from("event")
+      .getPublicUrl(fileName);
 
-    if (!data || !data.publicUrl) {
-      setError("URL generation failed.");
+    if (urlError) {
+      setError(`URL generation failed: ${urlError.message}`);
       return null;
     }
 
@@ -155,10 +157,10 @@ const EventsPage = () => {
       setImagePreview(null);
       fetchEvents();
       closeModal();
-      setSuccessMessage(`Event ${editingId ? 'updated' : 'created'} successfully!`);
-    } catch (err: unknown) {
-      console.error("Submit error:", (err as Error).message); // Cast err to Error
-      setError((err as Error).message); // Cast err to Error
+      setSuccessMessage(`Event ${editingId ? 'updated' : 'created'} successfully!`);  // Set success message
+    } catch (err: any) {
+      console.error("Submit error:", err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -182,8 +184,8 @@ const EventsPage = () => {
       const { error } = await supabase.from("event").delete().eq("event_id", id);
       if (error) throw error;
       fetchEvents();
-    } catch (err: unknown) {
-      setError((err as Error).message); // Cast err to Error
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
