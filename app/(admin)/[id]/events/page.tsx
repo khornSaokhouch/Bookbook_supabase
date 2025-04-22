@@ -59,11 +59,10 @@ const EventsPage = () => {
         .select("*")
         .order("start_date", { ascending: true });
 
-      if (error) throw new Error(error.message); // Specify error as Error
-      setEvents(data as EventType[]);
-    } catch (err: unknown) { // Specify err as Error
-      const error = err as Error; // Cast err to Error
-      setError(error.message);
+      if (error) throw error;
+      setEvents(data as EventType[]); // Specify EventType[] instead of any
+    } catch (err: unknown) {
+      setError((err as Error).message); // Cast err to Error
     } finally {
       setLoading(false);
     }
@@ -101,12 +100,10 @@ const EventsPage = () => {
       return null;
     }
 
-    const { data } = supabase.storage
-      .from("event")
-      .getPublicUrl(fileName);
+    const { data } = supabase.storage.from("event").getPublicUrl(fileName);
 
-    if (!data.publicUrl) {
-      setError("Failed to generate public URL for the uploaded image.");
+    if (!data || !data.publicUrl) {
+      setError("URL generation failed.");
       return null;
     }
 
@@ -124,7 +121,7 @@ const EventsPage = () => {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) throw new Error(userError.message); // Specify error as Error
+      if (userError) throw userError;
       if (!user) throw new Error("User not logged in.");
 
       let imageUrl = DEFAULT_IMAGE_URL;
@@ -150,7 +147,7 @@ const EventsPage = () => {
             .select()
         : await supabase.from("event").insert([eventData]).select();
 
-      if (res.error) throw new Error(res.error.message); // Specify error as Error
+      if (res.error) throw res.error;
 
       setEditingId(null);
       setForm({ title: "", description: "", start_date: "", end_date: "" });
@@ -159,10 +156,9 @@ const EventsPage = () => {
       fetchEvents();
       closeModal();
       setSuccessMessage(`Event ${editingId ? 'updated' : 'created'} successfully!`);
-    } catch (err: unknown) { // Specify err as Error
-      const error = err as Error; // Cast err to Error
-      console.error("Submit error:", error.message);
-      setError(error.message);
+    } catch (err: unknown) {
+      console.error("Submit error:", (err as Error).message); // Cast err to Error
+      setError((err as Error).message); // Cast err to Error
     } finally {
       setLoading(false);
     }
@@ -184,11 +180,10 @@ const EventsPage = () => {
   const handleDelete = async (id: number) => {
     try {
       const { error } = await supabase.from("event").delete().eq("event_id", id);
-      if (error) throw new Error(error.message); // Specify error as Error
+      if (error) throw error;
       fetchEvents();
-    } catch (err: unknown) { // Specify err as Error
-      const error = err as Error; // Cast err to Error
-      setError(error.message);
+    } catch (err: unknown) {
+      setError((err as Error).message); // Cast err to Error
     }
   };
 

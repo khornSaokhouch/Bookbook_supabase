@@ -155,12 +155,9 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
       const result = await updateUser(user?.id || "", updatedUser);
 
       if (result.success) {
-        setSuccessMessage(result.message);
-        setUser((prevUser) => ({
-          ...prevUser!,
-          ...updatedUser,
-        }));
-      } else {
+        setSuccessMessage(result.message ?? "Profile updated successfully");
+      }
+      else {
         setError(result.error || "An error occurred while updating profile.");
       }
     } catch (error) {
