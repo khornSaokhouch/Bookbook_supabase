@@ -59,10 +59,11 @@ const EventsPage = () => {
         .select("*")
         .order("start_date", { ascending: true });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message); // Specify error as Error
       setEvents(data as EventType[]);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) { // Specify err as Error
+      const error = err as Error; // Cast err to Error
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -100,12 +101,12 @@ const EventsPage = () => {
       return null;
     }
 
-    const { data, error: urlError } = supabase.storage
+    const { data } = supabase.storage
       .from("event")
       .getPublicUrl(fileName);
 
-    if (urlError) {
-      setError(`URL generation failed: ${urlError.message}`);
+    if (!data.publicUrl) {
+      setError("Failed to generate public URL for the uploaded image.");
       return null;
     }
 
@@ -123,7 +124,7 @@ const EventsPage = () => {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) throw userError;
+      if (userError) throw new Error(userError.message); // Specify error as Error
       if (!user) throw new Error("User not logged in.");
 
       let imageUrl = DEFAULT_IMAGE_URL;
@@ -149,7 +150,7 @@ const EventsPage = () => {
             .select()
         : await supabase.from("event").insert([eventData]).select();
 
-      if (res.error) throw res.error;
+      if (res.error) throw new Error(res.error.message); // Specify error as Error
 
       setEditingId(null);
       setForm({ title: "", description: "", start_date: "", end_date: "" });
@@ -157,10 +158,11 @@ const EventsPage = () => {
       setImagePreview(null);
       fetchEvents();
       closeModal();
-      setSuccessMessage(`Event ${editingId ? 'updated' : 'created'} successfully!`);  // Set success message
-    } catch (err: any) {
-      console.error("Submit error:", err.message);
-      setError(err.message);
+      setSuccessMessage(`Event ${editingId ? 'updated' : 'created'} successfully!`);
+    } catch (err: unknown) { // Specify err as Error
+      const error = err as Error; // Cast err to Error
+      console.error("Submit error:", error.message);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -182,10 +184,11 @@ const EventsPage = () => {
   const handleDelete = async (id: number) => {
     try {
       const { error } = await supabase.from("event").delete().eq("event_id", id);
-      if (error) throw error;
+      if (error) throw new Error(error.message); // Specify error as Error
       fetchEvents();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) { // Specify err as Error
+      const error = err as Error; // Cast err to Error
+      setError(error.message);
     }
   };
 

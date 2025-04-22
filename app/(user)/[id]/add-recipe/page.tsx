@@ -95,7 +95,7 @@ const AddRecipe = () => {
     if (!file) return null;
 
     const fileName = `${uuidv4()}-${file.name}`;
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("recipes") // Use the "recipes" bucket
       .upload(`${path}/${fileName}`, file, {
         cacheControl: "3600",

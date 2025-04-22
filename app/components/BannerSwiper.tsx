@@ -58,7 +58,7 @@ export default function BannerSwiper() {
         {events.map((event) => (
           <SwiperSlide key={event.event_id}>
             <div
-              className="relative w-full h-[500px] bg-cover bg-center flex items-center justify-center text-white"
+              className="relative w-full h-[600px] bg-cover bg-center flex items-center justify-center text-white"
               style={{ backgroundImage: `url(${event.image_url})` }}
             >
             </div>

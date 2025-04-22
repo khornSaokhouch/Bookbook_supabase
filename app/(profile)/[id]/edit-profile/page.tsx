@@ -119,7 +119,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
         const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("image-user")
           .upload(filePath, selectedFile, {
             cacheControl: "3600",
