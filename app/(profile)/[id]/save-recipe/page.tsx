@@ -58,15 +58,18 @@ export default function SavedRecipesPage() {
 
         // Format data properly
         const formattedRecipes =
-          data?.map((savedRecipe) => ({
-            id: savedRecipe.id,
-            title: savedRecipe.recipe?.recipe_name || "Unknown",
-            description: savedRecipe.recipe?.description || "No description available",
-            ingredients: savedRecipe.recipe?.ingredients || "No ingredients listed",
-            instructions: savedRecipe.recipe?.instructions || "No instructions provided",
-            created_at: savedRecipe.created_at,
-            image_url: constructImageUrl(savedRecipe.recipe?.image_recipe?.[0]?.image_url),
-          })) || [];
+          data?.map((savedRecipe) => {
+            const recipe = Array.isArray(savedRecipe.recipe) ? savedRecipe.recipe[0] : savedRecipe.recipe;
+            return {
+              id: savedRecipe.id,
+              title: recipe?.recipe_name || "Unknown",
+              description: recipe?.description || "No description available",
+              ingredients: recipe?.ingredients || "No ingredients listed",
+              instructions: recipe?.instructions || "No instructions provided",
+              created_at: savedRecipe.created_at,
+              image_url: constructImageUrl(recipe?.image_recipe?.[0]?.image_url),
+            };
+          }) || [];
 
         setSavedRecipes(formattedRecipes);
       } catch (e) {
