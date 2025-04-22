@@ -10,6 +10,8 @@ interface Review {
   comment: string;
   created_at: string;
   key: string; // Add key to the Review type
+  user_name: string;
+  rating: number;
 }
 
 interface CommentSectionProps {

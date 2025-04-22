@@ -10,7 +10,6 @@ import { supabase } from "../../../lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Badge } from "@/app/components/ui/badge";
 import { Star } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
 import CommentSection from "@/app/components/CommentSection"; // Import the CommentSection
 
 interface RecipeData {
@@ -19,6 +18,7 @@ interface RecipeData {
   description: string;
   prep_time: number;
   cook_time: number;
+  ingredients: string; // Add the missing property
   image_recipe: { image_url: string }[];
   users: { user_name: string };
   reviews: Review[];
@@ -38,8 +38,11 @@ interface Recipe {
 }
 
 interface Review {
-  user_name: string;
+  review_id: number; // Add the missing property
+  user_id: string;
   comment: string;
+  created_at: string;
+  user_name: string;
   rating: number;
 }
 
@@ -55,6 +58,7 @@ const shapeRecipeData = (data: RecipeData[]): Recipe[] => {
       average_rating: averageRating,
       image_url: recipe.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
       author: recipe.users?.user_name || "Unknown Author",
+      ingredients: recipe.ingredients || "No ingredients provided", // Add the missing property
     };
   });
 };
@@ -63,7 +67,7 @@ async function getRecipeById(recipeId: number): Promise<RecipeData | null> {
   try {
     const { data, error } = await supabase
       .from("recipe")
-      .select(`*, image_recipe(image_url), users(user_name), reviews(rating, comment)`)
+      .select(`*, ingredients, image_recipe(image_url), users(user_name), reviews(rating, comment)`) // Include ingredients in the query
       .eq("recipe_id", recipeId)
       .single();
 
@@ -116,7 +120,7 @@ const DetailsPage: React.FC = () => {
     fetchRecipe();
   }, [recipeId]);
 
-  const totalTime = recipe?.prep_time + recipe?.cook_time || 0;
+  const totalTime = (recipe?.prep_time || 0) + (recipe?.cook_time || 0); // Provide default values
 
   if (loading) {
     return <p className="text-gray-600 dark:text-gray-400">Loading recipe...</p>;
@@ -191,18 +195,17 @@ const DetailsPage: React.FC = () => {
 
       {/* Use CommentSection component */}
       <CommentSection
-        recipeId={recipeId}
-        reviews={recipe.reviews.map((review, index) => ({
-          ...review,
-          key: `${review.user_name}-${index}`, // Ensure unique key for each review
-        }))}
-      />
-
-      <div className="flex justify-end">
-        <Button variant="primary" className="px-6 py-3">
-          Save Recipe
-        </Button>
-      </div>
+  recipeId={recipeId}
+  reviews={recipe.reviews.map((review, index) => ({
+    review_id: review.review_id, // Include review_id
+    user_id: review.user_id, // Include user_id
+    comment: review.comment, // Include comment
+    created_at: review.created_at, // Include created_at
+    user_name: review.user_name, // Include user_name
+    rating: review.rating, // Include rating
+    key: `${review.user_name}-${index}`, // Add a unique key property
+  }))}
+/>
     </motion.div>
   );
 };
