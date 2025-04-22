@@ -62,10 +62,15 @@ export default function MyRecipesPage() {
         if (error) throw error;
 
         // Ensure each recipe has an images array
-        const recipesWithImages = data.map((recipe: Recipe) => ({
-          ...recipe,
-          images: recipe.image_recipe || [],
-        }));
+        const recipesWithImages = data.map((recipe) => ({
+          recipe_id: recipe.recipe_id,
+          recipe_name: recipe.recipe_name,
+          description: recipe.description,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          created_at: recipe.created_at,
+          images: recipe.image_recipe || [], // Transform image_recipe to images
+        })) as Recipe[]; // Explicitly cast to Recipe[]
 
         setRecipes(recipesWithImages);
       } catch (err: unknown) {
