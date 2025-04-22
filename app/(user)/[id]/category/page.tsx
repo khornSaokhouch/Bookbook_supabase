@@ -8,11 +8,33 @@ import Image from 'next/image';
 import { motion } from 'framer-motion'; // Import motion correctly
 import { Heart } from 'lucide-react'; // Import Heart icon correctly
 
+// Define the User type
+type User = {
+  user_id: string;
+  user_name: string;
+  email: string;
+  image_url: string;
+};
+
+// Define the Recipe type
+type Recipe = {
+  recipe_id: string;
+  recipe_name: string;
+  description: string;
+  ingredients: string;
+  instructions: string;
+  created_at: string;
+  prep_time: number;
+  cook_time: number;
+  note: string;
+  image_url: string;
+};
+
 export default function CategoryPage() {
   const { category_id } = useParams(); // Ensure category_id is dynamically fetched
-  const [recipes, setRecipes] = useState([]);
-  const [user, setUser] = useState(null);
-  const [savedRecipes, setSavedRecipes] = useState([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]); // Explicitly type as Recipe[]
+  const [user, setUser] = useState<User | null>(null);
+  const [savedRecipes, setSavedRecipes] = useState<string[]>([]); // Explicitly type as string[]
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -64,8 +86,16 @@ export default function CategoryPage() {
 
         if (recipesError) throw recipesError;
 
-        const normalizedRecipes = recipesData.map((r) => ({
-          ...r,
+        const normalizedRecipes: Recipe[] = recipesData.map((r) => ({
+          recipe_id: r.recipe_id,
+          recipe_name: r.recipe_name,
+          description: r.description,
+          ingredients: r.ingredients,
+          instructions: r.instructions,
+          created_at: r.created_at,
+          prep_time: r.prep_time,
+          cook_time: r.cook_time,
+          note: r.note,
           image_url: r.image_recipe?.[0]?.image_url || '/default-image.jpg',
         }));
 
@@ -81,7 +111,7 @@ export default function CategoryPage() {
     }
   }, [category_id]);
 
-  const handleSaveRecipe = async (recipeId) => {
+  const handleSaveRecipe = async (recipeId: string) => {
     if (!user) return;
 
     if (savedRecipes.includes(recipeId)) return;
