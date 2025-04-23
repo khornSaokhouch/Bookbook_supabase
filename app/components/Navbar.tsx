@@ -22,6 +22,7 @@ export default function Navbar({ user }: NavbarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
 
   /** Fetch categories from database */
   const fetchCategories = useCallback(async () => {
@@ -130,8 +131,7 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="flex items-center space-x-4 md:space-x-6 justify-center md:justify-start order-4">
               {/* Search Bar */}
               <div className="relative">
-                <input type="text" className="border border-gray-500 rounded-full pl-10 pr-4 py-3 text-sm w-48 md:w-full" placeholder="Search by name" />
-                <Image src="https://img.icons8.com/ios7/512/search.png" className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5" alt="Search icon" width={20} height={20} />
+                <input type="text" className="border border-gray-500 rounded-full pl-10 pr-4 py-3 text-sm w-48 md:w-full" placeholder="Search by name" /> 
               </div>
               {/* Add Recipe Link */}
               <Link
@@ -188,20 +188,39 @@ export default function Navbar({ user }: NavbarProps) {
 
       {/* Secondary Navigation (Categories) */}
       <div className="text-lg">
-        <ul className="flex flex-wrap justify-start lg:justify-start space-x-4 md:space-x-10 ml-4 md:ml-0 py-4 xl:pl-38">
-          {categories.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400">Loading categories...</p>
-          ) : (
-            categories.map((category) => (
-              <li key={category.category_id} className="mb-2 md:mb-0">
-                <Link href={`/${category.category_id}/category`} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">
-                  {category.category_name}
-                </Link>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
+  <ul className="flex flex-wrap justify-start lg:justify-start space-x-4 md:space-x-10 ml-4 md:ml-0 py-4 xl:pl-38">
+    
+    {/* Static Links - Inline with Categories */}
+    <li className="mb-2 md:mb-0">
+      <Link href={`/populor`} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+        Populor
+      </Link>
+    </li>
+    <li className="mb-2 md:mb-0">
+      <Link href={`/${user?.user_id}/event`} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+        Events
+      </Link>
+    </li>
+
+    {/* Dynamic Categories */}
+    {categories.length === 0 ? (
+      <p className="text-gray-500 dark:text-gray-400">Loading categories...</p>
+    ) : (
+      categories.map((category) => (
+        <li key={category.category_id} className="mb-2 md:mb-0">
+          <Link
+            href={`/${category.category_id}/category`}
+            className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
+          >
+            {category.category_name}
+          </Link>
+        </li>
+      ))
+    )}
+  </ul>
+</div>
+
+
     </div>
   );
 }
