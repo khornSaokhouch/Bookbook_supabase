@@ -18,6 +18,9 @@ interface RecipeData {
   description: string;
   prep_time: number;
   cook_time: number;
+  overview: string;
+  note: string;
+  instructions: string; // Add the missing property
   ingredients: string; // Add the missing property
   image_recipe: { image_url: string }[];
   users: { user_name: string };
@@ -28,9 +31,12 @@ interface Recipe {
   recipe_id: string;
   recipe_name: string;
   description: string;
+  instructions: string; // Add the missing property
   prep_time: number;
   cook_time: number;
   image_url: string;
+  overview: string;
+  note: string;
   average_rating: number;
   ingredients: string;
   author: string;
@@ -59,6 +65,7 @@ const shapeRecipeData = (data: RecipeData[]): Recipe[] => {
       image_url: recipe.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
       author: recipe.users?.user_name || "Unknown Author",
       ingredients: recipe.ingredients || "No ingredients provided", // Add the missing property
+      instructions: recipe.description || "No instructions provided", // Add the missing property
     };
   });
 };
@@ -180,6 +187,15 @@ const DetailsPage: React.FC = () => {
       </div>
 
       <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Overview</h2>
+        <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
+          {recipe.overview.split(",").map((overview, index) => (
+            <li key={index}>{overview.trim()}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Ingredients</h2>
         <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
           {recipe.ingredients.split(",").map((ingredient, index) => (
@@ -190,7 +206,27 @@ const DetailsPage: React.FC = () => {
 
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Instructions</h2>
-        <p className="text-gray-700 dark:text-gray-300">{recipe.description}</p>
+        <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
+          {recipe.instructions.split(",").map((instructions, index) => (
+            <li key={index}>{instructions.trim()}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Description</h2>
+        <ul className="list-disc pl-5 text-gray-700 dark:text-gray-300">
+          {recipe.description.split(",").map((description, index) => (
+            <li key={index}>{description.trim()}</li>
+          ))}
+        </ul>
+      </section>
+
+      
+
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Note</h2>
+        <p className="text-gray-700 dark:text-gray-300">{recipe.note}</p>
       </section>
 
       {/* Use CommentSection component */}
