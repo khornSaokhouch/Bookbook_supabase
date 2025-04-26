@@ -146,7 +146,7 @@ export default function Navbar({ user }: NavbarProps) {
               <div className="flex items-center space-x-2 md:space-x-6">
                 {user ? (
                   <>
-                    <Link href={`/${user.user_id}/save-recipe`} className="group flex flex-col items-center">
+                    <Link href={`/profile/${user.user_id}/save-recipe`} className="group flex flex-col items-center">
                       <span className="material-icons text-gray-600 dark:text-gray-400 w-5 h-5 group-hover:text-gray-700 dark:group-hover:text-gray-300">
                         bookmark_border
                       </span>
