@@ -46,34 +46,33 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = userId
     ? [
-        { id: "home", href: "/", label: "Home", icon: "home" },
         {
           id: "dashboard",
-          href: `/${userId}/dashboard`,
+          href: `/admin/${userId}/dashboard`,
           label: "Dashboard",
           icon: "dashboard",
         },
         {
           id: "users",
-          href: `/${userId}/users`,
+          href: `/admin/${userId}/users`,
           label: "Users",
           icon: "people",
         },
         {
           id: "categories-occasions",
-          href: `/${userId}/categories-occasions`,
+          href: `/admin/${userId}/categories-occasions`,
           label: "Categories-occasions",
           icon: <CategoryIcon />,
         },
         {
           id: "recipes",
-          href: `/${userId}/recipes`,
+          href: `/admin/${userId}/recipes`,
           label: "Recipes",
           icon: "restaurant_menu",
         },
         {
           id: "events",
-          href: `/${userId}/events`,
+          href: `/admin/${userId}/events`,
           label: "Events",
           icon: "event",
         },

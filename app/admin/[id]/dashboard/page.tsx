@@ -205,13 +205,13 @@ export default function Dashboard() {
         </p>
         <div className="flex flex-wrap gap-4 px-12">
           <Link
-            href={`/${userId}/events`}
+            href={`/admin/${userId}/events`}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm"
           >
             + Post Events
           </Link>
           <Link
-            href={`/${userId}/events`}
+            href={`/admin/${userId}/events`}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm"
           >
             Check Events

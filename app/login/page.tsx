@@ -59,7 +59,7 @@ export default function LoginPage() {
       )}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
       const redirectUrl =
-        role === "Admin" ? `/${user.id}/dashboard` : `/`;
+        role === "Admin" ? `/admin/${user.id}/dashboard` : `/`;
       router.push(redirectUrl);
     } catch (err: unknown) { // Type guard to check if it's an instance of Error
       if (err instanceof Error) {

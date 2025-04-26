@@ -155,7 +155,7 @@ export default function Navbar({ user }: NavbarProps) {
                       </span>
                     </Link>
 
-                    <Link href={`/${user.user_id}/profile`}>
+                    <Link href={`/profile/${user.user_id}/profile`}>
                       <Image
                         src={imageUrl}
                         alt={`Profile of ${user?.user_name || "User"}`}

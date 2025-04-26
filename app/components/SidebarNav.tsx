@@ -33,11 +33,11 @@ const SidebarNav = ({ user }: SidebarNavProps) => {
   // Define menu items based on user authentication
   const menuItems = user
     ? [
-        { href: `/${user.user_id}/profile`, label: "Profile", icon: <HomeIcon /> },
-        { href: `/${user.user_id}/edit-profile`, label: "Edit Profile", icon: <EditIcon /> },
-        { href: `/${user.user_id}/my-recipes`, label: "My Recipes", icon: <WorkIcon /> },
-        { href: `/${user.user_id}/reset-password`, label: "Reset Password", icon: <LockIcon /> },
-        { href: `/${user.user_id}/save-recipe`, label: "Saved Recipes", icon: <BookmarkIcon /> },
+        { href: `/profile/${user.user_id}/profile`, label: "Profile", icon: <HomeIcon /> },
+        { href: `/profile/${user.user_id}/edit-profile`, label: "Edit Profile", icon: <EditIcon /> },
+        { href: `/profile/${user.user_id}/my-recipes`, label: "My Recipes", icon: <WorkIcon /> },
+        { href: `/profile/${user.user_id}/reset-password`, label: "Reset Password", icon: <LockIcon /> },
+        { href: `/profile/${user.user_id}/save-recipe`, label: "Saved Recipes", icon: <BookmarkIcon /> },
       ]
     : [];
 
