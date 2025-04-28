@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import BannerSwiper from "../../../components/BannerSwiper";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import StarRating from "../../../components/StarRating"; // Import StarRating component
+import StarRating from "../../../components/StarRating";
 import Link from "next/link";
 import Image from "next/image";
 import { User } from "@/app/types";
@@ -19,6 +19,7 @@ type Recipe = {
   ingredients: string;
   instructions: string;
   created_at: string;
+  totalTime: string;
   prep_time: string;
   note: string;
 };
@@ -26,10 +27,10 @@ type Recipe = {
 type Review = {
   review_id: number;
   recipe_id: number;
-  user_id: string; // Assuming user_id is a string. If it's a number, change accordingly.
+  user_id: string;
   comment: string;
   rating: number;
-  created_at: string; // Or Date, if you want to work with a Date object
+  created_at: string;
 };
 
 const AllRecipesPage = () => {
@@ -38,17 +39,24 @@ const AllRecipesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [savedRecipes, setSavedRecipes] = useState<number[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]); // Reviews state
+  const [reviews, setReviews] = useState<Review[]>([]);
 
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      const { data, error } = await supabase.from("recipe").select("*");
-      console.log("Fetched Recipes:", data); // Debug the fetched recipes
-      if (error) console.error("Error fetching recipes:", error);
-    };
+  const parseTime = (value: string | number) => {
+    if (typeof value === "number") return value;
+    if (typeof value === "string" && value.includes(":")) {
+      const [h, m, s] = value.split(":").map(Number);
+      return h * 60 + m + Math.round(s / 60);
+    }
+    return parseInt(value) || 0;
+  };
+  
 
-    fetchRecipes();
-  }, []);
+  // Format time nicely
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours > 0 ? `${hours}h` : ""}${mins > 0 ? `${mins}mns` : ""}`;
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -102,14 +110,13 @@ const AllRecipesPage = () => {
 
         setRecipes(recipesData as Recipe[]);
 
-        // Fetch all reviews for the recipes
         const { data: reviewsData, error: reviewsError } = await supabase
           .from("reviews")
           .select("review_id, recipe_id, user_id, comment, rating, created_at");
 
         if (reviewsError) throw reviewsError;
 
-        setReviews(reviewsData as Review[]); // Set reviews using the Review type
+        setReviews(reviewsData as Review[]);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(`Error fetching data: ${err.message}`);
@@ -127,7 +134,6 @@ const AllRecipesPage = () => {
 
   const handleSaveRecipe = async (recipeId: number) => {
     if (!user) return;
-
     if (savedRecipes.includes(recipeId)) return;
 
     try {
@@ -154,10 +160,9 @@ const AllRecipesPage = () => {
 
   return (
     <div>
-      <div className="m-auto py-5">
-        <BannerSwiper />
-      </div>
-      <main className="container mx-auto p-6">
+      <BannerSwiper />
+
+      <main className="container mx-auto">
         <section className="mb-8">
           <h2 className="text-3xl font-bold text-center mb-8">All Recipes</h2>
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
@@ -172,20 +177,20 @@ const AllRecipesPage = () => {
               <p className="text-center text-gray-500">No recipes available.</p>
             ) : (
               recipes.map((recipe) => {
-                const imageUrl =
-                  recipe.image_recipe[0]?.image_url || "/default-recipe.jpg";
+                const imageUrl = recipe.image_recipe[0]?.image_url || "/default-recipe.jpg";
                 const userReviews = reviews.filter(
                   (review) => review.recipe_id === recipe.recipe_id
                 );
 
-                // Get the latest comment from the logged-in user
                 const latestUserReview = userReviews
-                  .filter((review) => review.user_id === user?.user_id) // Filter by user
+                  .filter((review) => review.user_id === user?.user_id)
                   .sort(
                     (a, b) =>
                       new Date(b.created_at).getTime() -
                       new Date(a.created_at).getTime()
                   )[0];
+
+                const totalTime = parseTime(recipe.prep_time) + parseTime(recipe.cook_time);
 
                 return (
                   <motion.div
@@ -229,19 +234,18 @@ const AllRecipesPage = () => {
                           </button>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Cook Time: {recipe.cook_time}
+
+                      <p className="mt-2 text-sm text-gray-500">
+                        Total Time: {formatTime(totalTime)}
                       </p>
                     </Link>
 
                     <div className="mt-3">
-                      {/* Add Rating */}
                       <StarRating
                         recipeId={recipe.recipe_id}
                         reviews={userReviews}
                       />
 
-                      {/* Show latest user comment if exists */}
                       {latestUserReview ? (
                         <div className="mt-2 text-sm text-gray-700">
                           <strong>Your comment:</strong>{" "}

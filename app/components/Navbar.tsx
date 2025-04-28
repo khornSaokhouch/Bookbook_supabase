@@ -7,6 +7,12 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react"; // Added Menu and X icons
 import { User } from "@/app/types"; // Import shared User type
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+
+
+
+
 
 type Category = {
   category_id: number;
@@ -22,6 +28,16 @@ export default function Navbar({ user }: NavbarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+
+
+
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && searchTerm.trim() !== "") {
+        router.push(`/${user?.user_id}/search?query=${encodeURIComponent(searchTerm)}`);
+      }
+    };
   
 
   /** Fetch categories from database */
@@ -100,7 +116,7 @@ export default function Navbar({ user }: NavbarProps) {
   return (
     <div>
       <nav className="shadow-md dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto  sm:px-6 lg:px-2">
           <div className="flex justify-between items-center h-[110px]">
 
             {/* Mobile Menu Button (Moved to Left) */}
@@ -116,12 +132,12 @@ export default function Navbar({ user }: NavbarProps) {
             {/* Logo (Hidden on Small Screens) */}
             <div className="hidden md:flex items-center order-2">
               <Link href="/">
-                <Image src="/logo.png" alt="CookBook Logo" width={50} height={50} className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] object-contain" />
+                <Image src="/logo.png" alt="CookBook Logo" width={50} height={50} className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] " />
               </Link>
             </div>
 
             {/* Navigation Links (Hidden on Small Screens) */}
-            <div className="hidden md:flex space-x-10 text-lg order-3">
+            <div className="hidden md:flex space-x-10 text-lg order-3 ">
               <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Home</Link>
               <Link href={`/${user?.user_id}/recipe`} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">Recipe</Link>
               <Link href={`/about-us`} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium">About Us</Link>
@@ -131,8 +147,17 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="flex items-center space-x-4 md:space-x-6 justify-center md:justify-start order-4">
               {/* Search Bar */}
               <div className="relative">
-                <input type="text" className="border border-gray-500 rounded-full pl-10 pr-4 py-3 text-sm w-48 md:w-full" placeholder="Search by name" /> 
-              </div>
+      <FontAwesomeIcon icon={faMagnifyingGlass} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500" />
+      <input
+        type="text"
+        className="border border-gray-500 rounded-full pl-10 pr-4 py-3 text-sm w-48 md:w-full"
+        placeholder="Search recipes..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={handleSearch}
+      />
+
+    </div>
               {/* Add Recipe Link */}
               <Link
                 href={user ? `/${user?.user_id}/add-recipe` : "/login"}
@@ -187,8 +212,8 @@ export default function Navbar({ user }: NavbarProps) {
       </nav>
 
       {/* Secondary Navigation (Categories) */}
-      <div className="text-lg">
-  <ul className="flex flex-wrap justify-start lg:justify-start space-x-4 md:space-x-10 ml-4 md:ml-0 py-4 xl:pl-38">
+      <div className="text-lg ml-6">
+  <ul className="flex flex-wrap justify-start lg:justify-start space-x-4 md:space-x-10 ml-5 md:ml-0 py-4 xl:pl-40">
     
     {/* Static Links - Inline with Categories */}
     <li className="mb-2 md:mb-0">
