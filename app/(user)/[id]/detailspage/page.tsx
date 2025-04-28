@@ -52,23 +52,6 @@ interface Review {
   rating: number;
 }
 
-const shapeRecipeData = (data: RecipeData[]): Recipe[] => {
-  return data.map((recipe) => {
-    const ratings = recipe.reviews.map((review) => review.rating);
-    const averageRating =
-      ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
-
-    return {
-      ...recipe,
-      recipe_id: recipe.recipe_id.toString(),
-      average_rating: averageRating,
-      image_url: recipe.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
-      author: recipe.users?.user_name || "Unknown Author",
-      ingredients: recipe.ingredients || "No ingredients provided", // Add the missing property
-      instructions: recipe.description || "No instructions provided", // Add the missing property
-    };
-  });
-};
 
 async function getRecipeById(recipeId: number): Promise<RecipeData | null> {
   try {
@@ -91,6 +74,56 @@ async function getRecipeById(recipeId: number): Promise<RecipeData | null> {
     return null;
   }
 }
+
+
+// Function to format time in "XhYmns" format
+const formatTime = (minutes?: number) => {
+  if (!minutes || isNaN(minutes)) return "0mns";
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours}h${remainingMinutes}mns`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else {
+    return `${remainingMinutes}mns`;
+  }
+};
+
+
+
+const parseTime = (value: string | number): number => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.includes(":")) {
+    const [h, m, s] = value.split(":").map(Number);
+    return h * 60 + m + Math.round(s / 60);
+  }
+  return 0;
+};
+
+
+const shapeRecipeData = (data: RecipeData[]): Recipe[] => {
+  return data.map((recipe) => {
+    const ratings = recipe.reviews.map((review) => review.rating);
+    const averageRating =
+      ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+    return {
+      ...recipe,
+      recipe_id: recipe.recipe_id.toString(),
+      average_rating: averageRating,
+      image_url: recipe.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
+      author: recipe.users?.user_name || "Unknown Author",
+      ingredients: recipe.ingredients || "No ingredients provided",
+      instructions: recipe.description || "No instructions provided",
+      prep_time: parseTime(recipe.prep_time), // 👈 Make sure it's number
+      cook_time: parseTime(recipe.cook_time), // 👈 Make sure it's number
+    };
+  });
+};
+
+
 
 const DetailsPage: React.FC = () => {
   const { id } = useParams();
@@ -172,17 +205,20 @@ const DetailsPage: React.FC = () => {
         <div className="flex flex-col bg-gray-100 dark:bg-gray-700 items-center rounded-lg shadow-md p-4">
           <FiClock className="text-3xl text-red-600" />
           <h3 className="mt-2 font-semibold text-orange-600 dark:text-orange-400">Prep Time</h3>
-          <p className="dark:text-gray-200">{recipe.prep_time} mins</p>
+          <p className="dark:text-gray-200">{formatTime(recipe.prep_time)}
+          </p>
         </div>
         <div className="flex flex-col bg-gray-100 dark:bg-gray-700 items-center rounded-lg shadow-md p-4">
           <ImSpoonKnife className="text-3xl text-purple-700" />
           <h3 className="mt-2 font-semibold text-blue-600 dark:text-blue-400">Cook Time</h3>
-          <p className="dark:text-gray-200">{recipe.cook_time} mins</p>
+          <p className="dark:text-gray-200">{formatTime(recipe.cook_time)}
+          </p>
         </div>
         <div className="flex flex-col bg-gray-100 dark:bg-gray-700 items-center rounded-lg shadow-md p-4">
           <BsSun className="text-3xl text-yellow-600" />
           <h3 className="mt-2 font-semibold text-green-700 dark:text-green-400">Total Time</h3>
-          <p className="dark:text-gray-200">{totalTime} mins</p>
+          <p className="dark:text-gray-200">{formatTime(totalTime)}
+          </p>
         </div>
       </div>
 

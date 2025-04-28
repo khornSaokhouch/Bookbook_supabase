@@ -124,26 +124,27 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
       </form>
 
       {displayedComments.length > 0 ? (
-        displayedComments.map((review) => (
-          <motion.div
-            key={review.key} // Use the key prop from the Review type
-            className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <p className="font-semibold text-gray-700 dark:text-gray-300">
-              {review.user_id === userId ? username || "You" : review.user_id}
-            </p>
-            <p className="text-gray-600 dark:text-gray-400">{review.comment}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              {new Date(review.created_at).toLocaleDateString()}
-            </p>
-          </motion.div>
-        ))
-      ) : (
-        <p className="text-gray-500 dark:text-gray-400 mt-2">No reviews yet. Be the first to review!</p>
-      )}
+  displayedComments.map((review) => (
+    <motion.div
+      key={review.review_id} // Use review_id instead of key
+      className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <p className="font-semibold text-gray-700 dark:text-gray-300">
+        {review.user_id === userId ? username || "You" : review.user_id}
+      </p>
+      <p className="text-gray-600 dark:text-gray-400">{review.comment}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-500">
+        {new Date(review.created_at).toLocaleDateString()}
+      </p>
+    </motion.div>
+  ))
+) : (
+  <p className="text-gray-500 dark:text-gray-400 mt-2">No reviews yet. Be the first to review!</p>
+)}
+
 
       {comments.length > 1 && !showAllComments && (
         <button
