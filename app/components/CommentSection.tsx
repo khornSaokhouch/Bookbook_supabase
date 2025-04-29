@@ -9,7 +9,6 @@ interface Review {
   user_id: string;
   comment: string;
   created_at: string;
-  key: string; // Add key to the Review type
   user_name: string;
   rating: number;
 }
@@ -24,13 +23,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
   const [userId, setUserId] = useState<string | null>(null);
   const [comments, setComments] = useState<Review[]>(reviews);
   const [username, setUsername] = useState<string | null>(null);
-  const [showAllComments, setShowAllComments] = useState(false); // Toggle to show all comments
+  const [showAllComments, setShowAllComments] = useState(false);
 
   useEffect(() => {
     const getUserIdFromCookies = () => {
-      if (typeof document === "undefined") {
-        return null;
-      }
+      if (typeof document === "undefined") return null;
       const cookies = document.cookie.split("; ");
       const userCookie = cookies.find((cookie) => cookie.startsWith("user="));
       if (userCookie) {
@@ -39,7 +36,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
           return user.id;
         } catch (error) {
           console.error("Error parsing user cookie:", error);
-          return null;
         }
       }
       return null;
@@ -59,7 +55,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
         .select("user_name")
         .eq("user_id", userId)
         .single();
-
       if (error) {
         console.error("Error fetching username:", error);
       } else {
@@ -90,7 +85,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
 
       if (error) {
         console.error("Error submitting comment:", error);
-      } else {
+      } else if (data) {
         console.log("Comment submitted successfully!", data);
         setComment("");
         setComments((prevComments) => [...prevComments, data]);
@@ -100,7 +95,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
     }
   };
 
-  const displayedComments = showAllComments ? comments : comments.slice(0, 1); // Show only the first comment by default
+  const displayedComments = showAllComments ? comments : comments.slice(0, 1);
 
   return (
     <div>
@@ -112,39 +107,38 @@ const CommentSection: React.FC<CommentSectionProps> = ({ recipeId, reviews }) =>
           placeholder="Add a review..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          disabled={!userId} // Disable input if not logged in
+          disabled={!userId}
         />
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2 focus:outline-none focus:shadow-outline"
-          disabled={!comment.trim()} // Disable submit button if comment is empty
+          disabled={!comment.trim()}
         >
           Submit
         </button>
       </form>
 
       {displayedComments.length > 0 ? (
-  displayedComments.map((review) => (
-    <motion.div
-      key={review.review_id} // Use review_id instead of key
-      className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <p className="font-semibold text-gray-700 dark:text-gray-300">
-        {review.user_id === userId ? username || "You" : review.user_id}
-      </p>
-      <p className="text-gray-600 dark:text-gray-400">{review.comment}</p>
-      <p className="text-xs text-gray-500 dark:text-gray-500">
-        {new Date(review.created_at).toLocaleDateString()}
-      </p>
-    </motion.div>
-  ))
-) : (
-  <p className="text-gray-500 dark:text-gray-400 mt-2">No reviews yet. Be the first to review!</p>
-)}
-
+        displayedComments.map((review) => (
+          <motion.div
+            key={review.review_id ? `${review.review_id}` : Math.random().toString(36).substring(2)}
+            className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="font-semibold text-gray-700 dark:text-gray-300">
+              {review.user_id === userId ? username || "You" : review.user_id}
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">{review.comment}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              {review.created_at ? new Date(review.created_at).toLocaleDateString() : "Just now"}
+            </p>
+          </motion.div>
+        ))
+      ) : (
+        <p className="text-gray-500 dark:text-gray-400 mt-2">No reviews yet. Be the first to review!</p>
+      )}
 
       {comments.length > 1 && !showAllComments && (
         <button

@@ -232,9 +232,9 @@ export default function Navbar({ user }: NavbarProps) {
       <p className="text-gray-500 dark:text-gray-400">Loading categories...</p>
     ) : (
       categories.map((category) => (
-        <li key={category.category_name} className="mb-2 md:mb-0">
+        <li key={category.category_id} className="mb-2 md:mb-0">
           <Link
-            href={`/${category.category_name}`}
+            href={`/${category.category_id}`}
             className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
           >
             {category.category_name}

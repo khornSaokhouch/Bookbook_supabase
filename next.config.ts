@@ -53,17 +53,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'gravatar.com',
-        pathname: '/**',  // Allow all paths
+        pathname: '/**',
       },
-
-      // GitHub profile images
       {
         protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-        pathname: '/**',  // Allow all paths (e.g., GitHub avatars)
-      },
-
-      // Additional external patterns can go here
+        hostname: 'encrypted-tbn0.gstatic.com',
+        pathname: '/images**',
+      }      
     ],
   },
 };

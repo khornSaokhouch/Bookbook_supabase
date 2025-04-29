@@ -39,10 +39,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     setIsLogoutModalOpen(false);
   }, [handleLogout]);
 
-  const openLogoutModal = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setIsLogoutModalOpen(true);
-  }, []);
+  const openLogoutModal = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      setIsLogoutModalOpen(true);
+    },
+    []
+  );
 
   const menuItems = userId
     ? [
@@ -81,7 +84,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           href: "/login",
           label: "Logout",
           icon: "logout",
-          onClick: openLogoutModal ,
+          onClick: openLogoutModal,
         },
       ]
     : [];
@@ -137,7 +140,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     if (!isMounted || !userId) return;
     setIsLoading(true);
     getAdminProfile(userId)
-      .then(() => setIsLoading(false))  // Set loading to false after profile is fetched.
+      .then(() => setIsLoading(false)) // Set loading to false after profile is fetched.
       .catch((err) => {
         console.error("Error fetching admin profile:", err);
         setIsLoading(false);
@@ -223,10 +226,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       },
     },
   };
- if (isLoading) {
-    return <div className="flex justify-center items-center h-48">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-  </div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
@@ -317,13 +322,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   : "border-gray-300 dark:border-gray-200"
               }`}
             />
-           <Image
-  src="https://img.icons8.com/ios7/512/search.png"
-  alt="search icon"
-  width={20}
-  height={20}
-  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200"
-/>
+            <Image
+              src="https://img.icons8.com/ios7/512/search.png"
+              alt="search icon"
+              width={20}
+              height={20}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200"
+            />
           </div>
 
           {/* Profile */}
@@ -359,8 +364,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </motion.main>
       </div>
-       {/* Logout Confirmation Modal */}
-       <LogoutConfirmationModal
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
         isOpen={isLogoutModalOpen}
         onCancel={() => setIsLogoutModalOpen(false)}
         onConfirm={confirmLogout}

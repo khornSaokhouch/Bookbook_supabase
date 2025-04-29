@@ -49,7 +49,6 @@ const AllRecipesPage = () => {
     }
     return parseInt(value) || 0;
   };
-  
 
   // Format time nicely
   const formatTime = (minutes: number) => {
@@ -182,8 +181,8 @@ const AllRecipesPage = () => {
                   (review) => review.recipe_id === recipe.recipe_id
                 );
 
-                const latestUserReview = userReviews
-                  .filter((review) => review.user_id === user?.user_id)
+                // Get the latest review for this recipe, regardless of the user
+                const latestReview = userReviews
                   .sort(
                     (a, b) =>
                       new Date(b.created_at).getTime() -
@@ -246,14 +245,14 @@ const AllRecipesPage = () => {
                         reviews={userReviews}
                       />
 
-                      {latestUserReview ? (
+                      {latestReview ? (
                         <div className="mt-2 text-sm text-gray-700">
-                          <strong>Your comment:</strong>{" "}
-                          {latestUserReview.comment}
+                          <strong>Latest comment:</strong>{" "}
+                          {latestReview.comment}
                         </div>
                       ) : (
                         <p className="mt-2 text-sm text-gray-500">
-                          No comment yet.
+                          No comments yet.
                         </p>
                       )}
                     </div>

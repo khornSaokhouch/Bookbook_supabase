@@ -179,12 +179,12 @@ export default function SavedRecipesPage() {
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 {recipe.description}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              {/* <p className="text-sm text-gray-500 dark:text-gray-400">
                 <strong>Ingredients:</strong> {recipe.ingredients}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              </p> */}
+              {/* <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 <strong>Instructions:</strong> {recipe.instructions}
-              </p>
+              </p> */}
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                 Saved on: {new Date(recipe.created_at).toLocaleDateString()}
               </p>

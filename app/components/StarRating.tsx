@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient"; // Import your Supabase client
-import { Star } from "lucide-react"; // Import star icon
+import { supabase } from "../lib/supabaseClient"; // Adjust if needed
+import { Star } from "lucide-react"; // Star icon
 
 interface Review {
-  rating: number;
+  rating: number | null;
   user_id: string;
 }
 
@@ -39,8 +39,9 @@ const StarRating: React.FC<StarRatingProps> = ({ recipeId, reviews }) => {
     if (fetchedUserId) setUserId(fetchedUserId);
 
     if (reviews.length > 0) {
-      const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
-      const averageRating = totalRating / reviews.length;
+      const totalRating = reviews.reduce((acc, review) => acc + (review.rating ?? 0), 0);
+      const validRatingsCount = reviews.filter((r) => r.rating !== null).length;
+      const averageRating = validRatingsCount ? totalRating / validRatingsCount : null;
       setRating(averageRating);
     }
   }, [reviews]);
@@ -70,7 +71,9 @@ const StarRating: React.FC<StarRatingProps> = ({ recipeId, reviews }) => {
       {[1, 2, 3, 4, 5].map((index) => (
         <Star
           key={index}
-          className={`cursor-pointer h-5 w-5 ${6 - index <= (hoverRating || rating || 0) ? "text-yellow-500" : "text-gray-300"}`}
+          className={`cursor-pointer h-5 w-5 ${
+            6 - index <= (hoverRating || rating || 0) ? "text-yellow-500" : "text-gray-300"
+          }`}
           onMouseEnter={() => setHoverRating(6 - index)}
           onMouseLeave={() => setHoverRating(null)}
           onClick={() => handleRating(6 - index)}
