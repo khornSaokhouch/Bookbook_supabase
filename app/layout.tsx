@@ -1,8 +1,8 @@
-import '@/app/globals.css'
-import { Metadata } from 'next';
-import { Inter } from 'next/font/google'
+import "@/app/globals.css";
+import { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Cookbooks",
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
       {
         rel: "icon",
         sizes: "any",
-        url: "/logo.png", // Corrected path
-        href: "/logo.png", // Corrected path
+        url: "/logo.png",
+        href: "/logo.png",
       },
     ],
   },
@@ -22,9 +22,8 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
-  })
-{
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <head>
@@ -33,10 +32,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.className} antialiased bg-white text-gray-900`}>
-        <main>
-          {children}
-        </main>
+      <body
+        suppressHydrationWarning
+        className={`${inter.className} antialiased bg-white text-gray-900`}
+      >
+        <main>{children}</main>
       </body>
     </html>
   );

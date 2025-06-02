@@ -4,11 +4,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import BannerSwiper from "../../../components/BannerSwiper";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
-import StarRating from "../../../components/StarRating";
-import Link from "next/link";
-import Image from "next/image";
-import { User } from "@/app/types";
+import { ChefHat } from "lucide-react";
+import FancyRecipeCard from "../../../components/recipe-card";
+import type { User } from "@/app/types";
 
 type Recipe = {
   recipe_id: number;
@@ -47,7 +45,7 @@ const AllRecipesPage = () => {
       const [h, m, s] = value.split(":").map(Number);
       return h * 60 + m + Math.round(s / 60);
     }
-    return parseInt(value) || 0;
+    return Number.parseInt(value) || 0;
   };
 
   // Format time nicely
@@ -90,9 +88,9 @@ const AllRecipesPage = () => {
           }
         }
 
-        const { data: recipesData, error: recipesError } = await supabase
-          .from("recipe")
-          .select(`
+        const { data: recipesData, error: recipesError } = await supabase.from(
+          "recipe"
+        ).select(`
             recipe_id,
             recipe_name,
             description,
@@ -151,116 +149,102 @@ const AllRecipesPage = () => {
     }
   };
 
-  const recipeCardVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    hover: { scale: 1.03 },
+  const containerVariants = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <BannerSwiper />
 
-      <main className="container mx-auto">
-        <section className="mb-8">
-          <h2 className="text-3xl font-bold text-center mb-8">All Recipes</h2>
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            {loading ? (
-              <div className="flex justify-center items-center m-auto h-64">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-                <p className="mt-4 text-xl">Loading recipes...</p>
-              </div>
-            ) : error ? (
-              <div className="text-red-500 text-center">{error}</div>
-            ) : recipes.length === 0 ? (
-              <p className="text-center text-gray-500">No recipes available.</p>
-            ) : (
-              recipes.map((recipe) => {
-                const imageUrl = recipe.image_recipe[0]?.image_url || "/default-recipe.jpg";
-                const userReviews = reviews.filter(
-                  (review) => review.recipe_id === recipe.recipe_id
-                );
-
-                // Get the latest review for this recipe, regardless of the user
-                const latestReview = userReviews
-                  .sort(
-                    (a, b) =>
-                      new Date(b.created_at).getTime() -
-                      new Date(a.created_at).getTime()
-                  )[0];
-
-                const totalTime = parseTime(recipe.prep_time) + parseTime(recipe.cook_time);
-
-                return (
-                  <motion.div
-                    key={recipe.recipe_id}
-                    className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow flex flex-col"
-                    variants={recipeCardVariants}
-                    initial="initial"
-                    animate="animate"
-                    whileHover="hover"
-                  >
-                    <Link
-                      href={`/${recipe.recipe_id}/detailspage`}
-                      className="block"
-                    >
-                      <Image
-                        src={imageUrl}
-                        alt={recipe.recipe_name}
-                        width={300}
-                        height={200}
-                        className="w-full h-48 object-cover rounded-lg"
-                        priority
-                        unoptimized
-                      />
-                      <div className="flex justify-between items-center mt-3">
-                        <h3 className="text-lg font-semibold">
-                          {recipe.recipe_name}
-                        </h3>
-                        {user && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSaveRecipe(recipe.recipe_id);
-                            }}
-                            className={`p-2 rounded-full ${
-                              savedRecipes.includes(recipe.recipe_id)
-                                ? "bg-red-500 text-white"
-                                : "bg-gray-200"
-                            }`}
-                          >
-                            <Heart className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-
-                      <p className="mt-2 text-sm text-gray-500">
-                        Total Time: {formatTime(totalTime)}
-                      </p>
-                    </Link>
-
-                    <div className="mt-3">
-                      <StarRating
-                        recipeId={recipe.recipe_id}
-                        reviews={userReviews}
-                      />
-
-                      {latestReview ? (
-                        <div className="mt-2 text-sm text-gray-700">
-                          <strong>Latest comment:</strong>{" "}
-                          {latestReview.comment}
-                        </div>
-                      ) : (
-                        <p className="mt-2 text-sm text-gray-500">
-                          No comments yet.
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })
-            )}
+      <main className="container mx-auto px-4 py-10">
+        <section className="mb-12">
+          {/* Header Section */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              All Recipes
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Discover amazing recipes from our community of passionate cooks 👨‍🍳
+            </p>
+            <div className="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full inline-block">
+              {recipes.length} delicious recipes available
+            </div>
           </div>
+
+          {/* Loading State */}
+          {loading ? (
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-lg overflow-hidden"
+                >
+                  <div className="h-48 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse"></div>
+                  <div className="p-4 space-y-3">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-12 max-w-md mx-auto">
+                <ChefHat className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">
+                  Oops! Something went wrong
+                </h3>
+                <p className="text-red-500 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          ) : recipes.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-12 max-w-md mx-auto">
+                <ChefHat className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">
+                  No recipes found
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Check back soon for delicious new recipes! 🍳
+                </p>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+              variants={containerVariants}
+              initial="initial"
+              animate="animate"
+            >
+              {recipes.map((recipe, index) => (
+                <FancyRecipeCard
+                  key={recipe.recipe_id}
+                  recipe={recipe}
+                  reviews={reviews}
+                  user={user}
+                  savedRecipes={savedRecipes}
+                  onSaveRecipe={handleSaveRecipe}
+                  parseTime={parseTime}
+                  formatTime={formatTime}
+                  index={index}
+                />
+              ))}
+            </motion.div>
+          )}
         </section>
       </main>
     </div>
