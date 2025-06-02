@@ -1,18 +1,33 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, Facebook } from "lucide-react";
+import { Mail, Lock, Heart, Sparkles } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 
 // Animation Variants
 const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.5, staggerChildren: 0.1 } },
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1,
+      ease: "easeOut",
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
 
 export default function LoginPage() {
@@ -34,7 +49,10 @@ export default function LoginPage() {
       });
 
       if (error || !data) {
-        throw new Error(error?.message || "Failed to sign in. Please check your credentials.");
+        throw new Error(
+          error?.message ||
+            "Oops! Something went wrong. Please check your credentials and try again."
+        );
       }
 
       const user = data.user;
@@ -45,7 +63,10 @@ export default function LoginPage() {
         .single();
 
       if (metadataError) {
-        throw new Error(metadataError.message || "Failed to fetch user metadata.");
+        throw new Error(
+          metadataError.message ||
+            "We&apos;re having trouble accessing your account details."
+        );
       }
 
       const role = userMetadata?.role || "User";
@@ -61,11 +82,16 @@ export default function LoginPage() {
       const redirectUrl =
         role === "Admin" ? `/admin/${user.id}/dashboard` : `/`;
       router.push(redirectUrl);
-    } catch (err: unknown) { // Type guard to check if it's an instance of Error
+    } catch (err: unknown) {
       if (err instanceof Error) {
-        setErrorMessage(err.message || "Failed to sign in. Please try again.");
+        setErrorMessage(
+          err.message ||
+            "We couldn&apos;t sign you in right now. Please try again!"
+        );
       } else {
-        setErrorMessage("Failed to sign in. Please try again.");
+        setErrorMessage(
+          "We couldn&apos;t sign you in right now. Please try again!"
+        );
       }
     } finally {
       setIsLoading(false);
@@ -81,111 +107,198 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setErrorMessage(error.message || "Google sign-in failed.");
+      setErrorMessage(
+        error.message ||
+          "Google sign-in didn&apos;t work this time. Let&apos;s try again!"
+      );
     }
   }
 
   return (
     <motion.div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-lavender-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-800 p-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-[900px] flex flex-col md:flex-row">
-        <div className="flex-grow">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">Welcome Back</h1>
+      <motion.div
+        className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/90 p-8 md:p-10 rounded-3xl shadow-xl border border-white/20 w-full max-w-[950px] flex flex-col md:flex-row overflow-hidden"
+        variants={itemVariants}
+      >
+        {/* Left side - Form */}
+        <div className="flex-grow md:pr-8">
+          <motion.div variants={itemVariants} className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-500 p-3 rounded-full">
+                <Heart className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent">
+              Welcome back!
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">
+              We&apos;re so happy to see you again! ✨
+            </p>
+          </motion.div>
 
           {errorMessage && (
-            <div className="text-red-500 text-center mb-4 bg-red-100 dark:bg-red-700 border border-red-300 dark:border-red-500 py-3 px-4 rounded-md">
+            <motion.div
+              variants={itemVariants}
+              className="text-red-600 text-center mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 py-4 px-6 rounded-2xl"
+            >
+              <div className="flex items-center justify-center mb-1">
+                <span className="text-lg">😔</span>
+              </div>
               {errorMessage}
-            </div>
+            </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-6"
+            variants={itemVariants}
+          >
             <div>
-              <label htmlFor="email" className="block text-gray-700 dark:text-gray-200 font-medium mb-2">
-                Email
+              <label
+                htmlFor="email"
+                className="block text-gray-700 dark:text-gray-200 font-medium mb-3 text-lg"
+              >
+                Your Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                 <input
                   type="email"
                   id="email"
                   name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition shadow-sm"
+                  placeholder="hello@example.com"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-gray-700 dark:text-gray-200 font-medium mb-2">
-                Password
+              <label
+                htmlFor="password"
+                className="block text-gray-700 dark:text-gray-200 font-medium mb-3 text-lg"
+              >
+                Your Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                 <input
                   type="password"
                   id="password"
                   name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white transition shadow-sm"
+                  placeholder="Enter your secure password"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
                   required
                 />
               </div>
             </div>
 
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-2xl hover:from-purple-600 hover:to-indigo-600 focus:outline-none focus:ring-4 focus:ring-purple-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {isLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Log In"}
-            </button>
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Signing you in...
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <span>Let&apos;s go!</span>
+                  <Sparkles className="ml-2 h-5 w-5" />
+                </div>
+              )}
+            </motion.button>
 
-            <div className="flex justify-between mt-4 text-sm">
-              <label className="flex items-center text-gray-600 dark:text-gray-300">
-                <input type="checkbox" className="mr-2 rounded text-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600" />
-                Remember me
+            <div className="flex justify-between items-center mt-6 text-sm">
+              <label className="flex items-center text-gray-600 dark:text-gray-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mr-3 rounded-lg text-purple-500 focus:ring-purple-500 focus:ring-2 w-4 h-4 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <span className="text-base">Keep me signed in</span>
               </label>
-              <Link href="/forgot-password" className="text-blue-500 hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-purple-500 hover:text-purple-600 hover:underline text-base font-medium"
+              >
                 Forgot password?
               </Link>
             </div>
-          </form>
+          </motion.form>
 
-          <div className="flex flex-col space-y-4 mt-6">
-            <button className="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:outline-none transition">
-              <Facebook className="w-5 h-5 mr-2" />
-              Facebook
-            </button>
-            <button
+          <motion.div className="mt-8" variants={itemVariants}>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-base">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <motion.button
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center w-full py-3 bg-white border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-white font-semibold rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="mt-6 flex items-center justify-center w-full py-4 bg-white border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-semibold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <FcGoogle className="w-6 h-6 mr-2" />
-              Sign in with Google
-            </button>
-          </div>
+              <FcGoogle className="w-6 h-6 mr-3" />
+              Continue with Google
+            </motion.button>
+          </motion.div>
 
-          <p className="mt-6 text-center text-gray-600 dark:text-gray-300 text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-blue-500 hover:underline">
-              Sign Up
+          <motion.p
+            className="mt-8 text-center text-gray-600 dark:text-gray-300 text-base"
+            variants={itemVariants}
+          >
+            New here? We&apos;d love to have you!{" "}
+            <Link
+              href="/register"
+              className="text-purple-500 hover:text-purple-600 font-semibold hover:underline"
+            >
+              Join our community
             </Link>
-          </p>
+          </motion.p>
         </div>
 
-        <div className="hidden md:flex items-center justify-center md:ml-4 mt-6 md:mt-0">
-          <Image src="/auth/image.png" alt="Login Illustration" className="w-48 md:w-56 lg:w-104" width={400} height={400} />
-        </div>
-      </div>
+        {/* Right side - Illustration */}
+        <motion.div
+          className="hidden md:flex items-center justify-center md:ml-8 mt-8 md:mt-0"
+          variants={itemVariants}
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-200 to-indigo-200 rounded-3xl transform rotate-3 opacity-20"></div>
+            <Image
+              src="/login.png"
+              alt="Welcome back illustration"
+              className="relative z-10 w-80 h-96 object-cover rounded-3xl shadow-2xl"
+              width={350}
+              height={400}
+            />
+            <div className="absolute -top-4 -right-4 bg-indigo-400 rounded-full p-3 shadow-lg">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="absolute -bottom-4 -left-4 bg-purple-400 rounded-full p-3 shadow-lg">
+              <Heart className="h-6 w-6 text-white" />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }
