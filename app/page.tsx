@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
 import type { User } from "@/app/types";
 
@@ -8,68 +9,77 @@ import Footer from "@/app/components/Footer";
 import BannerSwiper from "@/app/components/BannerSwiper";
 import Popular from "@/app/components/Popular";
 import NewPost from "@/app/components/NewPost";
+import RecipeoftheWeek from "@/app/components/RecipeoftheWeek";
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
-
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("user_name, email, image_url")
-        .eq("user_id", userId)
-        .single();
-
-      if (error) throw error;
-
-      return {
-        user_id: userId,
-        user_name: data?.user_name || "User",
-        email: data?.email || "",
-        image_url: data?.image_url || null,
-      };
-    } catch (err) {
-      console.error("Error fetching user profile:", err);
-      return null;
-    }
-  }, []);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-
-      if (data?.user) {
-        const profile = await fetchUserProfile(data.user.id);
-        if (profile) {
-          setUser(profile);
-        } else {
-          console.warn("Logged-in user has no profile data.");
-        }
-      } else {
-        // No user logged in — that's fine
-        setUser(null);
+    const adminIds = process.env.NEXT_PUBLIC_ADMIN_IDS?.split(",") || [];
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      const currentUser = data?.session?.user;
+  
+      if (error) {
+        console.error("Auth error:", error);
+        return;
       }
+  
+      if (!currentUser) {
+        // Guest — allow access
+        return;
+      }
+  
+      if (adminIds.includes(currentUser.id)) {
+        // ❌ Admin user — sign out + redirect to login
+        await supabase.auth.signOut();
+        router.push("/login");
+        return;
+      }
+  
+      // ✅ Normal user — fetch profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("users")
+        .select("user_name, email, image_url")
+        .eq("user_id", currentUser.id)
+        .single();
+  
+      if (profileError) {
+        console.warn("No profile found:", profileError);
+        return;
+      }
+  
+      setUser({
+        user_id: currentUser.id,
+        user_name: profileData.user_name || "User",
+        email: profileData.email || "",
+        image_url: profileData.image_url || null,
+      });
     };
-
-    fetchUser();
-  }, [fetchUserProfile]);
+  
+    checkUser();
+  }, [router]);
+  
 
   return (
-<main className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-  <Navbar user={user} />
-  <div className="w-full ">
-    <BannerSwiper />
-  </div>
-  <main className="container mx-auto px-4 py-6">
-    <section>
-      <NewPost />
-    </section>
-    <section>
-      <Popular />
-    </section>
-  </main>
-  <Footer />
-</main>
-
+    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <Navbar user={user} />
+      <div className="w-full">
+        <BannerSwiper />
+      </div>
+      <main className="container mx-auto px-4 py-6">
+        <section>
+          <NewPost />
+        </section>
+        <section className="mt-8 mb-4">
+          <RecipeoftheWeek />
+        </section>
+        <section>
+          <Popular />
+        </section>
+      </main>
+      <Footer />
+    </main>
   );
 }

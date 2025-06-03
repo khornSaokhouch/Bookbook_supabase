@@ -70,7 +70,7 @@ const UserLayout = ({ children }: UserLayoutProps) => {
       </header>
 
       {/* Main Content */}
-      <main aria-label="Main Content" className="flex-1 p-6">
+      <main aria-label="Main Content" className="flex-1 ">
         {children}
       </main>
 

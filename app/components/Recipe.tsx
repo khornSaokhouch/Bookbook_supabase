@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
-import BannerSwiper from "@/app/components/BannerSwiper";
 import { motion } from "framer-motion";
 import { ChefHat } from "lucide-react";
 import FancyRecipeCard from "@/app/components/recipe-card";
@@ -161,8 +160,7 @@ const AllRecipesPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <BannerSwiper />
-
+   
       <main className="container mx-auto px-4 py-10">
         <section className="mb-12">
           {/* Header Section */}
