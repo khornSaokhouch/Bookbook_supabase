@@ -1,9 +1,11 @@
 "use client";
 
-import type React from "react";
-
+import React from "react";
 import Image from "next/image";
 import { Menu } from "lucide-react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/app/lib/supabaseClient";
+import ProfileDropdown from "./ProfileDropdown"; // Import ProfileDropdown
 
 interface AdminHeaderProps {
   onMobileMenuClick: () => void;
@@ -15,9 +17,16 @@ interface AdminHeaderProps {
   adminName: string | null;
   adminImageUrl: string | null;
   adminEmail: string | null;
+  onLogoutClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  isLayoutReady: boolean;
+  userId: string | null; // Add userId to the props
 }
 
-const AdminHeader = ({
+const AdminHeader: React.FC<AdminHeaderProps> = ({
   onMobileMenuClick,
   searchTerm,
   onSearchChange,
@@ -27,7 +36,8 @@ const AdminHeader = ({
   adminName,
   adminImageUrl,
   adminEmail,
-}: AdminHeaderProps) => {
+  onLogoutClick,
+}) => {
   const getInitials = (email: string | null, name: string | null) => {
     if (name) {
       const parts = name.split(" ");
@@ -39,6 +49,18 @@ const AdminHeader = ({
     return firstLetter;
   };
 
+  const { id } = useParams() as { id?: string | string[] };
+  const normalizedId = Array.isArray(id) ? id[0] : id ?? null;
+
+  // Convert Supabase storage path to public URL
+  const getPublicUrl = (path: string | null) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path; // already a full URL
+    const { data } = supabase.storage.from("image-user").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const imageUrl = getPublicUrl(adminImageUrl);
   const initials = getInitials(adminEmail, adminName);
 
   return (
@@ -76,26 +98,16 @@ const AdminHeader = ({
       </div>
 
       {/* Profile */}
-      <div className="flex items-center space-x-3">
-        {adminImageUrl ? (
-          <Image
-            src={adminImageUrl || "/placeholder.svg"}
-            alt="Admin Avatar"
-            width={40}
-            height={40}
-            className="rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-            <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
-              {initials}
-            </span>
-          </div>
-        )}
-        <span className="font-medium dark:text-white">
-          {adminName || "Loading..."}
-        </span>
-      </div>
+      {normalizedId && (
+        <ProfileDropdown
+          adminImageUrl={imageUrl}
+          adminName={adminName}
+          adminEmail={adminEmail}
+          onLogoutClick={onLogoutClick}
+          id={normalizedId}
+          initials={initials}
+        />
+      )}
     </header>
   );
 };

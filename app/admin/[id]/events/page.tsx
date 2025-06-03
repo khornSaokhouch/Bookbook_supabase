@@ -543,6 +543,8 @@ export default function EventsManagement() {
                         alt={event.title}
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        priority
+                        unoptimized
                       />
                       <div className="absolute top-4 right-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
                         {new Date(event.start_date) > new Date()
@@ -678,6 +680,8 @@ export default function EventsManagement() {
                               width={48}
                               height={48}
                               className="object-cover w-full h-full"
+                              priority
+                              unoptimized
                             />
                           </div>
                           <div>

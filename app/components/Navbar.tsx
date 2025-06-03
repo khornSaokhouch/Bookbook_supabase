@@ -6,8 +6,8 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
-import { Menu, X, Search, Bookmark, Plus } from "lucide-react";
+import { useRouter, usePathname, useParams } from "next/navigation";
+import { Menu, X, Bookmark, Plus } from "lucide-react";
 import type { User } from "@/app/types";
 
 type Category = {
@@ -19,23 +19,59 @@ type NavbarProps = {
   user: User | null;
 };
 
+type Recipe = {
+  recipe_id: string;
+  recipe_name: string;
+};
+
 export default function Navbar({ user }: NavbarProps) {
   const [imageUrl, setImageUrl] = useState<string>("/default-avatar.png");
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentCategoryName, setCurrentCategoryName] = useState<string | null>(
     null
   );
+  const { id } = useParams();
+  const [search, setSearch] = useState("");
+  const [suggestions, setSuggestions] = useState<Recipe[]>([]);
+  const [isFocused, setIsFocused] = useState(false);
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchTerm.trim() !== "") {
-      router.push(
-        `/${user?.user_id}/search?query=${encodeURIComponent(searchTerm)}`
-      );
-    }
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (search.trim() === "") {
+        setSuggestions([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("recipe")
+        .select("recipe_id, recipe_name")
+        .ilike("recipe_name", `%${search}%`)
+        .limit(5); // Limit results for dropdown
+
+      if (error) {
+        console.error("Search error:", error);
+      } else {
+        setSuggestions(data || []);
+      }
+    };
+
+    const delay = setTimeout(fetchSuggestions, 200); // debounce
+    return () => clearTimeout(delay);
+  }, [search]);
+
+  const handleSelect = (recipeId: string) => {
+    setSearch(""); // Clear search
+    setSuggestions([]); // Close dropdown
+    router.push(`/${recipeId}/detailspage`);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+    router.push(`/search?query=${encodeURIComponent(search.trim())}`);
   };
 
   const fetchCategories = useCallback(async () => {
@@ -168,9 +204,18 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="hidden md:flex items-center space-x-1">
               {[
                 { href: "/", label: "Home" },
-                { href: `/${user?.user_id}/recipe`, label: "Recipe" },
-                { href: `/${user?.user_id}/event`, label: "Events" },
-                { href: "/about-us", label: "About Us" },
+                {
+                  href: id ? `/${user?.user_id}/recipe` : "/recipe",
+                  label: "Recipe",
+                },
+                {
+                  href: id ? `/${user?.user_id}/event` : "/event",
+                  label: "Events",
+                },
+                {
+                  href: id ? `/${user?.user_id}/about-us` : "/about-us",
+                  label: "About Us",
+                },
               ].map((link) => (
                 <Link
                   key={link.label}
@@ -184,20 +229,46 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
 
             {/* Right Section */}
+
             <div className="flex items-center space-x-4">
               {/* Search Bar */}
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative flex items-center">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 z-10" />
-                  <input
-                    type="text"
-                    className="w-48 md:w-64 pl-11 pr-4 py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-2xl text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 shadow-lg hover:shadow-xl"
-                    placeholder="Search recipes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={handleSearch}
-                  />
+                  {/* <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 z-10" /> */}
+                  <form
+                    onSubmit={handleSubmit}
+                    className="relative w-full max-w-md"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search by recipe name..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={(e) => {
+                        // Only close if focus moves outside the search and dropdown
+                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                          setTimeout(() => setIsFocused(false), 100);
+                        }
+                      }}
+                      className="w-full border px-4 py-2 rounded-lg shadow-sm"
+                    />
+
+                    {isFocused && suggestions.length > 0 && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-md max-h-60 overflow-y-auto">
+                        {suggestions.map((recipe) => (
+                          <li
+                            key={recipe.recipe_id}
+                            onClick={() => handleSelect(recipe.recipe_id)}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          >
+                            {recipe.recipe_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </form>
                 </div>
               </div>
 
@@ -233,13 +304,17 @@ export default function Navbar({ user }: NavbarProps) {
                       className="group relative"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative">
+                      <div className="relative group">
                         <Image
                           src={imageUrl || "/placeholder.svg"}
                           alt={`Profile of ${user?.user_name || "User"}`}
                           width={40}
                           height={40}
-                          className="w-10 h-10 rounded-full border-2 border-white/50 dark:border-gray-700/50 object-cover shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105"
+                          className="w-10 h-10 rounded-full border-2 border-white/50 dark:border-gray-700/50 object-cover shadow-md group-hover:shadow-lg transition duration-150 group-hover:scale-105"
+                          priority
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD..." // shortened
+                          sizes="40px"
                         />
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
@@ -272,9 +347,18 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="px-6 py-4 space-y-3">
               {[
                 { href: "/", label: "Home" },
-                { href: `/${user?.user_id}/recipe`, label: "Recipe" },
-                { href: `/${user?.user_id}/event`, label: "Events" },
-                { href: "/about-us", label: "About Us" },
+                {
+                  href: id ? `/${user?.user_id}/recipe` : "/recipe",
+                  label: "Recipe",
+                },
+                {
+                  href: id ? `/${user?.user_id}/event` : "/event",
+                  label: "Events",
+                },
+                {
+                  href: id ? `/${user?.user_id}/about-us` : "/about-us",
+                  label: "About Us",
+                },
               ].map((link) => (
                 <Link
                   key={link.label}
@@ -310,70 +394,75 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
           </div>
         </div>
-      </nav>
+        {/* Secondary Navigation (Categories) */}
+        <div className="py-4">
+        <div className="relative bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-200/30 dark:border-gray-700/30 shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/3 via-purple-600/3 to-pink-600/3"></div>
 
-      {/* Secondary Navigation (Categories) */}
-      <div className="relative bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-200/30 dark:border-gray-700/30 shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/3 via-purple-600/3 to-pink-600/3"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center space-x-1 py-4 overflow-x-auto scrollbar-hide">
+              {/* Static Links */}
+              <Link
+                href={id ? `/${user?.user_id}/popular` : "/popular"}
+                className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10">Popular</span>
+              </Link>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-1 py-4 overflow-x-auto scrollbar-hide">
-            {/* Static Links */}
-            <Link
-              href={`/${user?.user_id}/popular`}
-              className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative z-10">Popular</span>
-            </Link>
+              <Link
+                href={id ? `/${user?.user_id}/occasion/` : "/occasion"}
+                className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10">Occasion</span>
+              </Link>
 
-            <Link
-              href={`/${user?.user_id}/occasion/`}
-              className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative z-10">Occasion</span>
-            </Link>
-
-            {/* Dynamic Categories */}
-            {categories.length === 0 ? (
-              <div className="flex items-center space-x-2 px-4 py-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-                <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
-                  Loading...
-                </span>
-              </div>
-            ) : (
-              categories.map((category) => (
-                <Link
-                  key={category.category_id}
-                  href={`/${user?.user_id}/category/${category.category_id}`}
-                  className={`group relative px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all duration-300 ${
-                    currentCategoryName === category.category_name
-                      ? "text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
-                      : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                  }`}
-                >
-                  {currentCategoryName !== category.category_name && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  )}
-                  <span className="relative z-10">
-                    {category.category_name}
+              {/* Dynamic Categories */}
+              {categories.length === 0 ? (
+                <div className="flex items-center space-x-2 px-4 py-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
+                    Loading...
                   </span>
-                </Link>
-              ))
-            )}
+                </div>
+              ) : (
+                categories.map((category) => (
+                  <Link
+                    key={category.category_id}
+                    href={
+                      id
+                        ? `/${user?.user_id}/category/${category.category_id}`
+                        : `/category/${category.category_id}`
+                    }
+                    className={`group relative px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all duration-300 ${
+                      currentCategoryName === category.category_name
+                        ? "text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
+                        : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                    }`}
+                  >
+                    {currentCategoryName !== category.category_name && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    )}
+                    <span className="relative z-10">
+                      {category.category_name}
+                    </span>
+                  </Link>
+                ))
+              )}
+            </div>
           </div>
         </div>
-      </div>
+        </div>
+      </nav>
     </div>
   );
 }

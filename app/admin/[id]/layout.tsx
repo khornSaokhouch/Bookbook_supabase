@@ -197,6 +197,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           adminName={adminName}
           adminImageUrl={adminImageUrl}
           adminEmail={adminEmail}
+          onLogoutClick={openLogoutModal}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          isLayoutReady={isLayoutReady}
+          userId={userId}
         />
 
         {/* Content Area */}

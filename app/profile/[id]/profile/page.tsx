@@ -1,14 +1,17 @@
-"use client";  // Mark this as a Client Component
+"use client"; // Mark this as a Client Component
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";  // Import dynamic for SSR control
+import dynamic from "next/dynamic"; // Import dynamic for SSR control
 import Image from "next/image"; // ✅ at the top
 
 // Dynamically import ProfileImageModal with no SSR
-const ProfileImageModal = dynamic(() => import("../../../components/ProfileImageModal"), { ssr: false });
+const ProfileImageModal = dynamic(
+  () => import("../../../components/ProfileImageModal"),
+  { ssr: false }
+);
 
 type UserProfile = {
   user_id: string;
@@ -49,7 +52,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
   const router = useRouter();
-  const bucketName = "image-user";  // Explicit bucket name
+  const bucketName = "image-user"; // Explicit bucket name
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -57,7 +60,10 @@ export default function ProfilePage() {
         setLoading(true);
         setError(null);
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
         if (sessionError || !session?.user) {
           console.warn("No session found. Redirecting to login.");
@@ -84,7 +90,6 @@ export default function ProfilePage() {
         }
 
         setUser(data as UserProfile);
-
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error("Error fetching user:", err.message);
@@ -146,14 +151,14 @@ export default function ProfilePage() {
             <div className="flex items-center space-x-6">
               {/* Profile Image with Modal */}
               <div className="relative">
-              <Image
-  src={imageUrl}
-  alt="Profile Image"
-  width={128} // or whatever size you want
-  height={128}
-  className="w-32 h-32 rounded-full border-4 border-indigo-500 shadow-lg object-cover cursor-pointer"
-  onClick={toggleModal}
-/>
+                <Image
+                  src={imageUrl}
+                  alt="Profile Image"
+                  width={128} // or whatever size you want
+                  height={128}
+                  className="w-32 h-32 rounded-full border-4 border-indigo-500 shadow-lg object-cover cursor-pointer"
+                  onClick={toggleModal}
+                />
               </div>
 
               <div className="flex-1">
@@ -172,15 +177,14 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <motion.div
-              className="mt-8"
-              variants={itemVariants}
-            >
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">About Me</h2>
+            <motion.div className="mt-8" variants={itemVariants}>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                About Me
+              </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {user.about_me || "No information available."}
               </p>
-            </motion.div>     
+            </motion.div>
           </div>
         </motion.div>
       </div>

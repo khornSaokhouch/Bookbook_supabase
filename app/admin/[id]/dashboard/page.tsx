@@ -185,16 +185,16 @@ export default function Dashboard() {
   const handleStatClick = (label: string) => {
     switch (label) {
       case "Users":
-        router.push(`/${userId}/users`);
+        router.push(`/admin/${userId}/users`);
         break;
       case "Recipes":
-        router.push(`/${userId}/recipes`);
+        router.push(`/admin/${userId}/recipes`);
         break;
       case "Events":
-        router.push(`/${userId}/events`);
+        router.push(`/admin/${userId}/events`);
         break;
       case "Categories":
-        router.push(`/${userId}/categories-occasions`);
+        router.push(`/admin/${userId}/categories`);
         break;
       default:
         console.warn(`No route defined for ${label}`);
@@ -417,7 +417,7 @@ export default function Dashboard() {
                     {category.category_name}
                   </h3>
                   <Link
-                    href={`/app/(user)/%5Bid%5D/category/${category.category_id}`}
+                    href={`/(user)/%5Bid%5D/category/${category.category_id}`}
                     className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
                   >
                     View All

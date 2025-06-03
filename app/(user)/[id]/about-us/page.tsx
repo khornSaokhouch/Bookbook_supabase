@@ -1,9 +1,10 @@
-import Recipe from "@/app/components/Recipe";
+import AboutUs from "@/app/components/About-us";
 
-export default function RecipePage() {
+
+export default function Page() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
-            <Recipe />
+        <AboutUs />
         </div>
     );
-}
+    }
