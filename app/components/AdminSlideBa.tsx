@@ -16,7 +16,6 @@ interface AdminSidebarProps {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   isLayoutReady: boolean;
-  onLogoutClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const AdminSidebar = ({

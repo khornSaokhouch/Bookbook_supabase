@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    unoptimized: true,
     domains: [
       'dbueyvwsrhxbwuxwlspo.supabase.co',
       'your-project.supabase.co', // Add this if you are using a different Supabase project domain

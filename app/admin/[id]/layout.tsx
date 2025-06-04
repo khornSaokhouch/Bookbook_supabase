@@ -2,15 +2,12 @@
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { motion } from "framer-motion";
-import LogoutConfirmationModal from "../../components/LogoutConfirmationModal";
 import AdminSidebar from "@/app/components/AdminSlideBa";
 import AdminHeader from "../../components/AdminHeader";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminName, setAdminName] = useState<string | null>(null);
@@ -21,30 +18,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-      router.push("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  }, [router]);
-
-  const confirmLogout = useCallback(() => {
-    handleLogout();
-    setIsLogoutModalOpen(false);
-  }, [handleLogout]);
-
-  const openLogoutModal = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      setIsLogoutModalOpen(true);
-    },
-    []
-  );
 
   const getUserIdFromCookies = useCallback(() => {
     if (typeof document === "undefined") {
@@ -181,7 +156,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         isLayoutReady={isLayoutReady}
-        onLogoutClick={openLogoutModal}
+
       />
 
       {/* Main Content */}
@@ -197,7 +172,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           adminName={adminName}
           adminImageUrl={adminImageUrl}
           adminEmail={adminEmail}
-          onLogoutClick={openLogoutModal}
+          onLogoutClick={() => {
+            supabase.auth.signOut().then(() => {
+              document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+              window.location.href = "/login";
+            });
+          }}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           sidebarCollapsed={sidebarCollapsed}
@@ -246,12 +226,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         />
       )}
 
-      {/* Logout Confirmation Modal */}
-      <LogoutConfirmationModal
-        isOpen={isLogoutModalOpen}
-        onCancel={() => setIsLogoutModalOpen(false)}
-        onConfirm={confirmLogout}
-      />
+     
     </motion.div>
   );
 };
