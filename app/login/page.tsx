@@ -102,17 +102,18 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL,
       },
     });
-
+  
     if (error) {
       setErrorMessage(
         error.message ||
-          "Google sign-in didn&apos;t work this time. Let&apos;s try again!"
+          "Google sign-in didn't work this time. Let's try again!"
       );
     }
   }
+  
 
   return (
     <motion.div
