@@ -38,7 +38,6 @@ export default function Navbar({ user }: NavbarProps) {
   const [suggestions, setSuggestions] = useState<Recipe[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Autocomplete suggestions logic
   useEffect(() => {
@@ -89,30 +88,29 @@ export default function Navbar({ user }: NavbarProps) {
     if (data && data.length > 0) {
       const recipe = data[0];
       router.push(`/${recipe.recipe_id}/detailspage`);
-      setShowSuggestions(false);
+      setSuggestions([]);
     } else {
       alert("No results found");
     }
   };
 
-// When clicking a suggestion
-const handleSelect = (recipeId: string) => {
-  const selectedRecipe = suggestions.find(r => r.recipe_id === recipeId);
-  if (selectedRecipe) {
-    setSearch(selectedRecipe.recipe_name); // show full name in input
-    setSuggestions([]);                    // hide dropdown
-    setIsFocused(false);
-    router.push(`/${recipeId}/detailspage`); // go directly to details page
-  }
-};
+  // When clicking a suggestion
+  const handleSelect = (recipeId: string) => {
+    const selectedRecipe = suggestions.find((r) => r.recipe_id === recipeId);
+    if (selectedRecipe) {
+      setSearch(selectedRecipe.recipe_name); // show full name in input
+      setSuggestions([]); // hide dropdown
+      setIsFocused(false);
+      router.push(`/${recipeId}/detailspage`); // go directly to details page
+    }
+  };
 
-// When submitting the form (pressing Enter in the input)
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!search.trim()) return;
-  router.push(`/search?query=${encodeURIComponent(search.trim())}`);
-};
-
+  // When submitting the form (pressing Enter in the input)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+    router.push(`/search?query=${encodeURIComponent(search.trim())}`);
+  };
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -279,59 +277,57 @@ const handleSubmit = (e: React.FormEvent) => {
             <div className="flex items-center space-x-4">
               {/* Search Bar */}
               <div className="relative max-w-md group">
-  {/* Glow hover effect */}
-  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                {/* Glow hover effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-  <form onSubmit={handleSubmit} className="relative">
-    {/* Input Field */}
-    <input
-      type="text"
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      onFocus={() => {
-        setShowSuggestions(true);
-        setIsFocused(true);
-      }}
-      onBlur={(e) => {
-        const target = e.relatedTarget as HTMLElement | null;
-        if (!e.currentTarget.contains(target)) {
-          setTimeout(() => setIsFocused(false), 100);
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          handleSearchEnter();
-        }
-      }}
-      className="w-full border px-4 pr-10 py-2 rounded-lg shadow-xl focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-      placeholder="Search recipes..."
-    />
+                <form onSubmit={handleSubmit} className="relative">
+                  {/* Input Field */}
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onFocus={() => {
+                      setIsFocused(true);
+                    }}
+                    // FIX: Remove unused 'e' parameter
+                    onBlur={() => {
+                      setTimeout(() => {
+                        setIsFocused(false);
+                      }, 200);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSearchEnter();
+                      }
+                    }}
+                    className="w-full border px-4 pr-10 py-2 rounded-lg shadow-xl focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="Search recipes..."
+                  />
 
-    {/* Search Icon (right aligned) */}
-    <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 pointer-events-none" />
-  </form>
+                  {/* Search Icon (right aligned) */}
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 pointer-events-none" />
+                </form>
 
-  {/* Suggestions Dropdown */}
-  {isFocused && suggestions.length > 0 && (
-    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-lg shadow-md max-h-60 overflow-y-auto">
-      {suggestions.map((recipe) => (
-        <li
-          key={recipe.recipe_id}
-          tabIndex={0}
-          onClick={() => handleSelect(recipe.recipe_id)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSelect(recipe.recipe_id);
-          }}
-          className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
-        >
-          {recipe.recipe_name}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
-
+                {/* Suggestions Dropdown */}
+                {isFocused && suggestions.length > 0 && (
+                  <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-lg shadow-md max-h-60 overflow-y-auto">
+                    {suggestions.map((recipe) => (
+                      <li
+                        key={recipe.recipe_id}
+                        tabIndex={0}
+                        onClick={() => handleSelect(recipe.recipe_id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSelect(recipe.recipe_id);
+                        }}
+                        className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
+                      >
+                        {recipe.recipe_name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* Add Recipe Button */}
               <Link
