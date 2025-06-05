@@ -139,9 +139,13 @@ export default function Navbar({ user }: NavbarProps) {
       fetchUserProfile(user.user_id).then((profile) => {
         setImageUrl(profile.image_url);
         if (user) {
+          // Consider avoiding prop mutation here.
+          // A local state for user's display name might be better if it needs to be updated by Navbar's fetch.
           user.user_name = profile.user_name;
         }
       });
+    } else {
+      setImageUrl("/default-avatar.png"); // Reset if no user
     }
   }, [fetchCategories, fetchUserProfile, user]);
 
@@ -161,7 +165,9 @@ export default function Navbar({ user }: NavbarProps) {
   }, [pathname, categories]);
 
   return (
-    <div className="relative">
+    <div className="relative z-30">
+      {" "}
+      {/* Applied z-30 here */}
       {/* Main Navigation */}
       <nav className="relative bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-lg border-b border-gray-200/20 dark:border-gray-700/30 shadow-xl">
         {/* Decorative gradient overlay */}
@@ -248,7 +254,11 @@ export default function Navbar({ user }: NavbarProps) {
                       onFocus={() => setIsFocused(true)}
                       onBlur={(e) => {
                         // Only close if focus moves outside the search and dropdown
-                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                        if (
+                          !e.currentTarget.contains(
+                            e.relatedTarget as Node | null
+                          )
+                        ) {
                           setTimeout(() => setIsFocused(false), 100);
                         }
                       }}
@@ -256,12 +266,12 @@ export default function Navbar({ user }: NavbarProps) {
                     />
 
                     {isFocused && suggestions.length > 0 && (
-                      <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-md max-h-60 overflow-y-auto">
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-md max-h-60 overflow-y-auto dark:bg-gray-700 dark:border-gray-600">
                         {suggestions.map((recipe) => (
                           <li
                             key={recipe.recipe_id}
                             onClick={() => handleSelect(recipe.recipe_id)}
-                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
                           >
                             {recipe.recipe_name}
                           </li>
@@ -306,14 +316,14 @@ export default function Navbar({ user }: NavbarProps) {
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <div className="relative group">
                         <Image
-                          src={imageUrl || "/placeholder.svg"}
+                          src={imageUrl || "/default-avatar.png"}
                           alt={`Profile of ${user?.user_name || "User"}`}
                           width={40}
                           height={40}
                           className="w-10 h-10 rounded-full border-2 border-white/50 dark:border-gray-700/50 object-cover shadow-md group-hover:shadow-lg transition duration-150 group-hover:scale-105"
                           priority
                           placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD..." // shortened
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlMGUwZTAiLz48L3N2Zz4=" // Generic SVG placeholder
                           sizes="40px"
                         />
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -396,71 +406,71 @@ export default function Navbar({ user }: NavbarProps) {
         </div>
         {/* Secondary Navigation (Categories) */}
         <div className="py-4">
-        <div className="relative bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-200/30 dark:border-gray-700/30 shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/3 via-purple-600/3 to-pink-600/3"></div>
+          <div className="relative bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-200/30 dark:border-gray-700/30 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/3 via-purple-600/3 to-pink-600/3"></div>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-1 py-4 overflow-x-auto scrollbar-hide">
-              {/* Static Links */}
-              <Link
-                href={id ? `/${user?.user_id}/popular` : "/popular"}
-                className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="relative z-10">Popular</span>
-              </Link>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center space-x-1 py-4 overflow-x-auto scrollbar-hide">
+                {/* Static Links */}
+                <Link
+                  href={id ? `/${user?.user_id}/popular` : "/popular"}
+                  className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="relative z-10">Popular</span>
+                </Link>
 
-              <Link
-                href={id ? `/${user?.user_id}/occasion/` : "/occasion"}
-                className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="relative z-10">Occasion</span>
-              </Link>
+                <Link
+                  href={id ? `/${user?.user_id}/occasion/` : "/occasion"}
+                  className="group relative px-4 py-2 rounded-xl text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap transition-all duration-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="relative z-10">Occasion</span>
+                </Link>
 
-              {/* Dynamic Categories */}
-              {categories.length === 0 ? (
-                <div className="flex items-center space-x-2 px-4 py-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div
-                    className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
-                  <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
-                    Loading...
-                  </span>
-                </div>
-              ) : (
-                categories.map((category) => (
-                  <Link
-                    key={category.category_id}
-                    href={
-                      id
-                        ? `/${user?.user_id}/category/${category.category_id}`
-                        : `/category/${category.category_id}`
-                    }
-                    className={`group relative px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all duration-300 ${
-                      currentCategoryName === category.category_name
-                        ? "text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
-                        : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                    }`}
-                  >
-                    {currentCategoryName !== category.category_name && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    )}
-                    <span className="relative z-10">
-                      {category.category_name}
+                {/* Dynamic Categories */}
+                {categories.length === 0 ? (
+                  <div className="flex items-center space-x-2 px-4 py-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
+                      Loading...
                     </span>
-                  </Link>
-                ))
-              )}
+                  </div>
+                ) : (
+                  categories.map((category) => (
+                    <Link
+                      key={category.category_id}
+                      href={
+                        id
+                          ? `/${user?.user_id}/category/${category.category_id}`
+                          : `/category/${category.category_id}`
+                      }
+                      className={`group relative px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all duration-300 ${
+                        currentCategoryName === category.category_name
+                          ? "text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
+                          : "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                      }`}
+                    >
+                      {currentCategoryName !== category.category_name && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      )}
+                      <span className="relative z-10">
+                        {category.category_name}
+                      </span>
+                    </Link>
+                  ))
+                )}
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </nav>
     </div>
