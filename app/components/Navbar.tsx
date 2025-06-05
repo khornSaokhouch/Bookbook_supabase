@@ -2,12 +2,12 @@
 
 import type React from "react";
 
-import { useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useParams } from "next/navigation";
-import { Menu, X, Bookmark, Plus } from "lucide-react";
+import { Menu, X, Bookmark, Plus, Search } from "lucide-react";
 import type { User } from "@/app/types";
 
 type Category = {
@@ -37,9 +37,16 @@ export default function Navbar({ user }: NavbarProps) {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<Recipe[]>([]);
   const [isFocused, setIsFocused] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Autocomplete suggestions logic
   useEffect(() => {
-    const fetchSuggestions = async () => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
       if (search.trim() === "") {
         setSuggestions([]);
         return;
@@ -49,30 +56,63 @@ export default function Navbar({ user }: NavbarProps) {
         .from("recipe")
         .select("recipe_id, recipe_name")
         .ilike("recipe_name", `%${search}%`)
-        .limit(5); // Limit results for dropdown
+        .limit(4);
 
       if (error) {
         console.error("Search error:", error);
       } else {
         setSuggestions(data || []);
       }
-    };
+    }, 300);
 
-    const delay = setTimeout(fetchSuggestions, 200); // debounce
-    return () => clearTimeout(delay);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [search]);
 
-  const handleSelect = (recipeId: string) => {
-    setSearch(""); // Clear search
-    setSuggestions([]); // Close dropdown
-    router.push(`/${recipeId}/detailspage`);
+  const handleSearchEnter = async () => {
+    if (search.trim() === "") return;
+
+    const { data, error } = await supabase
+      .from("recipe")
+      .select("recipe_id, recipe_name")
+      .ilike("recipe_name", `%${search}%`)
+      .limit(1); // You can increase this if needed
+
+    if (error) {
+      console.error("Search error:", error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const recipe = data[0];
+      router.push(`/${recipe.recipe_id}/detailspage`);
+      setShowSuggestions(false);
+    } else {
+      alert("No results found");
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!search.trim()) return;
-    router.push(`/search?query=${encodeURIComponent(search.trim())}`);
-  };
+// When clicking a suggestion
+const handleSelect = (recipeId: string) => {
+  const selectedRecipe = suggestions.find(r => r.recipe_id === recipeId);
+  if (selectedRecipe) {
+    setSearch(selectedRecipe.recipe_name); // show full name in input
+    setSuggestions([]);                    // hide dropdown
+    setIsFocused(false);
+    router.push(`/${recipeId}/detailspage`); // go directly to details page
+  }
+};
+
+// When submitting the form (pressing Enter in the input)
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!search.trim()) return;
+  router.push(`/search?query=${encodeURIComponent(search.trim())}`);
+};
+
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -238,49 +278,60 @@ export default function Navbar({ user }: NavbarProps) {
 
             <div className="flex items-center space-x-4">
               {/* Search Bar */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center">
-                  {/* <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 z-10" /> */}
-                  <form
-                    onSubmit={handleSubmit}
-                    className="relative w-full max-w-md"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Search by recipe name..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      onFocus={() => setIsFocused(true)}
-                      onBlur={(e) => {
-                        // Only close if focus moves outside the search and dropdown
-                        if (
-                          !e.currentTarget.contains(
-                            e.relatedTarget as Node | null
-                          )
-                        ) {
-                          setTimeout(() => setIsFocused(false), 100);
-                        }
-                      }}
-                      className="w-full border px-4 py-2 rounded-lg shadow-sm"
-                    />
+              <div className="relative max-w-md group">
+  {/* Glow hover effect */}
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                    {isFocused && suggestions.length > 0 && (
-                      <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-md max-h-60 overflow-y-auto dark:bg-gray-700 dark:border-gray-600">
-                        {suggestions.map((recipe) => (
-                          <li
-                            key={recipe.recipe_id}
-                            onClick={() => handleSelect(recipe.recipe_id)}
-                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
-                          >
-                            {recipe.recipe_name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </form>
-                </div>
-              </div>
+  <form onSubmit={handleSubmit} className="relative">
+    {/* Input Field */}
+    <input
+      type="text"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      onFocus={() => {
+        setShowSuggestions(true);
+        setIsFocused(true);
+      }}
+      onBlur={(e) => {
+        const target = e.relatedTarget as HTMLElement | null;
+        if (!e.currentTarget.contains(target)) {
+          setTimeout(() => setIsFocused(false), 100);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleSearchEnter();
+        }
+      }}
+      className="w-full border px-4 pr-10 py-2 rounded-lg shadow-xl focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+      placeholder="Search recipes..."
+    />
+
+    {/* Search Icon (right aligned) */}
+    <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 pointer-events-none" />
+  </form>
+
+  {/* Suggestions Dropdown */}
+  {isFocused && suggestions.length > 0 && (
+    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-lg shadow-md max-h-60 overflow-y-auto">
+      {suggestions.map((recipe) => (
+        <li
+          key={recipe.recipe_id}
+          tabIndex={0}
+          onClick={() => handleSelect(recipe.recipe_id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSelect(recipe.recipe_id);
+          }}
+          className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
+        >
+          {recipe.recipe_name}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
               {/* Add Recipe Button */}
               <Link

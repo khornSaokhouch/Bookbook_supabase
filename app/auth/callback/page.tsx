@@ -8,109 +8,84 @@ export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hashString = window.location.hash.substring(1);
-      const hashParams = new URLSearchParams(hashString);
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
+    if (typeof window === "undefined") return;
 
-      // ✅ Clean up tokens from the URL for security
-      window.history.replaceState(null, "", window.location.pathname);
+    const hashString = window.location.hash.substring(1);
+    console.log("[AuthCallback] URL hash:", hashString);
 
-      if (accessToken && refreshToken) {
-        (async () => {
-          try {
-            // 1. Set Supabase session
-            const { error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
+    if (!hashString) {
+      console.error("[AuthCallback] No hash in URL");
+      router.replace("/");
+      return;
+    }
 
-            if (sessionError) throw new Error(sessionError.message);
+    const hashParams = new URLSearchParams(hashString);
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
 
-            // 2. Get authenticated user
-            const { data: userData, error: userError } =
-              await supabase.auth.getUser();
-            if (userError || !userData?.user)
-              throw new Error("User not found.");
+    console.log("[AuthCallback] Access token:", accessToken);
+    console.log("[AuthCallback] Refresh token:", refreshToken);
 
-            const user = userData.user;
-            const userId = user.id;
+    if (!accessToken || !refreshToken) {
+      console.error("[AuthCallback] Missing access_token or refresh_token");
+      router.replace("/");
+      return;
+    }
 
-            // 3. Check if user exists in DB
-            const { data: userMetadata, error: roleError } = await supabase
-              .from("users")
-              .select("role")
-              .eq("user_id", userId)
-              .maybeSingle();
+    (async () => {
+      try {
+        // Set session with tokens
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (sessionError) {
+          console.error("[AuthCallback] Session set error:", sessionError.message);
+          throw new Error(sessionError.message);
+        }
+        console.log("[AuthCallback] Session set successfully");
 
-            if (roleError) {
-              console.error("Error fetching user role:", roleError.message);
-            }
+        // Get authenticated user info
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData?.user) {
+          console.error("[AuthCallback] User fetch error:", userError?.message);
+          throw new Error("User not found");
+        }
+        console.log("[AuthCallback] User data:", userData.user);
 
-            let role = userMetadata?.role;
+        const user = userData.user;
+        const userId = user.id;
 
-            // 4. If user not in DB, insert default info
-            if (!userMetadata) {
-              const fullName = user.user_metadata?.full_name || "User";
-              const email = user.email || "";
+        // Fetch user role from DB
+        const { data: userMetadata, error: fetchError } = await supabase
+          .from("users")
+          .select("role")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-              let image_url = null;
-              if (user.user_metadata?.avatar_url) {
-                const filePath = `user-images/${userId}.jpg`;
+        if (fetchError) {
+          console.error("[AuthCallback] Fetch user role error:", fetchError.message);
+          throw new Error(fetchError.message);
+        }
 
-                const { data: signedUrlData, error: signedUrlError } =
-                  await supabase.storage
-                    .from("image-user")
-                    .createSignedUrl(filePath, 60);
+        console.log("[AuthCallback] userMetadata:", userMetadata);
 
-                if (!signedUrlError && signedUrlData?.signedUrl) {
-                  image_url = signedUrlData.signedUrl;
-                } else {
-                  console.warn(
-                    "No avatar image or error generating signed URL:",
-                    signedUrlError?.message
-                  );
-                }
-              }
+        const role = userMetadata?.role ?? "User";
 
-              const { error: insertError } = await supabase
-                .from("users")
-                .insert([
-                  {
-                    user_id: userId,
-                    user_name: fullName,
-                    email,
-                    image_url,
-                    role: "User",
-                  },
-                ]);
+        console.log(`[AuthCallback] Role is: ${role}`);
 
-              if (insertError) {
-                console.error("Error inserting new user:", insertError.message);
-                router.replace("/");
-                return;
-              }
-
-              role = "User";
-            }
-
-            // 5. Redirect based on role
-            router.replace(
-              role === "Admin" ? `/admin/${userId}/dashboard` : "/"
-            );
-          } catch (error) {
-            const errorMessage =
-              error instanceof Error ? error.message : "Unknown error";
-            console.error("Authentication error:", errorMessage);
-            router.replace("/");
-          }
-        })();
-      } else {
-        console.error("Missing access or refresh token.");
+        if (role === "Admin") {
+          console.log("[AuthCallback] Redirecting to Admin dashboard");
+          router.replace(`/admin/${userId}/dashboard`);
+        } else {
+          console.log("[AuthCallback] Redirecting to home page");
+          router.replace("/");
+        }
+      } catch (error) {
+        console.error("[AuthCallback] Caught error:", error);
         router.replace("/");
       }
-    }
+    })();
   }, [router]);
 
   return (
