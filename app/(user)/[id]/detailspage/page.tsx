@@ -364,7 +364,7 @@ const DetailsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen  dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <motion.div
         className="container mx-auto px-4 md:px-8 lg:px-16 py-8"
         initial={{ opacity: 0 }}
