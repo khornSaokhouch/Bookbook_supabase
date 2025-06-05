@@ -14,10 +14,13 @@ export default function AuthCallback() {
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
+      // ✅ Clean up tokens from the URL for security
+      window.history.replaceState(null, "", window.location.pathname);
+
       if (accessToken && refreshToken) {
         (async () => {
           try {
-            // Step 1: Set Supabase session
+            // 1. Set Supabase session
             const { error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
@@ -25,7 +28,7 @@ export default function AuthCallback() {
 
             if (sessionError) throw new Error(sessionError.message);
 
-            // Step 2: Get authenticated user
+            // 2. Get authenticated user
             const { data: userData, error: userError } =
               await supabase.auth.getUser();
             if (userError || !userData?.user)
@@ -34,7 +37,7 @@ export default function AuthCallback() {
             const user = userData.user;
             const userId = user.id;
 
-            // Step 3: Check if user exists in DB
+            // 3. Check if user exists in DB
             const { data: userMetadata, error: roleError } = await supabase
               .from("users")
               .select("role")
@@ -47,15 +50,14 @@ export default function AuthCallback() {
 
             let role = userMetadata?.role;
 
-            // Step 4: If user not in DB, insert with fallback data
+            // 4. If user not in DB, insert default info
             if (!userMetadata) {
               const fullName = user.user_metadata?.full_name || "User";
               const email = user.email || "";
 
-              // Try to generate signed URL for avatar image if exists
               let image_url = null;
               if (user.user_metadata?.avatar_url) {
-                const filePath = `user-images/${userId}.jpg`; // or adjust path accordingly
+                const filePath = `user-images/${userId}.jpg`;
 
                 const { data: signedUrlData, error: signedUrlError } =
                   await supabase.storage
@@ -93,7 +95,7 @@ export default function AuthCallback() {
               role = "User";
             }
 
-            // Step 5: Redirect based on role
+            // 5. Redirect based on role
             router.replace(
               role === "Admin" ? `/admin/${userId}/dashboard` : "/"
             );

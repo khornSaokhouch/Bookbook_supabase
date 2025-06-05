@@ -99,20 +99,28 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
+    const redirectTo = process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL;
+  
+    if (!redirectTo) {
+      console.error("Missing environment variable: NEXT_PUBLIC_SUPABASE_REDIRECT_URL");
+      setErrorMessage("Login setup error. Please try again later.");
+      return;
+    }
+  
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL,
+        redirectTo,
       },
     });
   
     if (error) {
       setErrorMessage(
-        error.message ||
-          "Google sign-in didn't work this time. Let's try again!"
+        error.message || "Google sign-in didn't work this time. Let's try again!"
       );
     }
   }
+  
   
 
   return (
