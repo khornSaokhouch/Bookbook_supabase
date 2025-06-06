@@ -5,8 +5,17 @@ import { supabase } from "../../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Edit, Trash2 } from "lucide-react"; // Import icons
-import { motion } from "framer-motion"; // Import framer-motion
+import {
+  Edit,
+  Trash2,
+  Plus,
+  ChefHat,
+  Heart,
+  Eye,
+  Calendar,
+  Sparkles,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Recipe = {
   recipe_id: number;
@@ -24,13 +33,49 @@ const constructImageUrl = (path: string | null) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`;
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 12,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { scale: 0.9, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+};
+
 export default function MyRecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<number | null>(null);
-
   const [showEditModal, setShowEditModal] = useState(false);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
 
@@ -84,7 +129,6 @@ export default function MyRecipesPage() {
     fetchRecipes();
   }, [router]);
 
-  // Handle Delete
   const handleDeleteRecipe = async () => {
     if (!recipeToDelete) return;
     try {
@@ -106,7 +150,6 @@ export default function MyRecipesPage() {
     }
   };
 
-  // Open delete modal
   const openDeleteModal = (id: number) => {
     setRecipeToDelete(id);
     setShowDeleteModal(true);
@@ -117,7 +160,6 @@ export default function MyRecipesPage() {
     setRecipeToDelete(null);
   };
 
-  // Open edit modal
   const openEditModal = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
     setShowEditModal(true);
@@ -128,7 +170,6 @@ export default function MyRecipesPage() {
     setRecipeToEdit(null);
   };
 
-  // Handle Edit Save
   const handleUpdateRecipe = async () => {
     if (!recipeToEdit) return;
     try {
@@ -145,7 +186,9 @@ export default function MyRecipesPage() {
       if (error) throw error;
 
       setRecipes((prev) =>
-        prev.map((r) => (r.recipe_id === recipeToEdit.recipe_id ? recipeToEdit : r))
+        prev.map((r) =>
+          r.recipe_id === recipeToEdit.recipe_id ? recipeToEdit : r
+        )
       );
 
       closeEditModal();
@@ -158,166 +201,412 @@ export default function MyRecipesPage() {
     }
   };
 
-
-
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 flex items-center justify-center">
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="w-20 h-20 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <motion.div
+            className="space-y-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <p className="text-xl font-medium text-gray-700 dark:text-gray-300">
+              Loading your delicious recipes...
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              🍳 Getting everything ready for you
+            </p>
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800 dark:text-white">My Recipes</h1>
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 py-8 px-4 sm:px-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="container max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div className="text-center mb-12" variants={itemVariants}>
+          <div className="inline-flex items-center px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-full border border-orange-200 dark:border-orange-700 mb-4">
+            <ChefHat className="h-4 w-4 text-orange-500 mr-2" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              My Kitchen
+            </span>
+          </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Loading recipes...</p>
-        </div>
-      ) : error ? (
-        <div className="text-red-500 text-center">{error}</div>
-      ) : recipes.length === 0 ? (
-        <p className="text-center text-gray-500 dark:text-gray-300">No recipes found.</p>
-      ) : (
-        <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {recipes.map((recipe) => {
-            const imageUrl = constructImageUrl(recipe.images[0]?.image_url);
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            My Recipes 👨‍🍳
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
+            Your personal collection of culinary masterpieces
+          </p>
 
-            return (
-              <div
-                key={recipe.recipe_id}
-                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
-              >
-                <Link href={`/${recipe.recipe_id}/detailspage`} className="block">
-                  {recipe.images.length > 0 ? (
-                    <Image
-                      src={imageUrl}
-                      alt={recipe.recipe_name}
-                      width={300}
-                      height={200}
-                      className="w-full h-48 object-cover rounded-lg"
-                      priority
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg">
-                      <p className="text-gray-500 dark:text-gray-300">No image available</p>
-                    </div>
-                  )}
-                </Link>
-                <h3 className="text-lg font-semibold mt-4 text-gray-800 dark:text-gray-200">{recipe.recipe_name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Ingredients: {recipe.ingredients}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">Added on: {new Date(recipe.created_at).toLocaleDateString()}</p>
-
-                {/* Edit & Delete Buttons */}
-                <div className="mt-4 flex space-x-2 justify-end">
-                  <button onClick={() => openEditModal(recipe)} className="text-blue-500 hover:underline" aria-label="Edit">
-                    <Edit className="w-8" />
-                  </button>
-                  <button onClick={() => openDeleteModal(recipe.recipe_id)} className="text-red-500 hover:underline" aria-label="Delete">
-                    <Trash2 className="w-8" />
-                  </button>
-                </div>
+          {/* Stats */}
+          {recipes.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 dark:border-orange-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  📚 {recipes.length} recipes created
+                </span>
               </div>
-            );
-          })}
-        </div>
-      )}
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-pink-200 dark:border-pink-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  ⭐ Your culinary journey
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Add Recipe Button */}
+          <motion.button
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.push("/recipe/create")}
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create New Recipe
+          </motion.button>
+        </motion.div>
+
+        {error && (
+          <motion.div
+            className="mb-8 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center"
+            variants={itemVariants}
+          >
+            <p className="text-red-600 dark:text-red-400 font-medium">
+              {error}
+            </p>
+          </motion.div>
+        )}
+
+        {recipes.length === 0 ? (
+          <motion.div className="text-center py-16" variants={itemVariants}>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-12 max-w-md mx-auto shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+              <div className="text-6xl mb-6">🍳</div>
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                No recipes yet!
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Start your culinary journey by creating your first recipe
+              </p>
+              <motion.button
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/recipe/create")}
+              >
+                <Plus className="h-4 w-4 mr-2 inline" />
+                Create Your First Recipe
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            variants={containerVariants}
+          >
+            {recipes.map((recipe, index) => {
+              const imageUrl = constructImageUrl(recipe.images[0]?.image_url);
+
+              return (
+                <motion.div
+                  key={recipe.recipe_id}
+                  className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
+                  variants={cardVariants}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  {/* Recipe Image */}
+                  <div className="relative overflow-hidden">
+                    <Link
+                      href={`/${recipe.recipe_id}/detailspage`}
+                      className="block"
+                    >
+                      {recipe.images.length > 0 ? (
+                        <Image
+                          src={imageUrl || "/placeholder.svg"}
+                          alt={recipe.recipe_name}
+                          width={400}
+                          height={250}
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                          priority
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-48 bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20">
+                          <div className="text-center">
+                            <ChefHat className="h-12 w-12 text-orange-400 mx-auto mb-2" />
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">
+                              No image available
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </Link>
+
+                    {/* Overlay with actions */}
+                    <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <motion.button
+                        onClick={() => openEditModal(recipe)}
+                        className="bg-blue-500/90 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg backdrop-blur-sm"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title="Edit Recipe"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </motion.button>
+                      <motion.button
+                        onClick={() => openDeleteModal(recipe.recipe_id)}
+                        className="bg-red-500/90 hover:bg-red-600 text-white p-2 rounded-full shadow-lg backdrop-blur-sm"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title="Delete Recipe"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  {/* Recipe Content */}
+                  <div className="p-6">
+                    <Link
+                      href={`/${recipe.recipe_id}/detailspage`}
+                      className="block"
+                    >
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-200 line-clamp-2">
+                        {recipe.recipe_name}
+                      </h3>
+                    </Link>
+
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Created {new Date(recipe.created_at).toLocaleDateString()}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex space-x-2 mt-4">
+                      <motion.button
+                        onClick={() => openEditModal(recipe)}
+                        className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-200"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Edit className="h-3 w-3 mr-1 inline" />
+                        Edit
+                      </motion.button>
+                      <motion.button
+                        onClick={() => openDeleteModal(recipe.recipe_id)}
+                        className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2 px-3 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors duration-200"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1 inline" />
+                        Delete
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </div>
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <motion.div
-          className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-xl font-semibold text-center mb-4 text-gray-800 dark:text-gray-200">Are you sure you want to delete this recipe?</h3>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={handleDeleteRecipe}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-              >
-                Yes, Delete
-              </button>
-              <button onClick={closeDeleteModal} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="text-center">
+                <div className="text-6xl mb-4">🗑️</div>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                  Delete Recipe?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Are you sure you want to delete this recipe? This action
+                  cannot be undone.
+                </p>
+                <div className="flex space-x-3">
+                  <motion.button
+                    onClick={closeDeleteModal}
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleDeleteRecipe}
+                    className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-xl font-medium hover:from-red-600 hover:to-pink-600 transition-all duration-200"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Delete Recipe
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Edit Modal */}
-      {showEditModal && recipeToEdit && (
-        <motion.div
-          className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50"
-          variants={modalVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-        >
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-196">
-            <h3 className="text-xl font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Edit Recipe</h3>
-             <form onSubmit={handleUpdateRecipe} className="space-y-4">
-              <div>
-                <label htmlFor="recipe_name" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Recipe Name</label>
-                <input
-                  type="text"
-                  id="recipe_name"
-                  value={recipeToEdit.recipe_name}
-                  onChange={(e) => setRecipeToEdit({ ...recipeToEdit, recipe_name: e.target.value })}
-                  placeholder="Enter recipe name"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div>
-                <label htmlFor="description" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Description</label>
-                <textarea
-                  id="description"
-                  value={recipeToEdit.description || ""}
-                  onChange={(e) => setRecipeToEdit({ ...recipeToEdit, description: e.target.value })}
-                  placeholder="Enter description"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline h-24 resize-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="ingredients" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Ingredients</label>
-                <textarea
-                  id="ingredients"
-                  value={recipeToEdit.ingredients || ""}
-                  onChange={(e) => setRecipeToEdit({ ...recipeToEdit, ingredients: e.target.value })}
-                  placeholder="Enter ingredients (comma-separated)"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline h-24 resize-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="instructions" className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Instructions</label>
-                <textarea
-                  id="instructions"
-                  value={recipeToEdit.instructions || ""}
-                  onChange={(e) => setRecipeToEdit({ ...recipeToEdit, instructions: e.target.value })}
-                  placeholder="Enter instructions"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline h-32 resize-none"
-                />
-              </div>
-              <div className="flex justify-center space-x-4 mt-4">
-                <button
-                  onClick={handleUpdateRecipe}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+      <AnimatePresence>
+        {showEditModal && recipeToEdit && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="p-6">
+                <div className="text-center mb-6">
+                  <div className="text-4xl mb-3">✏️</div>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                    Edit Recipe
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Update your delicious creation
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleUpdateRecipe();
+                  }}
+                  className="space-y-6"
                 >
-                  Save
-                </button>
-                <button onClick={closeEditModal} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
-                  Cancel
-                </button>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Recipe Name
+                    </label>
+                    <input
+                      type="text"
+                      value={recipeToEdit.recipe_name}
+                      onChange={(e) =>
+                        setRecipeToEdit({
+                          ...recipeToEdit,
+                          recipe_name: e.target.value,
+                        })
+                      }
+                      placeholder="Enter recipe name"
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={recipeToEdit.description || ""}
+                      onChange={(e) =>
+                        setRecipeToEdit({
+                          ...recipeToEdit,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="Describe your amazing recipe..."
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Ingredients
+                    </label>
+                    <textarea
+                      value={recipeToEdit.ingredients || ""}
+                      onChange={(e) =>
+                        setRecipeToEdit({
+                          ...recipeToEdit,
+                          ingredients: e.target.value,
+                        })
+                      }
+                      placeholder="List your ingredients (comma-separated)"
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Instructions
+                    </label>
+                    <textarea
+                      value={recipeToEdit.instructions || ""}
+                      onChange={(e) =>
+                        setRecipeToEdit({
+                          ...recipeToEdit,
+                          instructions: e.target.value,
+                        })
+                      }
+                      placeholder="Step-by-step cooking instructions"
+                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
+                      rows={5}
+                    />
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <motion.button
+                      type="button"
+                      onClick={closeEditModal}
+                      className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      type="submit"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 px-4 rounded-xl font-medium hover:from-orange-600 hover:to-pink-600 transition-all duration-200"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2 inline" />
+                      Save Changes
+                    </motion.button>
+                  </div>
+                </form>
               </div>
-              </form>
-          </div>
-        </motion.div>
-      )}
-    </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
