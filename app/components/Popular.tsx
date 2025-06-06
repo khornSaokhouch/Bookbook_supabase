@@ -20,6 +20,8 @@ type Recipe = {
   totalTime: string;
   prep_time: string;
   note: string;
+  average_rating: number;
+  review_count: number;
 };
 
 type Review = {
@@ -89,7 +91,36 @@ const PopularPage = () => {
         }
       }
 
-      // Fetch popular recipes with all required fields
+      // First, get all reviews to identify which recipes have ratings
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from("reviews")
+        .select("review_id, recipe_id, user_id, comment, rating, created_at");
+
+      if (reviewsError) throw reviewsError;
+
+      setReviews(reviewsData as Review[]);
+
+      // Calculate average ratings and review counts for each recipe
+      const ratingStats = (reviewsData || []).reduce((acc, review) => {
+        const recipeId = review.recipe_id;
+        if (!acc[recipeId]) {
+          acc[recipeId] = { totalRating: 0, count: 0 };
+        }
+        acc[recipeId].totalRating += review.rating;
+        acc[recipeId].count += 1;
+        return acc;
+      }, {} as Record<number, { totalRating: number; count: number }>);
+
+      // Get only recipe IDs that have reviews
+      const recipeIdsWithReviews = Object.keys(ratingStats).map(Number);
+
+      if (recipeIdsWithReviews.length === 0) {
+        // No recipes have reviews yet
+        setRecipes([]);
+        return;
+      }
+
+      // Fetch only recipes that have reviews
       const { data: recipesData, error: recipesError } = await supabase
         .from("recipe")
         .select(
@@ -106,34 +137,49 @@ const PopularPage = () => {
           image_recipe ( image_url )
         `
         )
-        .order("created_at", { ascending: false })
-        .limit(12); // Show more popular recipes
+        .in("recipe_id", recipeIdsWithReviews);
 
       if (recipesError) throw recipesError;
 
-      // Transform the data to match RecipeCard expectations
-      const transformedRecipes = (recipesData || []).map((recipe) => ({
-        ...recipe,
-        totalTime: "", // Will be calculated by RecipeCard
-        description:
-          recipe.description || "A delicious and popular recipe loved by many!",
-        ingredients: recipe.ingredients || "Fresh ingredients",
-        instructions: recipe.instructions || "Easy to follow instructions",
-        note: recipe.note || "Enjoy this amazing recipe!",
-        prep_time: recipe.prep_time || "0:00:00",
-        cook_time: recipe.cook_time || "0:00:00",
-      }));
+      // Transform and sort recipes by average rating (only recipes with reviews)
+      const transformedRecipes = (recipesData || [])
+        .map((recipe) => {
+          const stats = ratingStats[recipe.recipe_id];
+          const averageRating = stats.totalRating / stats.count;
+          const reviewCount = stats.count;
+
+          return {
+            ...recipe,
+            totalTime: "", // Will be calculated by RecipeCard
+            description:
+              recipe.description ||
+              "A delicious and popular recipe loved by many!",
+            ingredients: recipe.ingredients || "Fresh ingredients",
+            instructions: recipe.instructions || "Easy to follow instructions",
+            note: recipe.note || "Enjoy this amazing recipe!",
+            prep_time: recipe.prep_time || "0:00:00",
+            cook_time: recipe.cook_time || "0:00:00",
+            average_rating: averageRating,
+            review_count: reviewCount,
+          };
+        })
+        .sort((a, b) => {
+          // Primary sort: by average rating (highest first)
+          if (b.average_rating !== a.average_rating) {
+            return b.average_rating - a.average_rating;
+          }
+          // Secondary sort: by number of reviews (most reviewed first)
+          if (b.review_count !== a.review_count) {
+            return b.review_count - a.review_count;
+          }
+          // Tertiary sort: by creation date (newest first)
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        })
+        .slice(0, 12); // Show top 12 popular recipes
 
       setRecipes(transformedRecipes as Recipe[]);
-
-      // Fetch all reviews
-      const { data: reviewsData, error: reviewsError } = await supabase
-        .from("reviews")
-        .select("review_id, recipe_id, user_id, comment, rating, created_at");
-
-      if (reviewsError) throw reviewsError;
-
-      setReviews(reviewsData as Review[]);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(`Failed to load data: ${err.message}`);
@@ -180,6 +226,20 @@ const PopularPage = () => {
     },
   };
 
+  // Calculate statistics for display (only for recipes with reviews)
+  const totalReviews = reviews.length;
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : 0;
+  const topRatedRecipes = recipes.filter(
+    (recipe) => recipe.average_rating >= 4.5
+  );
+  const minRating =
+    recipes.length > 0 ? Math.min(...recipes.map((r) => r.average_rating)) : 0;
+  const maxRating =
+    recipes.length > 0 ? Math.max(...recipes.map((r) => r.average_rating)) : 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <main className="container mx-auto px-4 py-12">
@@ -193,12 +253,46 @@ const PopularPage = () => {
             Popular Recipes
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Discover the most loved recipes by our amazing cooking community!
+            Discover the highest-rated recipes by our amazing cooking community!
             🔥👨‍🍳
           </p>
-          <div className="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full inline-block">
-            {recipes.length} trending recipes right now
-          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            Only showing recipes with user ratings and reviews
+          </p>
+
+          {/* Statistics */}
+          {recipes.length > 0 && (
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-orange-200 dark:border-orange-800">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {recipes.length} rated recipes
+                </span>
+              </div>
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-yellow-200 dark:border-yellow-800">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  ⭐ {averageRating.toFixed(1)} avg rating
+                </span>
+              </div>
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-green-200 dark:border-green-800">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  🏆 {topRatedRecipes.length} top-rated (4.5+)
+                </span>
+              </div>
+              <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-200 dark:border-blue-800">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  💬 {totalReviews} total reviews
+                </span>
+              </div>
+              {recipes.length > 0 && (
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-200 dark:border-purple-800">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    📊 {minRating.toFixed(1)} - {maxRating.toFixed(1)} rating
+                    range
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Loading State */}
@@ -237,36 +331,96 @@ const PopularPage = () => {
         ) : recipes.length === 0 ? (
           <div className="text-center py-16">
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-12 max-w-md mx-auto">
-              <ChefHat className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <div className="flex items-center justify-center mb-4">
+                <Star className="h-16 w-16 text-gray-400 mr-2" />
+                <ChefHat className="h-16 w-16 text-gray-400" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">
-                No popular recipes yet
+                No rated recipes yet
               </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Check back soon for trending recipes! 🍳
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Be the first to rate and review recipes to see them appear here!
+                ⭐
               </p>
+              <div className="text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-4 py-2 rounded-lg">
+                Popular recipes will show here once users start rating them
+              </div>
             </div>
           </div>
         ) : (
-          <motion.div
-            className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-          >
-            {recipes.map((recipe, index) => (
-              <RecipeCard
-                key={recipe.recipe_id}
-                recipe={recipe}
-                reviews={reviews}
-                user={user}
-                savedRecipes={savedRecipes}
-                onSaveRecipe={handleSaveRecipe}
-                parseTime={parseTime}
-                formatTime={formatTime}
-                index={index}
-              />
-            ))}
-          </motion.div>
+          <>
+            {/* Top Recipe Highlight */}
+            {recipes.length > 0 && recipes[0].average_rating >= 4.5 && (
+              <motion.div
+                className="mb-8 bg-gradient-to-r from-yellow-100 via-orange-100 to-red-100 dark:from-yellow-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-800"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="flex items-center justify-center mb-3">
+                  <Star className="h-6 w-6 text-yellow-500 mr-2" />
+                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    🏆 Highest Rated Recipe
+                  </span>
+                  <Star className="h-6 w-6 text-yellow-500 ml-2" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    {recipes[0].recipe_name}
+                  </h3>
+                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center">
+                      ⭐ {recipes[0].average_rating.toFixed(1)} average rating
+                    </span>
+                    <span>•</span>
+                    <span>{recipes[0].review_count} reviews</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Recipe Grid */}
+            <motion.div
+              className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+              variants={containerVariants}
+              initial="initial"
+              animate="animate"
+            >
+              {recipes.map((recipe, index) => (
+                <motion.div
+                  key={recipe.recipe_id}
+                  className="relative"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  {/* Ranking Badge for top 3 */}
+                  {index < 3 && (
+                    <div className="absolute -top-2 -left-2 z-10 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                      #{index + 1}
+                    </div>
+                  )}
+
+                  {/* Rating Badge - Always show since all recipes have ratings */}
+                  <div className="absolute top-2 right-2 z-10 bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
+                    <Star className="h-3 w-3 text-yellow-400 mr-1" />
+                    {recipe.average_rating.toFixed(1)}
+                  </div>
+
+                  <RecipeCard
+                    recipe={recipe}
+                    reviews={reviews}
+                    user={user}
+                    savedRecipes={savedRecipes}
+                    onSaveRecipe={handleSaveRecipe}
+                    parseTime={parseTime}
+                    formatTime={formatTime}
+                    index={index}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </>
         )}
       </main>
     </div>
