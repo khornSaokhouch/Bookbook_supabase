@@ -288,7 +288,7 @@ export default function LoginPage() {
             className="mt-8 text-center text-gray-600 dark:text-gray-300 text-base"
             variants={itemVariants}
           >
-            Don't have an account?{" "}
+            Do not have an account?{" "}
             <Link
               href="/register"
               className="text-purple-500 hover:text-purple-600 font-semibold hover:underline"
