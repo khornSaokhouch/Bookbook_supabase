@@ -38,6 +38,7 @@ export default function Navbar({ user }: NavbarProps) {
   const [suggestions, setSuggestions] = useState<Recipe[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Autocomplete suggestions logic
   useEffect(() => {
@@ -71,6 +72,24 @@ export default function Navbar({ user }: NavbarProps) {
     };
   }, [search]);
 
+  // Handle clicks outside search container
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsFocused(false);
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleSearchEnter = async () => {
     if (search.trim() === "") return;
 
@@ -78,7 +97,7 @@ export default function Navbar({ user }: NavbarProps) {
       .from("recipe")
       .select("recipe_id, recipe_name")
       .ilike("recipe_name", `%${search}%`)
-      .limit(1); // You can increase this if needed
+      .limit(1);
 
     if (error) {
       console.error("Search error:", error);
@@ -87,21 +106,25 @@ export default function Navbar({ user }: NavbarProps) {
 
     if (data && data.length > 0) {
       const recipe = data[0];
-      router.push(`/${recipe.recipe_id}/detailspage`);
+      setIsFocused(false);
       setSuggestions([]);
+      router.push(`/${recipe.recipe_id}/detailspage`);
     } else {
       alert("No results found");
     }
   };
 
-  // When clicking a suggestion
+  // When clicking a suggestion - Fixed navigation
   const handleSelect = (recipeId: string) => {
     const selectedRecipe = suggestions.find((r) => r.recipe_id === recipeId);
     if (selectedRecipe) {
-      setSearch(selectedRecipe.recipe_name); // show full name in input
-      setSuggestions([]); // hide dropdown
+      setSearch(selectedRecipe.recipe_name);
+      setSuggestions([]);
       setIsFocused(false);
-      router.push(`/${recipeId}/detailspage`); // go directly to details page
+      // Use setTimeout to ensure state updates complete before navigation
+      setTimeout(() => {
+        router.push(`/${recipeId}/detailspage`);
+      }, 0);
     }
   };
 
@@ -109,6 +132,8 @@ export default function Navbar({ user }: NavbarProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!search.trim()) return;
+    setIsFocused(false);
+    setSuggestions([]);
     router.push(`/search?query=${encodeURIComponent(search.trim())}`);
   };
 
@@ -177,13 +202,11 @@ export default function Navbar({ user }: NavbarProps) {
       fetchUserProfile(user.user_id).then((profile) => {
         setImageUrl(profile.image_url);
         if (user) {
-          // Consider avoiding prop mutation here.
-          // A local state for user's display name might be better if it needs to be updated by Navbar's fetch.
           user.user_name = profile.user_name;
         }
       });
     } else {
-      setImageUrl("/default-avatar.png"); // Reset if no user
+      setImageUrl("/default-avatar.png");
     }
   }, [fetchCategories, fetchUserProfile, user]);
 
@@ -204,8 +227,6 @@ export default function Navbar({ user }: NavbarProps) {
 
   return (
     <div className="relative z-30">
-      {" "}
-      {/* Applied z-30 here */}
       {/* Main Navigation */}
       <nav className="relative bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 backdrop-blur-lg border-b border-gray-200/20 dark:border-gray-700/30 shadow-xl">
         {/* Decorative gradient overlay */}
@@ -273,10 +294,9 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
 
             {/* Right Section */}
-
             <div className="flex items-center space-x-4">
-              {/* Search Bar */}
-              <div className="relative max-w-md group">
+              {/* Search Bar - Fixed container */}
+              <div ref={searchContainerRef} className="relative max-w-md group">
                 {/* Glow hover effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
@@ -286,46 +306,45 @@ export default function Navbar({ user }: NavbarProps) {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    onFocus={() => {
-                      setIsFocused(true);
-                    }}
-                    // FIX: Remove unused 'e' parameter
-                    onBlur={() => {
-                      setTimeout(() => {
-                        setIsFocused(false);
-                      }, 200);
-                    }}
+                    onFocus={() => setIsFocused(true)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         handleSearchEnter();
                       }
+                      // Handle arrow key navigation in suggestions
+                      if (e.key === "Escape") {
+                        setIsFocused(false);
+                        setSuggestions([]);
+                      }
                     }}
-                    className="w-full border px-4 pr-10 py-2 rounded-lg shadow-xl focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full border px-4 pr-10 py-2 rounded-lg shadow-xl focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="Search recipes..."
                   />
 
-                  {/* Search Icon (right aligned) */}
+                  {/* Search Icon */}
                   <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 h-4 w-4 pointer-events-none" />
                 </form>
 
-                {/* Suggestions Dropdown */}
+                {/* Suggestions Dropdown - Fixed positioning and event handling */}
                 {isFocused && suggestions.length > 0 && (
-                  <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-lg shadow-md max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                     {suggestions.map((recipe) => (
-                      <li
+                      <button
                         key={recipe.recipe_id}
-                        tabIndex={0}
+                        type="button"
                         onClick={() => handleSelect(recipe.recipe_id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSelect(recipe.recipe_id);
-                        }}
-                        className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-800 dark:text-gray-200"
+                        className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-gray-800 dark:text-gray-200 transition-colors duration-150 border-b border-gray-100 dark:border-gray-700 last:border-b-0 focus:outline-none focus:bg-blue-50 dark:focus:bg-blue-900/20"
                       >
-                        {recipe.recipe_name}
-                      </li>
+                        <div className="flex items-center">
+                          <Search className="h-4 w-4 text-gray-400 mr-3" />
+                          <span className="font-medium">
+                            {recipe.recipe_name}
+                          </span>
+                        </div>
+                      </button>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
 
@@ -370,7 +389,7 @@ export default function Navbar({ user }: NavbarProps) {
                           className="w-10 h-10 rounded-full border-2 border-white/50 dark:border-gray-700/50 object-cover shadow-md group-hover:shadow-lg transition duration-150 group-hover:scale-105"
                           priority
                           placeholder="blur"
-                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlMGUwZTAiLz48L3N2Zz4=" // Generic SVG placeholder
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlMGUwZTAiLz48L3N2Zz4="
                           sizes="40px"
                         />
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -451,6 +470,7 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
           </div>
         </div>
+
         {/* Secondary Navigation (Categories) */}
         <div className="py-4">
           <div className="relative bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-200/30 dark:border-gray-700/30 shadow-lg">
