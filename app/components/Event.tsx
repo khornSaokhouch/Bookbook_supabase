@@ -23,10 +23,12 @@ export default function EventsPage() {
   useEffect(() => {
     async function fetchEvents() {
       setLoading(true);
+      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("event")
         .select("*")
-        .order("start_date", { ascending: false });
+        .gte("start_date", now)
+        .order("start_date", { ascending: true });
 
       if (error) {
         console.error("Error fetching events:", error);
@@ -88,11 +90,11 @@ export default function EventsPage() {
             Amazing Events
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Join our incredible community events and create unforgettable
-            memories! 🎉✨
+            Join our incredible upcoming community events and create
+            unforgettable memories! 🎉✨
           </p>
           <div className="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full inline-block">
-            {events.length} exciting events waiting for you
+            {events.length} upcoming events waiting for you
           </div>
         </div>
 
@@ -134,7 +136,10 @@ export default function EventsPage() {
             animate="animate"
           >
             {events.map((event, index) => (
-              <Link href={`/${event.event_id}/event-detail`} key={event.event_id}>
+              <Link
+                href={`/${event.event_id}/event-detail`}
+                key={event.event_id}
+              >
                 <motion.div
                   className="group relative bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden cursor-pointer"
                   variants={itemVariants}
@@ -150,13 +155,9 @@ export default function EventsPage() {
                       <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center animate-pulse">
                         🔴 LIVE NOW!
                       </div>
-                    ) : isUpcoming(event.start_date) ? (
+                    ) : (
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
                         ✨ Upcoming
-                      </div>
-                    ) : (
-                      <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
-                        📅 Past Event
                       </div>
                     )}
                   </div>

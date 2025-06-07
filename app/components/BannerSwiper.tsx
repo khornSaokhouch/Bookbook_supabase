@@ -15,6 +15,12 @@ type Event = {
   image_url: string;
 };
 
+const DEFAULT_EVENT: Event = {
+  event_id: 0,
+  title: "Stay Tuned for Amazing Events!",
+  image_url: "/placeholder.svg?height=500&width=1200",
+};
+
 export default function BannerSwiper() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,16 +31,21 @@ export default function BannerSwiper() {
       setLoading(true);
       setError(null);
 
+      const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("event")
         .select("event_id, title, image_url")
+        .gte("start_date", now)
         .order("start_date", { ascending: true });
 
       if (error) {
         setError("Failed to load events.");
         console.error("Supabase error:", error.message);
+        // Use default event even on error
+        setEvents([DEFAULT_EVENT]);
       } else {
-        setEvents(data || []);
+        // If no upcoming events, show default event
+        setEvents(data && data.length > 0 ? data : [DEFAULT_EVENT]);
       }
 
       setLoading(false);
@@ -149,7 +160,7 @@ export default function BannerSwiper() {
                       }}
                     >
                       <Star className="h-4 w-4 mr-2 text-yellow-400" />
-                      Featured Event
+                      {event.event_id === 0 ? "Coming Soon" : "Featured Event"}
                     </div>
 
                     {/* Event Title */}
@@ -173,8 +184,9 @@ export default function BannerSwiper() {
                         animationFillMode: "forwards",
                       }}
                     >
-                      Join us for an amazing experience that you will never
-                      forget. Do not miss out on this incredible opportunity! 🎉
+                      {event.event_id === 0
+                        ? "We're planning something amazing for you! Check back soon for exciting upcoming events and experiences. 🌟"
+                        : "Join us for an amazing experience that you will never forget. Do not miss out on this incredible opportunity! 🎉"}
                     </p>
 
                     {/* Action Buttons */}
@@ -185,16 +197,33 @@ export default function BannerSwiper() {
                         animationFillMode: "forwards",
                       }}
                     >
-                      <button className="group flex items-center px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-sm md:text-base shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:from-purple-700 hover:to-pink-700">
-                        <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                        <span>Explore Event</span>
-                        <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                      </button>
+                      {event.event_id === 0 ? (
+                        <>
+                          <button className="group flex items-center px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-sm md:text-base shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:from-purple-700 hover:to-pink-700">
+                            <Calendar className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                            <span>Notify Me</span>
+                            <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                          </button>
 
-                      <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
-                        <Calendar className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                        Learn More
-                      </button>
+                          <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
+                            <Sparkles className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                            Browse Recipes
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="group flex items-center px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-sm md:text-base shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:from-purple-700 hover:to-pink-700">
+                            <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                            <span>Explore Event</span>
+                            <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                          </button>
+
+                          <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
+                            <Calendar className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                            Learn More
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
