@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, Heart, Sparkles } from "lucide-react";
+import { Mail, Lock , Eye , EyeOff , Heart, Sparkles } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 
@@ -36,6 +36,7 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false); // Toggle visibility
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -101,25 +102,28 @@ export default function LoginPage() {
   async function handleGoogleLogin() {
     const redirectTo = process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL;
     console.log("Redirect URL:", redirectTo);
-  
+
     if (!redirectTo) {
-      console.error("Missing environment variable: NEXT_PUBLIC_SUPABASE_REDIRECT_URL");
+      console.error(
+        "Missing environment variable: NEXT_PUBLIC_SUPABASE_REDIRECT_URL"
+      );
       setErrorMessage("Login setup error. Please try again later.");
       return;
     }
-  
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
     });
-  
+
     if (error) {
       console.error("OAuth login error:", error.message);
-      setErrorMessage(error.message || "Google sign-in didn't work this time. Let's try again!");
+      setErrorMessage(
+        error.message ||
+          "Google sign-in didn't work this time. Let's try again!"
+      );
     }
   }
-  
-  
 
   return (
     <motion.div
@@ -197,15 +201,26 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"} // Show/hide logic
                   id="password"
                   name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your secure password"
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
+                  className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-purple-500 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -273,12 +288,12 @@ export default function LoginPage() {
             className="mt-8 text-center text-gray-600 dark:text-gray-300 text-base"
             variants={itemVariants}
           >
-            New here? We&apos;d love to have you!{" "}
+            Don't have an account?{" "}
             <Link
               href="/register"
               className="text-purple-500 hover:text-purple-600 font-semibold hover:underline"
             >
-              Join our community
+              Register now
             </Link>
           </motion.p>
         </div>
