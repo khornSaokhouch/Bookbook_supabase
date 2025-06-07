@@ -483,8 +483,8 @@ const AddRecipe = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Let's create something delicious together! Your recipe could be
-            someone's next favorite meal.
+            Let is create something delicious together! Your recipe could be
+            someone is next favorite meal.
           </motion.p>
         </div>
 
@@ -718,7 +718,7 @@ const AddRecipe = () => {
                       htmlFor="note"
                       className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300 flex items-center"
                     >
-                      Chef's Notes{" "}
+                      Chef is Notes{" "}
                       <span className="text-gray-400 text-sm ml-2">
                         (Optional)
                       </span>
@@ -780,8 +780,7 @@ const AddRecipe = () => {
                       <Info className="h-5 w-5 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-orange-800 dark:text-orange-300">
                         List each ingredient on a new line. Include quantities
-                        and any preparation notes (e.g., "2 cups flour, sifted"
-                        or "3 cloves garlic, minced").
+                        and any preparation notes .
                       </p>
                     </div>
                   </div>
@@ -854,8 +853,7 @@ const AddRecipe = () => {
                       <Info className="h-5 w-5 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-orange-800 dark:text-orange-300">
                         Number each step and be specific. Include temperatures,
-                        times, and visual cues (e.g., "Bake at 350°F for 25-30
-                        minutes, until golden brown").
+                        times, and visual cues .
                       </p>
                     </div>
                   </div>

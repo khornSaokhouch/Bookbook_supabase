@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type UserType = {
   id: string;
@@ -354,7 +355,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
               <div className="flex items-center space-x-6">
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
-                    <img
+                    <Image
                       src={previewUrl || generateImageUrl(user?.image_url ?? null)}
                       alt="Profile"
                       className="w-full h-full object-cover"

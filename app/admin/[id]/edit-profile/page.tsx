@@ -259,7 +259,7 @@ export default function EditProfilePage() {
             Edit Your Profile
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
-            Let's make your profile shine even brighter! ✨
+            Let is make your profile shine even brighter! ✨
           </p>
         </motion.div>
 

@@ -10,8 +10,6 @@ import {
   Trash2,
   Plus,
   ChefHat,
-  Heart,
-  Eye,
   Calendar,
   Sparkles,
 } from "lucide-react";

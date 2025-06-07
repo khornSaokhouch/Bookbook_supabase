@@ -130,9 +130,9 @@ export default function ResetPasswordPage() {
         setTimeout(() => router.push("/login"), 3000);
       }
     } catch (err) {
+      console.error("Password reset error:", err);
       setError("An unexpected error occurred. Please try again.");
     }
-
     setLoading(false);
   };
 
@@ -425,7 +425,7 @@ export default function ResetPasswordPage() {
                         <div className="flex items-center text-red-600 dark:text-red-400">
                           <AlertTriangle className="h-4 w-4 mr-1" />
                           <span className="text-xs font-medium">
-                            Passwords don't match
+                            Passwords do not match
                           </span>
                         </div>
                       )}
@@ -471,7 +471,7 @@ export default function ResetPasswordPage() {
                   symbols
                 </li>
                 <li>• Avoid using personal information or common words</li>
-                <li>• Don't reuse passwords from other accounts</li>
+                <li>• Do not reuse passwords from other accounts</li>
               </ul>
             </motion.div>
           </div>
@@ -500,7 +500,7 @@ export default function ResetPasswordPage() {
                   Confirm Password Change
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Are you sure you want to change your password? You'll need to
+                  Are you sure you want to change your password? You will need to
                   log in again with your new password.
                 </p>
                 <div className="flex space-x-3">

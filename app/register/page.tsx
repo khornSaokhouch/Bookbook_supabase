@@ -184,7 +184,7 @@ export default function RegisterPage() {
               Join Our Community!
             </h1>
             <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
-              We're excited to have you on board! ✨
+              We are excited to have you on board! ✨
             </p>
             <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center">
