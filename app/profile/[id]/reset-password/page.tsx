@@ -177,7 +177,7 @@ export default function ResetPasswordPage() {
         />
       </div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-4xl relative z-10">
         {/* Header */}
         <motion.div className="text-center mb-8" variants={itemVariants}>
           <button
@@ -226,12 +226,12 @@ export default function ResetPasswordPage() {
           </div>
 
           {/* Form */}
-          <div className="p-6">
+          <div className="p-6 w-auto">
             {/* Success/Error Messages */}
             <AnimatePresence>
               {error && (
                 <motion.div
-                  className="mb-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4"
+                  className="mb-4 max-w-lg bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -267,177 +267,189 @@ export default function ResetPasswordPage() {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleOpenConfirm} className="space-y-6">
-              {/* Email Field */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="email"
-                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-              </motion.div>
+            {/* START: UI CHANGE */}
+            <form onSubmit={handleOpenConfirm}>
+              {/* This div creates the two-column layout on medium screens and up */}
+              <div className="flex flex-col md:flex-row md:gap-6 ">
+                {/* Left Column */}
+                <div className="flex-1 space-y-6 ">
+                  {/* Email Field */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="email"
+                        className="w-full pl-10 pr-4 py-3  bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)} // updates email state here
+                        placeholder="Enter your email"
+                        required
+                      />
+                    </div>
+                  </motion.div>
 
-              {/* Old Password Field */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Current Password
-                </label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type={showOldPassword ? "text" : "password"}
-                    className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    placeholder="Enter current password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    onClick={() => setShowOldPassword(!showOldPassword)}
-                  >
-                    {showOldPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* New Password Field */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  New Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type={showNewPassword ? "text" : "password"}
-                    className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-
-                {/* Password Strength Indicator */}
-                {newPassword && (
-                  <motion.div
-                    className="mt-2"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            passwordStrength.strength === 1
-                              ? "bg-red-500 w-1/4"
-                              : passwordStrength.strength === 2
-                              ? "bg-yellow-500 w-2/4"
-                              : passwordStrength.strength === 3
-                              ? "bg-blue-500 w-3/4"
-                              : passwordStrength.strength === 4
-                              ? "bg-green-500 w-full"
-                              : "w-0"
-                          }`}
-                        />
-                      </div>
-                      <span
-                        className={`text-xs font-medium ${passwordStrength.color}`}
+                  {/* Old Password Field */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Current Password
+                    </label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type={showOldPassword ? "text" : "password"}
+                        className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        onClick={() => setShowOldPassword(!showOldPassword)}
                       >
-                        {passwordStrength.label}
-                      </span>
+                        {showOldPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
                   </motion.div>
-                )}
-              </motion.div>
-
-              {/* Confirm Password Field */}
-              <motion.div variants={itemVariants}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Confirm New Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
                 </div>
 
-                {/* Password Match Indicator */}
-                {confirmPassword && (
-                  <motion.div
-                    className="mt-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="flex items-center space-x-2">
-                      {newPassword === confirmPassword ? (
-                        <div className="flex items-center text-green-600 dark:text-green-400">
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">
-                            Passwords match
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-red-600 dark:text-red-400">
-                          <AlertTriangle className="h-4 w-4 mr-1" />
-                          <span className="text-xs font-medium">
-                            Passwords do not match
-                          </span>
-                        </div>
-                      )}
+                {/* Right Column */}
+                <div className="flex-1 space-y-6 mt-6 md:mt-0">
+                  {/* New Password Field */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      New Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
-                  </motion.div>
-                )}
-              </motion.div>
 
-              {/* Submit Button */}
+                    {/* Password Strength Indicator */}
+                    {newPassword && (
+                      <motion.div
+                        className="mt-2"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                passwordStrength.strength === 1
+                                  ? "bg-red-500 w-1/4"
+                                  : passwordStrength.strength === 2
+                                  ? "bg-yellow-500 w-2/4"
+                                  : passwordStrength.strength === 3
+                                  ? "bg-blue-500 w-3/4"
+                                  : passwordStrength.strength === 4
+                                  ? "bg-green-500 w-full"
+                                  : "w-0"
+                              }`}
+                            />
+                          </div>
+                          <span
+                            className={`text-xs font-medium ${passwordStrength.color}`}
+                          >
+                            {passwordStrength.label}
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+
+                  {/* Confirm Password Field */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Confirm New Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        className="w-full pl-10 pr-12 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Password Match Indicator */}
+                    {confirmPassword && (
+                      <motion.div
+                        className="mt-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          {newPassword === confirmPassword ? (
+                            <div className="flex items-center text-green-600 dark:text-green-400">
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              <span className="text-xs font-medium">
+                                Passwords match
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-red-600 dark:text-red-400">
+                              <AlertTriangle className="h-4 w-4 mr-1" />
+                              <span className="text-xs font-medium">
+                                Passwords do not match
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Submit Button - now sits below the columns */}
               <motion.button
                 type="submit"
-                className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-8 bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading}
                 variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
@@ -456,6 +468,7 @@ export default function ResetPasswordPage() {
                 )}
               </motion.button>
             </form>
+            {/* END: UI CHANGE */}
 
             {/* Security Tips */}
             <motion.div
@@ -500,8 +513,8 @@ export default function ResetPasswordPage() {
                   Confirm Password Change
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Are you sure you want to change your password? You will need to
-                  log in again with your new password.
+                  Are you sure you want to change your password? You will need
+                  to log in again with your new password.
                 </p>
                 <div className="flex space-x-3">
                   <motion.button
