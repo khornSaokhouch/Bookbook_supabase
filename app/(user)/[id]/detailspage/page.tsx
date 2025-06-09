@@ -14,11 +14,12 @@ import {
   Award,
 } from "lucide-react";
 import Image from "next/image";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Badge } from "@/app/components/ui/badge";
 import CommentSection from "@/app/components/CommentSection";
 import InteractiveRating from "@/app/components/InteractiveRating";
+import RecipeGallery from "@/app/components/recipe-gallery";
 
 // Type for a single user object as potentially returned by Supabase in an array
 interface UserObjectFromDB {
@@ -70,7 +71,8 @@ interface Recipe {
   instructions: string;
   prep_time: number; // in minutes
   cook_time: number; // in minutes
-  image_url: string;
+  image_url: string; // main image URL
+  image_urls?: string[]; // optional array of all image URLs
   overview: string;
   note: string;
   average_rating: number;
@@ -78,6 +80,7 @@ interface Recipe {
   author: string;
   reviews: Review[];
 }
+
 
 interface User {
   user_id: string;
@@ -116,6 +119,8 @@ async function getRecipeById(
     return null;
   }
 }
+
+
 
 const formatTime = (minutes?: number) => {
   if (
@@ -214,7 +219,9 @@ const shapeRecipeData = (data: RecipeDataFromDB): Recipe => {
     instructions: data.instructions || "No instructions provided.",
     prep_time: parseTime(data.prep_time),
     cook_time: parseTime(data.cook_time),
-    image_url: data.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
+   image_url: data.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
+image_urls: data.image_recipe?.map((img) => img.image_url) || [],
+
     overview: data.overview || "No overview provided.",
     note: data.note || "No special notes.",
     average_rating: averageRating,
@@ -291,6 +298,9 @@ const DetailsPage: React.FC = () => {
 
     fetchRecipe();
   }, [id, recipeId]);
+
+  console.log("Recipe data:", recipe);
+  
 
   const totalTime = (recipe?.prep_time || 0) + (recipe?.cook_time || 0);
 
@@ -373,14 +383,19 @@ const DetailsPage: React.FC = () => {
         {/* Hero Section */}
         <div className="relative mb-12">
           <div className="relative overflow-hidden rounded-3xl shadow-2xl">
-            <Image
-              src={recipe.image_url || "/placeholder.svg"}
-              alt={recipe.recipe_name}
-              width={1200}
-              height={600}
-              unoptimized
-              className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
-            />
+           {recipe && (
+  <div className="relative overflow-hidden rounded-3xl shadow-2xl mb-8">
+    <Image
+      src={recipe.image_url || "/placeholder.svg"}
+      alt={recipe.recipe_name}
+      width={1200}
+      height={600}
+      unoptimized
+      className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
+    />
+  </div>
+)}
+
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 via-pink-600/20 to-purple-600/20"></div>
@@ -415,6 +430,9 @@ const DetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+
+  
 
         {/* Time Cards */}
         <motion.div
@@ -544,6 +562,47 @@ const DetailsPage: React.FC = () => {
             </ul>
           </motion.section>
         </div>
+
+      {/* <motion.section
+  className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8"
+  initial={{ y: 50, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ delay: 0.8 }}
+>
+  {recipe.image_urls && recipe.image_urls.length > 1 && (
+    <div className="max-w-6xl mx-auto mt-4">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white border-b pb-2 border-gray-300 dark:border-gray-600">
+        More Recipe Images
+      </h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        {recipe.image_urls.map((url, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+          >
+            <Image
+              src={url}
+              alt={`Recipe image ${index + 1}`}
+              width={300}
+              height={200}
+              unoptimized
+              className="w-full h-44 object-cover transform hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+</motion.section> */}
+
+ <div>
+      <RecipeGallery recipe={recipe} />
+    </div>
+
+
+
+      
 
         <motion.section
           className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8"

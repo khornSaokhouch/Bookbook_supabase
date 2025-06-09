@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../../../lib/supabaseClient";
-import DeleteUserModal from "../../../components/DeleteUserModal";
-import EditUserModal from "../../../components/EditUserModal";
+import { supabase } from "@/app/lib/supabaseClient";
+import DeleteUserModal from "@/app/components/DeleteUserModal";
+import EditUserModal from "@/app/components/EditUserModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit,
