@@ -147,7 +147,7 @@ export default function RegisterPage() {
 
   return (
     <motion.div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-teal-900/20 dark:to-gray-800 p-4 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-teal-900/20 dark:to-gray-800 py-0 px-4 relative overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -178,18 +178,18 @@ export default function RegisterPage() {
       >
         {/* Left side - Form */}
         <div className="flex-grow md:pr-10">
-          <motion.div variants={itemVariants} className="text-center mb-6">
-            <div className="flex items-center justify-center mb-3">
+          <motion.div variants={itemVariants} className="text-center mb-2">
+            <div className="flex items-center justify-center mb-2">
               <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-3 rounded-full shadow-lg">
-                <UserPlus className="h-7 w-7 text-white" />
+                <UserPlus className="h-6 w-6 text-white" />
               </div>
             </div>
             {/* FIX: Reduced heading size from md:text-5xl to md:text-4xl */}
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-2xl font-bold mb-1 bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
               Join Our Community!
             </h1>
             {/* FIX: Reduced paragraph size from text-lg to text-base */}
-            <p className="text-gray-600 dark:text-gray-300 text-base mb-4">
+            <p className="text-gray-600 dark:text-gray-300 text-base mb-2">
               We are excited to have you on board! ✨
             </p>
             <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your awesome name"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
+                  className="w-full pl-12 pr-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
               </div>
@@ -282,7 +282,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="hello@example.com"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
+                  className="w-full pl-12 pr-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
               </div>
@@ -304,7 +304,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Make it strong and memorable"
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
+                  className="w-full pl-12 pr-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
                 <button
@@ -324,7 +324,7 @@ export default function RegisterPage() {
             <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-2xl hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-2xl hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -361,7 +361,7 @@ export default function RegisterPage() {
             </div>
           </motion.form>
 
-          <motion.div className="mt-6" variants={itemVariants}>
+          <motion.div className="mt-3" variants={itemVariants}>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
@@ -375,7 +375,7 @@ export default function RegisterPage() {
 
             <motion.button
               onClick={handleGoogleSignUp}
-              className="mt-4 flex items-center justify-center w-full py-3 bg-white border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-semibold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              className="mt-2 flex items-center justify-center w-full py-2 bg-white border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-semibold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -384,7 +384,7 @@ export default function RegisterPage() {
             </motion.button>
 
             <motion.div
-              className="mt-4 text-center text-gray-600 dark:text-gray-300"
+              className="mt-3 text-center text-gray-600 dark:text-gray-300"
               variants={itemVariants}
             >
               <p>
@@ -402,7 +402,7 @@ export default function RegisterPage() {
 
         {/* Right side - Illustration */}
         <motion.div
-          className="hidden md:flex items-center justify-center md:ml-10 mt-8 md:mt-0"
+          className="flex items-center justify-center  md:ml-10 mt-6 md:mt-0"
           variants={itemVariants}
         >
           <div className="relative">
@@ -411,10 +411,12 @@ export default function RegisterPage() {
             <Image
               src="/auth/image.png"
               alt="Join our community illustration"
-              className="relative z-10 w-72 h-88 object-cover rounded-3xl shadow-2xl"
               width={288}
               height={352}
+              layout="intrinsic"
+              className="relative z-10 object-cover rounded-3xl shadow-2xl"
             />
+
             <div className="absolute -top-4 -right-4 bg-emerald-400 rounded-full p-3 shadow-lg">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
