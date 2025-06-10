@@ -358,7 +358,9 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                     <Image
                       src={previewUrl || generateImageUrl(user?.image_url ?? null)}
                       alt="Profile"
-                      className="w-full h-full object-cover"
+                        className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
                     />
                   </div>
                   <div className="absolute bottom-0 right-0 bg-violet-600 p-1.5 rounded-full">
