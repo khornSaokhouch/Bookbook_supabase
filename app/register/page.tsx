@@ -171,22 +171,25 @@ export default function RegisterPage() {
         transition={{ delay: 2 }}
       />
 
+      {/* FIX: Reduced padding from md:p-12 to md:p-10 */}
       <motion.div
-        className="bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 p-8 md:p-12 rounded-3xl shadow-2xl border border-white/30 w-full max-w-[1000px] flex flex-col md:flex-row overflow-hidden relative"
+        className="bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 p-8 md:p-10 rounded-3xl shadow-2xl border border-white/30 w-full max-w-[1000px] flex flex-col md:flex-row overflow-hidden relative"
         variants={itemVariants}
       >
         {/* Left side - Form */}
         <div className="flex-grow md:pr-10">
-          <motion.div variants={itemVariants} className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-4 rounded-full shadow-lg">
-                <UserPlus className="h-8 w-8 text-white" />
+          <motion.div variants={itemVariants} className="text-center mb-6">
+            <div className="flex items-center justify-center mb-3">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-3 rounded-full shadow-lg">
+                <UserPlus className="h-7 w-7 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+            {/* FIX: Reduced heading size from md:text-5xl to md:text-4xl */}
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
               Join Our Community!
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
+            {/* FIX: Reduced paragraph size from text-lg to text-base */}
+            <p className="text-gray-600 dark:text-gray-300 text-base mb-4">
               We are excited to have you on board! ✨
             </p>
             <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
@@ -208,7 +211,7 @@ export default function RegisterPage() {
           {error && (
             <motion.div
               variants={itemVariants}
-              className="text-red-600 text-center mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 py-4 px-6 rounded-2xl"
+              className="text-red-600 text-center mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 py-3 px-5 rounded-2xl"
             >
               <div className="flex items-center justify-center mb-1">
                 <span className="text-lg">😔</span>
@@ -220,7 +223,7 @@ export default function RegisterPage() {
           {successMessage && (
             <motion.div
               variants={itemVariants}
-              className="text-emerald-600 text-center mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 py-4 px-6 rounded-2xl"
+              className="text-emerald-600 text-center mb-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 py-3 px-5 rounded-2xl"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
@@ -233,20 +236,23 @@ export default function RegisterPage() {
             </motion.div>
           )}
 
+          {/* FIX: Reduced form spacing from space-y-6 to space-y-5 */}
           <motion.form
             onSubmit={handleSubmit}
-            className="space-y-6"
+            className="space-y-5"
             variants={itemVariants}
           >
             <div>
+              {/* FIX: Reduced label font size and margin */}
               <label
                 htmlFor="name"
-                className="block text-gray-700 dark:text-gray-200 font-medium mb-3 text-lg"
+                className="block text-gray-700 dark:text-gray-200 font-medium mb-2 text-base"
               >
                 What should we call you?
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-emerald-500" />
+                {/* FIX: Reduced input padding and font size */}
                 <input
                   type="text"
                   id="name"
@@ -254,7 +260,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your awesome name"
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
               </div>
@@ -263,7 +269,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-gray-700 dark:text-gray-200 font-medium mb-3 text-lg"
+                className="block text-gray-700 dark:text-gray-200 font-medium mb-2 text-base"
               >
                 Your Email Address
               </label>
@@ -276,7 +282,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="hello@example.com"
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
               </div>
@@ -285,7 +291,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-gray-700 dark:text-gray-200 font-medium mb-3 text-lg"
+                className="block text-gray-700 dark:text-gray-200 font-medium mb-2 text-base"
               >
                 Create a Secure Password
               </label>
@@ -298,7 +304,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Make it strong and memorable"
-                  className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg"
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-base"
                   required
                 />
                 <button
@@ -318,7 +324,7 @@ export default function RegisterPage() {
             <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-2xl hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-2xl hover:from-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-4 focus:ring-emerald-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -355,7 +361,7 @@ export default function RegisterPage() {
             </div>
           </motion.form>
 
-          <motion.div className="mt-8" variants={itemVariants}>
+          <motion.div className="mt-6" variants={itemVariants}>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
@@ -369,7 +375,7 @@ export default function RegisterPage() {
 
             <motion.button
               onClick={handleGoogleSignUp}
-              className="mt-6 flex items-center justify-center w-full py-4 bg-white border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-semibold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              className="mt-4 flex items-center justify-center w-full py-3 bg-white border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-semibold rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -378,7 +384,7 @@ export default function RegisterPage() {
             </motion.button>
 
             <motion.div
-              className="mt-6 text-center text-gray-600 dark:text-gray-300"
+              className="mt-4 text-center text-gray-600 dark:text-gray-300"
               variants={itemVariants}
             >
               <p>
@@ -401,12 +407,13 @@ export default function RegisterPage() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-3xl transform rotate-3 opacity-20"></div>
+            {/* FIX: Reduced image size to be more compact */}
             <Image
               src="/auth/image.png"
               alt="Join our community illustration"
-              className="relative z-10 w-80 h-96 object-cover rounded-3xl shadow-2xl"
-              width={350}
-              height={400}
+              className="relative z-10 w-72 h-88 object-cover rounded-3xl shadow-2xl"
+              width={288}
+              height={352}
             />
             <div className="absolute -top-4 -right-4 bg-emerald-400 rounded-full p-3 shadow-lg">
               <Sparkles className="h-6 w-6 text-white" />
