@@ -17,7 +17,6 @@ import Image from "next/image";
 import { supabase } from "@/app/lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Badge } from "@/app/components/ui/badge";
-import CommentSection from "@/app/components/CommentSection";
 import InteractiveRating from "@/app/components/InteractiveRating";
 import RecipeGallery from "@/app/components/recipe-gallery";
 
@@ -239,6 +238,8 @@ const DetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const INITIAL_COMMENTS_LIMIT = 3;
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -695,34 +696,111 @@ const DetailsPage: React.FC = () => {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 1.1 }}
-        >
-          <CommentSection
-            recipeId={recipeId}
-            reviews={validReviewsForComments}
-          />
-        </motion.section>
-
-        <motion.section
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1.2 }}
           className="mb-8"
         >
-          <InteractiveRating
-            recipeId={recipeId}
-            userId={user?.user_id}
-            onRatingSubmitted={async () => {
-              setLoading(true);
-              const rawRecipeData = await getRecipeById(recipeId);
-              if (rawRecipeData) {
-                const shapedRecipe = shapeRecipeData(rawRecipeData);
-                setRecipe(shapedRecipe);
-              } else {
-                setError("Failed to refresh recipe data after rating.");
-              }
-              setLoading(false);
-            }}
-          />
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                <Star className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+                Reviews & Comments
+              </h2>
+            </div>
+
+            {/* Keep only the InteractiveRating component that includes stars */}
+            <div className="mb-8">
+              <InteractiveRating
+                recipeId={recipeId}
+                userId={user?.user_id}
+                onRatingSubmitted={async () => {
+                  setLoading(true);
+                  const rawRecipeData = await getRecipeById(recipeId);
+                  if (rawRecipeData) {
+                    const shapedRecipe = shapeRecipeData(rawRecipeData);
+                    setRecipe(shapedRecipe);
+                  } else {
+                    setError("Failed to refresh recipe data after rating.");
+                  }
+                  setLoading(false);
+                }}
+              />
+            </div>
+
+            {/* Display comments below the form */}
+            {validReviewsForComments.length > 0 ? (
+              <div className="mt-8 space-y-6">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                  User Comments ({validReviewsForComments.length})
+                </h3>
+                {validReviewsForComments
+                  .slice(
+                    0,
+                    showAllComments
+                      ? validReviewsForComments.length
+                      : INITIAL_COMMENTS_LIMIT
+                  )
+                  .map((review) => (
+                    <div
+                      key={review.key}
+                      className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600"
+                    >
+                      <div className="flex items-center mb-2">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
+                          {review.user_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="ml-3">
+                          <p className="font-medium text-gray-800 dark:text-gray-200">
+                            {review.user_name}
+                          </p>
+                          <div className="flex items-center">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 mt-2">
+                        {review.comment}
+                      </p>
+                    </div>
+                  ))}
+
+                {/* Show More/Show Less Button */}
+                {validReviewsForComments.length > INITIAL_COMMENTS_LIMIT && (
+                  <div className="text-center mt-6">
+                    <button
+                      onClick={() => setShowAllComments(!showAllComments)}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    >
+                      {showAllComments
+                        ? `Show Less`
+                        : `See More Comments (${
+                            validReviewsForComments.length -
+                            INITIAL_COMMENTS_LIMIT
+                          } more)`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <p>No comments yet. Be the first to share your thoughts!</p>
+              </div>
+            )}
+          </div>
         </motion.section>
       </motion.div>
     </div>
