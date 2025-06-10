@@ -118,6 +118,8 @@ const AdminSidebar = ({
                 alt="CookBook Logo"
                 width={90}
                 height={90}
+                layout="intrinsic"
+                style={{ height: "auto" }}
                 className="transition-all duration-300"
               />
             </div>
@@ -191,9 +193,7 @@ const AdminSidebar = ({
                 </div>
                 <span
                   className={`ml-3 font-medium transition-opacity duration-200 ${
-                    sidebarCollapsed
-                      ? "md:hidden md:opacity-0"
-                      : "opacity-100"
+                    sidebarCollapsed ? "md:hidden md:opacity-0" : "opacity-100"
                   }`}
                 >
                   {label}

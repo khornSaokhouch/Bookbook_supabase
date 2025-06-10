@@ -26,6 +26,8 @@ type User = {
   email: string;
   role: string;
   created_at: string;
+  image_url?: string; // Optional field for user avatar
+  status?: string; // Optional field for user status
 };
 
 const UserManagement = () => {
@@ -44,6 +46,9 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  console.log("Users fetched:", users);
+  
 
   useEffect(() => {
     if (successMessage) {
@@ -86,9 +91,17 @@ const UserManagement = () => {
         .from("users")
         .select("*")
         .order("created_at", { ascending: false });
-
+  
       if (error) throw error;
-      setUsers(data as User[]);
+  
+      const STORAGE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/image-user`;
+  
+      const transformedData = data.map(user => ({
+        ...user,
+        image_url: user.image_url ? `${STORAGE_URL}/${user.image_url}` : '/default-avatar.png',
+      }));
+  
+      setUsers(transformedData as User[]);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(`Error fetching users: ${err.message}`);
@@ -100,6 +113,9 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
+  
+  
+  
 
   const handleDelete = async (user_id: string) => {
     try {
@@ -372,6 +388,9 @@ const UserManagement = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    ID
+                  </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
                     User
                   </th>
@@ -381,107 +400,129 @@ const UserManagement = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
                     Created
                   </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Status
+                  </th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                <AnimatePresence>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user, index) => (
-                      <motion.tr
-                        key={user.user_id}
-                        className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        whileHover={{ scale: 1.01 }}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                              {user.user_name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                                {user.user_name}
-                              </div>
-                              <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mt-1">
-                                <Mail className="w-4 h-4 mr-1" />
-                                {user.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-lg ${getRoleBadgeColor(
-                              user.role
-                            )}`}
-                          >
-                            {getRoleIcon(user.role)}
-                            <span className="ml-2 capitalize">{user.role}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            {new Date(user.created_at).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end space-x-2">
-                            <motion.button
-                              onClick={() => handleEdit(user)}
-                              className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                              onClick={() => {
-                                setDeleteUserId(user.user_id);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-20 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                            No users found
-                          </h3>
-                          <p className="text-gray-500 dark:text-gray-400">
-                            {searchTerm || roleFilter !== "all"
-                              ? "Try adjusting your search or filter criteria."
-                              : "Get started by adding your first user."}
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </AnimatePresence>
-              </tbody>
+  <AnimatePresence>
+    {filteredUsers.length > 0 ? (
+      filteredUsers.map((user, index) => (
+        <motion.tr
+          key={user.user_id}
+          className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+          whileHover={{ scale: 1.01 }}
+        >
+          {/* Sequential ID */}
+          <td className="px-6 py-4 text-gray-500 dark:text-gray-400 font-semibold">
+            {index + 1}
+          </td>
+
+          {/* User Info: avatar + name + email */}
+          <td className="px-6 py-4">
+            <div className="flex items-center space-x-4">
+            <img
+    src={user.image_url || '/default-avatar.png'}
+    alt={`${user.user_name}'s avatar`}
+    className="w-12 h-12 rounded-full object-cover shadow-md"
+  />
+
+              <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {user.user_name}
+                </div>
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <Mail className="w-4 h-4 mr-1" />
+                  {user.email}
+                </div>
+              </div>
+            </div>
+          </td>
+
+          {/* Role */}
+          <td className="px-6 py-4">
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-lg ${getRoleBadgeColor(user.role)}`}
+            >
+              {getRoleIcon(user.role)}
+              <span className="ml-2 capitalize">{user.role}</span>
+            </span>
+          </td>
+
+          {/* Created Date */}
+          <td className="px-6 py-4">
+            <div className="flex items-center text-gray-600 dark:text-gray-400">
+              <Calendar className="w-4 h-4 mr-2" />
+              {new Date(user.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </div>
+          </td>
+
+          {/* Status */}
+          <td className="px-6 py-4">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 shadow-lg">
+              <CheckCircle className="w-4 h-4 mr-1" />
+              {user.status || "Active" /* Assuming a status field exists */}
+            </span>
+          </td>
+
+          {/* Actions */}
+          <td className="px-6 py-4">
+            <div className="flex items-center justify-end space-x-2">
+              <motion.button
+                onClick={() => handleEdit(user)}
+                className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Edit className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                onClick={() => {
+                  setDeleteUserId(user.user_id);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </td>
+        </motion.tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={5} className="px-6 py-20 text-center">
+          <div className="flex flex-col items-center justify-center">
+            <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No users found
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchTerm || roleFilter !== "all"
+                ? "Try adjusting your search or filter criteria."
+                : "Get started by adding your first user."}
+            </p>
+          </div>
+        </td>
+      </tr>
+    )}
+  </AnimatePresence>
+</tbody>
+
             </table>
           </div>
         )}

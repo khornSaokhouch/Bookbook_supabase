@@ -25,9 +25,13 @@ import {
 } from "lucide-react";
 
 type Occasion = {
-  occasion_id: string;
+  occasion_id: number;
   name: string;
-  occasion_image: string;
+  occasion_image: string | null;
+  category_id: number;
+  category?: {
+    category_name: string;
+  } | null;
 };
 
 export default function OccasionsManagement() {
@@ -77,13 +81,37 @@ export default function OccasionsManagement() {
   }, [filterOccasions]);
 
   const fetchOccasions = async () => {
+    setLoading(true);
+    setError(null);
+  
     try {
-      setLoading(true);
-      const { data, error } = await supabase.from("occasion").select("*");
-      if (error) throw error;
-      setOccasions(data || []);
-    } catch (error) {
-      setError(`Error fetching occasions: ${(error as Error).message}`);
+      const { data, error } = await supabase
+        .from<Occasion>("occasion")
+        .select(`
+          occasion_id,
+          name,
+          occasion_image,
+          category_id,
+          category:category_id (category_name)
+        `)
+        .order("occasion_id", { ascending: false });
+  
+      if (error) {
+        console.error("Supabase error:", error);
+        setError(error.message);
+        setOccasions([]);
+        return;
+      }
+  
+      if (data) {
+        setOccasions(data);
+      } else {
+        setOccasions([]);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setError("Error fetching occasions");
+      setOccasions([]);
     } finally {
       setLoading(false);
     }
@@ -359,7 +387,7 @@ export default function OccasionsManagement() {
                         />
                       </div>
                       <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
-                        #{String(occasion.occasion_id).slice(-4)}
+                        #{index + 1}
                       </div>
                     </div>
 
@@ -430,16 +458,23 @@ export default function OccasionsManagement() {
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Occasion
+                    ID
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    ID
+                    Category ID
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Occasion Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Image
                   </th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">
                     Actions
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filteredOccasions.length > 0 ? (
                   filteredOccasions.map((occasion, index) => (
@@ -451,58 +486,60 @@ export default function OccasionsManagement() {
                       transition={{ delay: index * 0.05, duration: 0.3 }}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
-                            <Image
-                              src={
-                                occasion.occasion_image ||
-                                "/placeholder.svg?height=48&width=48"
-                              }
-                              alt={occasion.name}
-                              width={48}
-                              height={48}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                              {occasion.name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 font-medium text-sm text-gray-700 dark:text-white">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
-                          #{String(occasion.occasion_id).slice(-6)}
+                          #{index + 1}
                         </span>
                       </td>
+
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end space-x-2">
+                        {occasion.category?.category_name || "Unknown"}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
+                        {occasion.name}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
+                          <Image
+                            src={occasion.occasion_image || "/placeholder.svg"}
+                            alt={occasion.name}
+                            width={48}
+                            height={48}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
                           <motion.button
                             onClick={() => {
                               setSelectedOccasion(occasion);
                               setShowOccasionDetailModal(true);
                             }}
-                            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
                             <Eye className="w-4 h-4" />
                           </motion.button>
+
                           <motion.button
                             onClick={() => handleEditOccasion(occasion)}
-                            className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
                             <Edit className="w-4 h-4" />
                           </motion.button>
+
                           <motion.button
                             onClick={() =>
                               handleDeleteItem(String(occasion.occasion_id))
                             }
-                            className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -514,7 +551,7 @@ export default function OccasionsManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-6 py-20 text-center">
+                    <td colSpan={5} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <PartyPopper className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">

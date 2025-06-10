@@ -18,12 +18,18 @@ type EditUserModalProps = {
   onSave: (updatedUser: User) => Promise<void>; // Ensure it is Async Function
 };
 
-const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) => {
+const EditUserModal: React.FC<EditUserModalProps> = ({
+  user,
+  onClose,
+  onSave,
+}) => {
   const [updatedUser, setUpdatedUser] = useState<User>({ ...user });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Function to handle input change for fields
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setUpdatedUser((prevUser) => ({
       ...prevUser,
@@ -103,37 +109,46 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSave }) 
         {/* Form */}
         <div className="space-y-4">
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="user_name">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="user_name"
+            >
               Name
             </label>
             <input
               type="text"
               name="user_name"
               value={updatedUser.user_name}
-              onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              readOnly
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 bg-gray-100 cursor-not-allowed leading-tight focus:outline-none"
               id="user_name"
               placeholder="Enter user name"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="email"
+            >
               Email
             </label>
             <input
               type="email"
               name="email"
               value={updatedUser.email}
-              onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              readOnly
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500 bg-gray-100 cursor-not-allowed leading-tight focus:outline-none"
               id="email"
               placeholder="Enter email"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="role"
+            >
               Role
             </label>
             <select

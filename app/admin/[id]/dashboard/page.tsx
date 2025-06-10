@@ -417,7 +417,7 @@ export default function Dashboard() {
                     {category.category_name}
                   </h3>
                   <Link
-                    href={`/(user)/%5Bid%5D/category/${category.category_id}`}
+                    href={`/admin/${userId}/categories`}
                     className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
                   >
                     View All
@@ -478,7 +478,7 @@ export default function Dashboard() {
                     {occasion.name}
                   </h3>
                   <Link
-                    href={`/recipes/occasion/${occasion.occasion_id}`}
+                    href={`/admin/${userId}/occasions`}
                     className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
                   >
                     View All

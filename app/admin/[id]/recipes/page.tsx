@@ -37,6 +37,7 @@ interface Recipe {
   category_id: string;
   occasion_id: string;
   created_at: string;
+  image_url?: string | null;
 }
 
 interface Category {
@@ -68,6 +69,8 @@ export default function RecipeManagement() {
     fetchData();
   }, []);
 
+  console.log("Recipes:", recipes);
+
   useEffect(() => {
     if (successMessage || error) {
       const timer = setTimeout(() => {
@@ -77,7 +80,6 @@ export default function RecipeManagement() {
       return () => clearTimeout(timer);
     }
   }, [successMessage, error]);
-
 
   const filterRecipes = useCallback(() => {
     let filtered = recipes;
@@ -110,14 +112,23 @@ export default function RecipeManagement() {
   async function fetchData() {
     try {
       setLoading(true);
+
       const [recipesResult, categoriesResult, occasionsResult] =
         await Promise.all([
           supabase
             .from("recipe")
             .select(
-              "recipe_id, recipe_name, category_id, occasion_id, created_at"
+              `
+            recipe_id,
+            recipe_name,
+            category_id,
+            occasion_id,
+            created_at,
+            image_recipe:image_recipe(image_url)
+          `
             )
             .order("created_at", { ascending: false }),
+
           supabase.from("category").select("category_id, category_name"),
           supabase.from("occasion").select("occasion_id, name"),
         ]);
@@ -126,7 +137,13 @@ export default function RecipeManagement() {
       if (categoriesResult.error) throw categoriesResult.error;
       if (occasionsResult.error) throw occasionsResult.error;
 
-      setRecipes(recipesResult.data || []);
+      // Optional: extract the first image only
+      const recipesWithImages = recipesResult.data.map((recipe) => ({
+        ...recipe,
+        image_url: recipe.image_recipe?.[0]?.image_url ?? null,
+      }));
+
+      setRecipes(recipesWithImages);
       setCategories(categoriesResult.data || []);
       setOccasions(occasionsResult.data || []);
     } catch (error) {
@@ -462,10 +479,16 @@ export default function RecipeManagement() {
                   >
                     <div className="relative mb-4">
                       <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                        <ChefHat className="w-10 h-10 text-white" />
+                      <img
+                            src={recipe.image_url}
+                            alt={recipe.recipe_name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
                       </div>
                       <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
-                        #{String(recipe.recipe_id).slice(-4)}
+                        #{index + 1}
                       </div>
                     </div>
 
@@ -550,22 +573,28 @@ export default function RecipeManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-left text-sm font-sans">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Recipe
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                    ID
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                    Image
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
+                    Name
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                     Category
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                     Occasion
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                     Created
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">
                     Actions
                   </th>
                 </tr>
@@ -575,42 +604,56 @@ export default function RecipeManagement() {
                   filteredRecipes.map((recipe, index) => (
                     <motion.tr
                       key={recipe.recipe_id}
-                      className="hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
+                      className="hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 cursor-pointer"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05, duration: 0.3 }}
                       whileHover={{ scale: 1.01 }}
                     >
+                      <td className="px-6 py-4 font-medium text-sm text-gray-700 dark:text-white">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                          #{index + 1}
+                        </span>
+                      </td>
+
+                      {/* Image */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-md">
-                            <ChefHat className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                              {recipe.recipe_name}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              ID: #{String(recipe.recipe_id).slice(-6)}
-                            </div>
-                          </div>
+                        <div className="w-14 h-14 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
+                          <img
+                            src={recipe.image_url || "/placeholder-image.png"} // Fallback image
+                            alt={recipe.recipe_name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
                         </div>
                       </td>
+
+                      {/* Name */}
+                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">
+                        {recipe.recipe_name}
+                      </td>
+
+                      {/* Category */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-md select-none">
                           <Tag className="w-4 h-4 mr-1" />
                           {getCategoryName(recipe.category_id)}
                         </span>
                       </td>
+
+                      {/* Occasion */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md select-none">
                           <Calendar className="w-4 h-4 mr-1" />
                           {getOccasionName(recipe.occasion_id)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-2" />
+
+                      {/* Created */}
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400 flex items-center space-x-2">
+                        <Clock className="w-4 h-4" />
+                        <span>
                           {new Date(recipe.created_at).toLocaleDateString(
                             "en-US",
                             {
@@ -619,14 +662,17 @@ export default function RecipeManagement() {
                               day: "numeric",
                             }
                           )}
-                        </div>
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
+
+                      {/* Actions */}
+                      <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <motion.button
                             className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            aria-label="View recipe"
                           >
                             <Eye className="w-4 h-4" />
                           </motion.button>
@@ -634,6 +680,7 @@ export default function RecipeManagement() {
                             className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            aria-label="Edit recipe"
                           >
                             <Edit className="w-4 h-4" />
                           </motion.button>
@@ -645,6 +692,7 @@ export default function RecipeManagement() {
                             className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            aria-label="Delete recipe"
                           >
                             <Trash2 className="w-4 h-4" />
                           </motion.button>
@@ -654,13 +702,13 @@ export default function RecipeManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <td colSpan={7} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600" />
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                           No recipes found
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400 max-w-xs">
                           {searchTerm ||
                           categoryFilter !== "all" ||
                           occasionFilter !== "all"

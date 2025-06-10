@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import Image from "next/image";
-import AddCategoryModal from "../../../components/AddCategoryModal";
-import EditCategoryModal from "../../../components/EditCategoryModal";
-import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
-import CategoryDetailModal from "../../../components/CategoryDetailModal";
+import AddCategoryModal from "@/app/components/AddCategoryModal";
+import EditCategoryModal from "@/app/components/EditCategoryModal";
+import DeleteConfirmationModal from "@/app/components/DeleteConfirmationModal";
+import CategoryDetailModal from "@/app/components/CategoryDetailModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -360,7 +360,7 @@ export default function CategoriesManagement() {
                         />
                       </div>
                       <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
-                        #{String(category.category_id).slice(-4)}
+                      #{index + 1}
                       </div>
                     </div>
 
@@ -431,16 +431,20 @@ export default function CategoriesManagement() {
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Category
+                    ID
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    ID
+                    Category Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                    Image
                   </th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">
                     Actions
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filteredCategories.length > 0 ? (
                   filteredCategories.map((category, index) => (
@@ -452,32 +456,37 @@ export default function CategoriesManagement() {
                       transition={{ delay: index * 0.05, duration: 0.3 }}
                       whileHover={{ scale: 1.01 }}
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
-                            <Image
-                              src={
-                                category.image ||
-                                "/placeholder.svg?height=48&width=48"
-                              }
-                              alt={category.category_name}
-                              width={48}
-                              height={48}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                              {category.category_name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+                      {/* ID */}
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg">
-                          #{String(category.category_id).slice(-6)}
+                          #{index + 1}
                         </span>
                       </td>
+
+                      {/* Category Name */}
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900 dark:text-white text-lg">
+                          {category.category_name}
+                        </div>
+                      </td>
+
+                      {/* Image */}
+                      <td className="px-6 py-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
+                          <Image
+                            src={
+                              category.image ||
+                              "/placeholder.svg?height=48&width=48"
+                            }
+                            alt={category.category_name}
+                            width={48}
+                            height={48}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      </td>
+
+                      {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end space-x-2">
                           <motion.button
@@ -491,6 +500,7 @@ export default function CategoriesManagement() {
                           >
                             <Eye className="w-4 h-4" />
                           </motion.button>
+
                           <motion.button
                             onClick={() => handleEditCategory(category)}
                             className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
@@ -499,6 +509,7 @@ export default function CategoriesManagement() {
                           >
                             <Edit className="w-4 h-4" />
                           </motion.button>
+
                           <motion.button
                             onClick={() =>
                               handleDeleteItem(String(category.category_id))
@@ -515,7 +526,7 @@ export default function CategoriesManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-6 py-20 text-center">
+                    <td colSpan={4} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <ChefHat className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
