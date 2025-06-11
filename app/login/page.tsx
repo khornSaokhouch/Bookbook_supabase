@@ -138,7 +138,7 @@ export default function LoginPage() {
               Welcome back!
             </h1>
             <p className="text-gray-600 dark:text-gray-300 text-base">
-              We're so happy to see you again! ✨
+              We are so happy to see you again! ✨
             </p>
           </motion.div>
 
@@ -222,7 +222,7 @@ export default function LoginPage() {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <span>Let's go!</span>
+                  <span>Let is go!</span>
                   <Sparkles className="ml-2 h-5 w-5" />
                 </div>
               )}

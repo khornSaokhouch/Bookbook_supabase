@@ -10,7 +10,6 @@ import {
   Search,
   Grid3X3,
   List,
-  ChefHat,
   Calendar,
   Tag,
   Plus,
@@ -30,6 +29,7 @@ import {
   DialogFooter,
 } from "@/app/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 interface Recipe {
   recipe_id: string;
@@ -479,13 +479,16 @@ export default function RecipeManagement() {
                   >
                     <div className="relative mb-4">
                       <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                      <img
-                            src={recipe.image_url}
+                        <div className="relative w-full h-24 rounded-xl overflow-hidden">
+                          <Image
+                            src={recipe.image_url || "/placeholder-image.png"} // Fallback image
                             alt={recipe.recipe_name}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                             loading="lazy"
                             decoding="async"
                           />
+                        </div>
                       </div>
                       <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
                         #{index + 1}
@@ -619,12 +622,14 @@ export default function RecipeManagement() {
                       {/* Image */}
                       <td className="px-6 py-4">
                         <div className="w-14 h-14 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
-                          <img
+                          <Image
                             src={recipe.image_url || "/placeholder-image.png"} // Fallback image
                             alt={recipe.recipe_name}
                             className="w-full h-full object-cover"
                             loading="lazy"
                             decoding="async"
+                            width={56}
+                            height={56}
                           />
                         </div>
                       </td>

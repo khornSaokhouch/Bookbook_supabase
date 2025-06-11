@@ -80,7 +80,6 @@ interface Recipe {
   reviews: Review[];
 }
 
-
 interface User {
   user_id: string;
   user_name: string;
@@ -118,8 +117,6 @@ async function getRecipeById(
     return null;
   }
 }
-
-
 
 const formatTime = (minutes?: number) => {
   if (
@@ -218,8 +215,8 @@ const shapeRecipeData = (data: RecipeDataFromDB): Recipe => {
     instructions: data.instructions || "No instructions provided.",
     prep_time: parseTime(data.prep_time),
     cook_time: parseTime(data.cook_time),
-   image_url: data.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
-image_urls: data.image_recipe?.map((img) => img.image_url) || [],
+    image_url: data.image_recipe?.[0]?.image_url || "/default-recipe.jpg",
+    image_urls: data.image_recipe?.map((img) => img.image_url) || [],
 
     overview: data.overview || "No overview provided.",
     note: data.note || "No special notes.",
@@ -299,9 +296,6 @@ const DetailsPage: React.FC = () => {
 
     fetchRecipe();
   }, [id, recipeId]);
-
-  console.log("Recipe data:", recipe);
-  
 
   const totalTime = (recipe?.prep_time || 0) + (recipe?.cook_time || 0);
 
@@ -384,19 +378,19 @@ const DetailsPage: React.FC = () => {
         {/* Hero Section */}
         <div className="relative mb-12">
           <div className="relative overflow-hidden rounded-3xl shadow-2xl">
-           {recipe && (
-  <div className="relative overflow-hidden rounded-3xl shadow-2xl mb-8">
-    <Image
-      src={recipe.image_url || "/placeholder.svg"}
-      alt={recipe.recipe_name}
-      width={1200}
-      height={600}
-      unoptimized
-      className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
-    />
-  </div>
-)}
-
+            {recipe && (
+              <div className="relative overflow-hidden rounded-3xl shadow-2xl mb-8">
+                <Image
+                  src={recipe.image_url || "/placeholder.svg"}
+                  alt={recipe.recipe_name}
+                  width={1200}
+                  height={600}
+                  unoptimized
+                  className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
+                  priority
+                />
+              </div>
+            )}
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 via-pink-600/20 to-purple-600/20"></div>
@@ -431,9 +425,6 @@ const DetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-
-  
 
         {/* Time Cards */}
         <motion.div
@@ -564,7 +555,7 @@ const DetailsPage: React.FC = () => {
           </motion.section>
         </div>
 
-      {/* <motion.section
+        {/* <motion.section
   className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8"
   initial={{ y: 50, opacity: 0 }}
   animate={{ y: 0, opacity: 1 }}
@@ -597,13 +588,9 @@ const DetailsPage: React.FC = () => {
   )}
 </motion.section> */}
 
- <div>
-      <RecipeGallery recipe={recipe} />
-    </div>
-
-
-
-      
+        <div>
+          <RecipeGallery recipe={recipe} />
+        </div>
 
         <motion.section
           className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8"

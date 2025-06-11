@@ -258,7 +258,7 @@ export default function ProfilePage() {
                 className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-200 backdrop-blur-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => router.push(`/profile/edit/${user.user_id}`)}
+                onClick={() => router.push(`/profile/${user.user_id}/edit-profile`)}
               >
                 <Edit3 className="h-4 w-4" />
               </motion.button>
@@ -333,14 +333,6 @@ export default function ProfilePage() {
                   <Heart className="h-5 w-5 text-pink-500 mr-2" />
                   About Me
                 </h3>
-                <motion.button
-                  className="text-violet-500 hover:text-violet-600 p-2 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-200"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push(`/profile/edit/${user.user_id}`)}
-                >
-                  <Edit3 className="h-4 w-4" />
-                </motion.button>
               </div>
 
               <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/10 dark:to-indigo-900/10 p-6 rounded-xl border border-violet-100 dark:border-violet-800/50">
@@ -421,31 +413,7 @@ export default function ProfilePage() {
               </motion.div>
             </motion.div>
 
-            {/* Quick Actions */}
-            <motion.div
-              className="mt-8 flex flex-wrap gap-3 justify-center"
-              variants={itemVariants}
-            >
-              <motion.button
-                className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push(`/profile/edit/${user.user_id}`)}
-              >
-                <Edit3 className="h-4 w-4 mr-2 inline" />
-                Edit Profile
-              </motion.button>
-
-              <motion.button
-                className="px-6 py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium shadow-lg hover:shadow-xl border border-gray-200 dark:border-gray-600 transition-all duration-300"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push("/profile/my-recipes")}
-              >
-                <Coffee className="h-4 w-4 mr-2 inline" />
-                My Recipes
-              </motion.button>
-            </motion.div>
+          
           </div>
         </motion.div>
       </div>

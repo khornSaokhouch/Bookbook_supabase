@@ -36,7 +36,7 @@ const OccasionDetailModal: React.FC<OccasionDetailModalProps> = ({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex justify-center items-center bg-opacity-50"
+      className="fixed inset-0 z-50 flex justify-center items-center  bg-opacity-50"
       variants={backdropVariants}
       initial="hidden"
       animate="visible"

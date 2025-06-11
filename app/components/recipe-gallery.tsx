@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image"
-import { X, ZoomIn } from "lucide-react"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { X, ZoomIn } from "lucide-react";
 
 interface RecipeGalleryProps {
   recipe: {
-    image_urls?: string[]
-  }
+    image_urls?: string[];
+  };
 }
 
 export default function Component({ recipe }: RecipeGalleryProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (!recipe.image_urls || recipe.image_urls.length <= 1) {
-    return null
+    return null;
   }
 
   return (
@@ -111,8 +111,8 @@ export default function Component({ recipe }: RecipeGalleryProps) {
                 alt="Recipe image enlarged"
                 width={800}
                 height={600}
-                unoptimized
                 className="w-full h-auto object-contain rounded-2xl shadow-2xl"
+                priority // Add the priority property
               />
 
               <button
@@ -126,5 +126,5 @@ export default function Component({ recipe }: RecipeGalleryProps) {
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

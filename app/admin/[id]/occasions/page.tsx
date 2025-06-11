@@ -1,5 +1,5 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import Image from "next/image";
@@ -24,17 +24,15 @@ import {
   Gift,
 } from "lucide-react";
 
-type Occasion = {
-  occasion_id: number;
+interface Occasion {
+  occasion_id: string;
   name: string;
-  occasion_image: string | null;
+  occasion_image: string;
   category_id: number;
-  category?: {
-    category_name: string;
-  } | null;
-};
+  category: { category_name: string } | null;
+}
 
-export default function OccasionsManagement() {
+export default function RecipeManagement() {
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [filteredOccasions, setFilteredOccasions] = useState<Occasion[]>([]);
   const [showAddOccasionModal, setShowAddOccasionModal] = useState(false);
@@ -83,51 +81,64 @@ export default function OccasionsManagement() {
   const fetchOccasions = async () => {
     setLoading(true);
     setError(null);
-  
-    try {
-      const { data, error } = await supabase
-        .from<Occasion>("occasion")
-        .select(`
-          occasion_id,
-          name,
-          occasion_image,
-          category_id,
-          category:category_id (category_name)
-        `)
-        .order("occasion_id", { ascending: false });
-  
-      if (error) {
-        console.error("Supabase error:", error);
-        setError(error.message);
-        setOccasions([]);
-        return;
-      }
-  
-      if (data) {
-        setOccasions(data);
-      } else {
-        setOccasions([]);
-      }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      setError("Error fetching occasions");
-      setOccasions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
+    try {
+        const { data, error } = await supabase
+            .from("occasion")
+            .select(
+                `
+              occasion_id,
+              name,
+              occasion_image,
+              category_id,
+              category (category_name)
+            `
+            );
+
+        if (error) {
+            console.error("Supabase error:", error);
+            setError(error.message);
+            setOccasions([]);
+            return;
+        }
+
+        if (data) {
+            const typedData: Occasion[] = data.map(item => ({
+            
+                occasion_id: String((item as any).occasion_id),
+                name: (item as any).name,
+                occasion_image: (item as any).occasion_image,
+                category_id: (item as any).category_id,
+          
+                category: (item as any).category
+                    ? { category_name: (item as any).category.category_name }
+                    : null,
+            }));
+
+            setOccasions(typedData);
+        } else {
+            setOccasions([]);
+        }
+    } catch (err: unknown) {
+        console.error("Unexpected error:", err);
+        setError("Error fetching occasions");
+        setOccasions([]);
+    } finally {
+        setLoading(false);
+    }
+};
   const deleteOccasion = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("occasion")
-        .delete()
-        .eq("occasion_id", id);
+      const { error } = await supabase.from("occasion").delete().eq("occasion_id", id);
       if (error) throw error;
       setSuccessMessage("Occasion deleted successfully!");
       fetchOccasions();
-    } catch (error) {
-      setError(`Error deleting occasion: ${(error as Error).message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(`Error deleting occasion: ${error.message}`);
+      } else {
+        setError("Error deleting occasion: An unexpected error occurred.");
+      }
     }
   };
 
@@ -224,7 +235,7 @@ export default function OccasionsManagement() {
                   {occasions.length}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -378,7 +389,7 @@ export default function OccasionsManagement() {
                         <Image
                           src={
                             occasion.occasion_image ||
-                            "/placeholder.svg?height=80&width=80"
+                            "/default-recipe.jpg"
                           }
                           alt={occasion.name}
                           width={80}
@@ -503,7 +514,7 @@ export default function OccasionsManagement() {
                       <td className="px-6 py-4">
                         <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
                           <Image
-                            src={occasion.occasion_image || "/placeholder.svg"}
+                            src={occasion.occasion_image || "/default-recipe.jpg"}
                             alt={occasion.name}
                             width={48}
                             height={48}

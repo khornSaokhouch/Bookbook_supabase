@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +69,34 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData() {
+    try {
+      setLoading(true);
+  
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+  
+      if (error || !user) throw error || new Error("User not found");
+  
+      setEmail(user.email ?? "");  // Use nullish coalescing
+  
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+  
   const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -282,11 +310,9 @@ export default function ResetPasswordPage() {
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="email"
-                        className="w-full pl-10 pr-4 py-3  bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)} // updates email state here
-                        placeholder="Enter your email"
-                        required
+                        readOnly
+                        className="w-full pl-10 pr-12 py-3 bg-gray-200 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none   transition-all duration-200 cursor-not-allowed text-gray-500"
                       />
                     </div>
                   </motion.div>

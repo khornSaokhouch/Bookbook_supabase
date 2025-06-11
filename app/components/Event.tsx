@@ -155,9 +155,13 @@ export default function EventsPage() {
                       <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center animate-pulse">
                         🔴 LIVE NOW!
                       </div>
-                    ) : (
+                    ) : isUpcoming(event.start_date) ? (
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
                         ✨ Upcoming
+                      </div>
+                    ) : (
+                      <div className="bg-gradient-to-r from-gray-400 to-gray-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
+                        📅 Past
                       </div>
                     )}
                   </div>

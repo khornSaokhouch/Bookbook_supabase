@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -29,7 +29,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
   const [occasionName, setOccasionName] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>("");
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
   }, [occasion]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null; // Use optional chaining
+    const file = e.target.files?.[0] || null;
 
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -52,17 +52,17 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
 
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
-      setError(null); // Clear any previous errors
+      setError(null);
     } else {
       setImageFile(null);
-      setImagePreview(occasion?.occasion_image || ""); // Reset to original if available
+      setImagePreview(occasion?.occasion_image || "");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null); // Clear any previous errors
+    setError(null);
 
     if (!occasion) {
       setError("No occasion data to update.");
@@ -70,16 +70,14 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
       return;
     }
 
-    let imageUrl: string | null = occasion.occasion_image; // Default to current image if no new image is uploaded
+    let imageUrl: string | null = occasion.occasion_image;
 
     if (imageFile) {
       try {
-        // Generate a unique file name for the new image
         const fileName = `${uuidv4()}-${imageFile.name}`;
 
-        // Upload the new image to Supabase Storage
         const { error: uploadError } = await supabase.storage
-          .from("occasion") // Make sure to use your correct bucket name
+          .from("occasion") // Use your correct bucket name
           .upload(fileName, imageFile, {
             cacheControl: "3600",
             upsert: false,
@@ -92,9 +90,8 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
           return;
         }
 
-        // Get the public URL of the uploaded image
         imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/occasion/${fileName}`;
-      } catch (error: unknown) { // Change type to 'unknown'
+      } catch (error: unknown) {
         console.error("Error uploading image:", error);
         setError(
           error instanceof Error
@@ -107,7 +104,7 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
     }
 
     try {
-      const {  error } = await supabase
+      const { error } = await supabase
         .from("occasion")
         .update({ name: occasionName, occasion_image: imageUrl })
         .eq("occasion_id", occasion.occasion_id);
@@ -119,9 +116,9 @@ const EditOccasionModal: React.FC<EditOccasionModalProps> = ({
         return;
       }
 
-      onOccasionUpdated(); // Refresh the list of occasions
-      onClose(); // Close the modal
-    } catch (error: unknown) { // Change type to 'unknown'
+      onOccasionUpdated();
+      onClose();
+    } catch (error: unknown) {
       console.error("Error updating category:", error);
       setError(
         error instanceof Error
