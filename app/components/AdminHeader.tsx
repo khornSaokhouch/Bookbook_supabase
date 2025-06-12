@@ -2,10 +2,18 @@
 
 import React from "react";
 import Image from "next/image";
-import { Menu } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
-import ProfileDropdown from "./ProfileDropdown"; // Import ProfileDropdown
+import ProfileDropdown from "./ProfileDropdown";
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
 
 interface AdminHeaderProps {
   onMobileMenuClick: () => void;
@@ -18,12 +26,11 @@ interface AdminHeaderProps {
   adminImageUrl: string | null;
   adminEmail: string | null;
   onLogoutClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
   sidebarCollapsed: boolean;
-  setSidebarCollapsed: (collapsed: boolean) => void;
-  isLayoutReady: boolean;
-  userId: string | null; // Add userId to the props
+  userId: string | null;
+  notifications?: Notification[];
+  unreadCount?: number;
+  onNotificationsClick?: () => void;
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({
@@ -37,6 +44,11 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   adminImageUrl,
   adminEmail,
   onLogoutClick,
+  sidebarCollapsed,
+  userId,
+  notifications = [],
+  unreadCount = 0,
+  onNotificationsClick = () => {},
 }) => {
   const getInitials = (email: string | null, name: string | null) => {
     if (name) {
@@ -52,10 +64,9 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   const { id } = useParams() as { id?: string | string[] };
   const normalizedId = Array.isArray(id) ? id[0] : id ?? null;
 
-  // Convert Supabase storage path to public URL
   const getPublicUrl = (path: string | null) => {
     if (!path) return null;
-    if (path.startsWith("http")) return path; // already a full URL
+    if (path.startsWith("http")) return path;
     const { data } = supabase.storage.from("image-user").getPublicUrl(path);
     return data.publicUrl;
   };
@@ -97,17 +108,33 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         />
       </div>
 
-      {/* Profile */}
-      {normalizedId && (
-        <ProfileDropdown
-          adminImageUrl={imageUrl}
-          adminName={adminName}
-          adminEmail={adminEmail}
-          onLogoutClick={onLogoutClick}
-          id={normalizedId}
-          initials={initials}
-        />
-      )}
+      {/* Notifications and Profile */}
+      <div className="flex items-center space-x-4">
+        {/* Notifications Icon */}
+        <button
+          onClick={onNotificationsClick}
+          className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        {/* Profile */}
+        {normalizedId && (
+          <ProfileDropdown
+            adminImageUrl={imageUrl}
+            adminName={adminName}
+            adminEmail={adminEmail}
+            onLogoutClick={onLogoutClick}
+            id={normalizedId}
+            initials={initials}
+          />
+        )}
+      </div>
     </header>
   );
 };
