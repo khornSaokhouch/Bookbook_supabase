@@ -13,6 +13,7 @@ interface EventsLayoutProps {
 export default function EventsLayout({ children, params }: EventsLayoutProps) {
   const [adminName, setAdminName] = useState("");
 
+
   useEffect(() => {
     const fetchAdminData = async () => {
       const {

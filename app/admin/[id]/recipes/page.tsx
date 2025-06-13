@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/app/lib/supabaseClient";
-import { Button } from "../../../components/ui/button";
+import { useEffect, useState, useCallback } from "react"
+import { supabase } from "@/app/lib/supabaseClient"
+import { Button } from "../../../components/ui/button"
 import {
   Trash2,
   CheckCircle,
@@ -13,13 +13,11 @@ import {
   Calendar,
   Tag,
   Plus,
-  Edit,
-  Eye,
   Filter,
   BookOpen,
   TrendingUp,
   Clock,
-} from "lucide-react";
+} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -27,165 +25,158 @@ import {
   DialogDescription,
   DialogHeader,
   DialogFooter,
-} from "@/app/components/ui/dialog";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+} from "@/app/components/ui/dialog"
+import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 
 interface Recipe {
-  recipe_id: string;
-  recipe_name: string;
-  category_id: string;
-  occasion_id: string;
-  created_at: string;
-  image_url?: string | null;
+  recipe_id: string
+  recipe_name: string
+  category_id: string
+  occasion_id: string
+  created_at: string
+  image_url?: string | null
+  user_id?: string
+  user_name?: string
 }
 
 interface Category {
-  category_id: string;
-  category_name: string;
+  category_id: string
+  category_name: string
 }
 
 interface Occasion {
-  occasion_id: string;
-  name: string;
+  occasion_id: string
+  name: string
 }
 
 export default function RecipeManagement() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [occasions, setOccasions] = useState<Occasion[]>([]);
-  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [occasionFilter, setOccasionFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-  const [loading, setLoading] = useState(true);
+  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [occasions, setOccasions] = useState<Occasion[]>([])
+  const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [categoryFilter, setCategoryFilter] = useState<string>("all")
+  const [occasionFilter, setOccasionFilter] = useState<string>("all")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
-  console.log("Recipes:", recipes);
+  console.log("Recipes:", recipes)
 
   useEffect(() => {
     if (successMessage || error) {
       const timer = setTimeout(() => {
-        setSuccessMessage(null);
-        setError(null);
-      }, 4000);
-      return () => clearTimeout(timer);
+        setSuccessMessage(null)
+        setError(null)
+      }, 4000)
+      return () => clearTimeout(timer)
     }
-  }, [successMessage, error]);
+  }, [successMessage, error])
 
   const filterRecipes = useCallback(() => {
-    let filtered = recipes;
+    let filtered = recipes
 
     if (searchTerm) {
-      filtered = filtered.filter((recipe) =>
-        recipe.recipe_name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter((recipe) => recipe.recipe_name.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
     if (categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (recipe) => recipe.category_id === categoryFilter
-      );
+      filtered = filtered.filter((recipe) => recipe.category_id === categoryFilter)
     }
 
     if (occasionFilter !== "all") {
-      filtered = filtered.filter(
-        (recipe) => recipe.occasion_id === occasionFilter
-      );
+      filtered = filtered.filter((recipe) => recipe.occasion_id === occasionFilter)
     }
 
-    setFilteredRecipes(filtered);
-  }, [recipes, searchTerm, categoryFilter, occasionFilter]);
+    setFilteredRecipes(filtered)
+  }, [recipes, searchTerm, categoryFilter, occasionFilter])
 
   useEffect(() => {
-    filterRecipes();
-  }, [filterRecipes]);
+    filterRecipes()
+  }, [filterRecipes])
 
   async function fetchData() {
     try {
-      setLoading(true);
+      setLoading(true)
 
-      const [recipesResult, categoriesResult, occasionsResult] =
-        await Promise.all([
-          supabase
-            .from("recipe")
-            .select(
-              `
-            recipe_id,
-            recipe_name,
-            category_id,
-            occasion_id,
-            created_at,
-            image_recipe:image_recipe(image_url)
-          `
-            )
-            .order("created_at", { ascending: false }),
+      const [recipesResult, categoriesResult, occasionsResult] = await Promise.all([
+        supabase
+          .from("recipe")
+          .select(
+            `
+          recipe_id,
+          recipe_name,
+          category_id,
+          occasion_id,
+          created_at,
+          user_id,
+          users(user_name),
+          image_recipe:image_recipe(image_url)
+        `,
+          )
+          .order("created_at", { ascending: false }),
 
-          supabase.from("category").select("category_id, category_name"),
-          supabase.from("occasion").select("occasion_id, name"),
-        ]);
+        supabase.from("category").select("category_id, category_name"),
+        supabase.from("occasion").select("occasion_id, name"),
+      ])
 
-      if (recipesResult.error) throw recipesResult.error;
-      if (categoriesResult.error) throw categoriesResult.error;
-      if (occasionsResult.error) throw occasionsResult.error;
+      if (recipesResult.error) throw recipesResult.error
+      if (categoriesResult.error) throw categoriesResult.error
+      if (occasionsResult.error) throw occasionsResult.error
 
-      // Optional: extract the first image only
-      const recipesWithImages = recipesResult.data.map((recipe) => ({
+      // Process recipes with images and user information
+      const recipesWithData = recipesResult.data.map((recipe) => ({
         ...recipe,
         image_url: recipe.image_recipe?.[0]?.image_url ?? null,
-      }));
+        user_name: recipe.users?.user_name || "Unknown User",
+      }))
 
-      setRecipes(recipesWithImages);
-      setCategories(categoriesResult.data || []);
-      setOccasions(occasionsResult.data || []);
+      setRecipes(recipesWithData)
+      setCategories(categoriesResult.data || [])
+      setOccasions(occasionsResult.data || [])
     } catch (error) {
-      setError(`Error fetching data: ${(error as Error).message}`);
+      setError(`Error fetching data: ${(error as Error).message}`)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function deleteRecipe() {
     if (!selectedRecipe) {
-      setError("No recipe selected for deletion.");
-      return;
+      setError("No recipe selected for deletion.")
+      return
     }
 
     try {
-      const { error } = await supabase
-        .from("recipe")
-        .delete()
-        .eq("recipe_id", selectedRecipe);
+      const { error } = await supabase.from("recipe").delete().eq("recipe_id", selectedRecipe)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setRecipes(
-        recipes.filter((recipe) => recipe.recipe_id !== selectedRecipe)
-      );
-      setIsDeleteModalOpen(false);
-      setSuccessMessage("Recipe deleted successfully!");
+      setRecipes(recipes.filter((recipe) => recipe.recipe_id !== selectedRecipe))
+      setIsDeleteModalOpen(false)
+      setSuccessMessage("Recipe deleted successfully!")
     } catch (error) {
-      setError(`Error deleting recipe: ${(error as Error).message}`);
+      setError(`Error deleting recipe: ${(error as Error).message}`)
     }
   }
 
   const getCategoryName = (categoryId: string) => {
-    const category = categories.find((cat) => cat.category_id === categoryId);
-    return category?.category_name || "Unknown";
-  };
+    const category = categories.find((cat) => cat.category_id === categoryId)
+    return category?.category_name || "Unknown"
+  }
 
   const getOccasionName = (occasionId: string) => {
-    const occasion = occasions.find((occ) => occ.occasion_id === occasionId);
-    return occasion?.name || "Unknown";
-  };
+    const occasion = occasions.find((occ) => occ.occasion_id === occasionId)
+    return occasion?.name || "Unknown"
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -193,17 +184,17 @@ export default function RecipeManagement() {
       opacity: 1,
       transition: { duration: 0.6, staggerChildren: 0.1 },
     },
-  };
+  }
 
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.9 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-  };
+  }
 
   if (loading) {
     return (
@@ -215,15 +206,11 @@ export default function RecipeManagement() {
               <BookOpen className="w-8 h-8 text-orange-500" />
             </div>
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-            Loading Recipes
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Preparing your recipe collection...
-          </p>
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Loading Recipes</h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Preparing your recipe collection...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -243,9 +230,7 @@ export default function RecipeManagement() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Recipe Management
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage and organize your recipe collection
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage and organize your recipe collection</p>
           </div>
         </div>
 
@@ -258,12 +243,8 @@ export default function RecipeManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                  Total Recipes
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {recipes.length}
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Recipes</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{recipes.length}</p>
               </div>
               <div className="p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl">
                 <BookOpen className="w-6 h-6 text-white" />
@@ -278,12 +259,8 @@ export default function RecipeManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                  Categories
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {categories.length}
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Categories</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{categories.length}</p>
               </div>
               <div className="p-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl">
                 <Tag className="w-6 h-6 text-white" />
@@ -298,12 +275,8 @@ export default function RecipeManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                  Occasions
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {occasions.length}
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Occasions</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{occasions.length}</p>
               </div>
               <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                 <Calendar className="w-6 h-6 text-white" />
@@ -318,17 +291,9 @@ export default function RecipeManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-                  This Month
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">This Month</p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {
-                    recipes.filter(
-                      (recipe) =>
-                        new Date(recipe.created_at).getMonth() ===
-                        new Date().getMonth()
-                    ).length
-                  }
+                  {recipes.filter((recipe) => new Date(recipe.created_at).getMonth() === new Date().getMonth()).length}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
@@ -366,10 +331,7 @@ export default function RecipeManagement() {
               >
                 <option value="all">All Categories</option>
                 {categories.map((category) => (
-                  <option
-                    key={category.category_id}
-                    value={category.category_id}
-                  >
+                  <option key={category.category_id} value={category.category_id}>
                     {category.category_name}
                   </option>
                 ))}
@@ -385,10 +347,7 @@ export default function RecipeManagement() {
               >
                 <option value="all">All Occasions</option>
                 {occasions.map((occasion) => (
-                  <option
-                    key={occasion.occasion_id}
-                    value={occasion.occasion_id}
-                  >
+                  <option key={occasion.occasion_id} value={occasion.occasion_id}>
                     {occasion.name}
                   </option>
                 ))}
@@ -518,27 +477,33 @@ export default function RecipeManagement() {
                           {new Date(recipe.created_at).toLocaleDateString()}
                         </span>
                       </div>
+                      <div className="flex items-center justify-center">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-1"
+                          >
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                          Published by {recipe.user_name || "Unknown"}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex justify-center gap-2">
                       <motion.button
-                        className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </motion.button>
-                      <motion.button
-                        className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </motion.button>
-                      <motion.button
                         onClick={() => {
-                          setSelectedRecipe(recipe.recipe_id);
-                          setIsDeleteModalOpen(true);
+                          setSelectedRecipe(recipe.recipe_id)
+                          setIsDeleteModalOpen(true)
                         }}
                         className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                         whileHover={{ scale: 1.05 }}
@@ -553,13 +518,9 @@ export default function RecipeManagement() {
             ) : (
               <div className="text-center py-20">
                 <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No recipes found
-                </h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No recipes found</h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {searchTerm ||
-                  categoryFilter !== "all" ||
-                  occasionFilter !== "all"
+                  {searchTerm || categoryFilter !== "all" || occasionFilter !== "all"
                     ? "Try adjusting your search or filter criteria."
                     : "Get started by adding your first recipe."}
                 </p>
@@ -579,27 +540,14 @@ export default function RecipeManagement() {
             <table className="w-full text-left text-sm font-sans">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    ID
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    Image
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    Name
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    Category
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    Occasion
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    Created
-                  </th>
-                  <th className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">
-                    Actions
-                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">ID</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Image</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Name</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Category</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Occasion</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Published by</th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white">Created</th>
+                  <th className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -635,9 +583,7 @@ export default function RecipeManagement() {
                       </td>
 
                       {/* Name */}
-                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">
-                        {recipe.recipe_name}
-                      </td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">{recipe.recipe_name}</td>
 
                       {/* Category */}
                       <td className="px-6 py-4">
@@ -655,18 +601,37 @@ export default function RecipeManagement() {
                         </span>
                       </td>
 
+                      {/* Published by */}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md select-none">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-1"
+                          >
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                          {recipe.user_name || "Unknown"}
+                        </span>
+                      </td>
+
                       {/* Created */}
                       <td className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400 flex items-center space-x-2">
                         <Clock className="w-4 h-4" />
                         <span>
-                          {new Date(recipe.created_at).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            }
-                          )}
+                          {new Date(recipe.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
                         </span>
                       </td>
 
@@ -674,25 +639,9 @@ export default function RecipeManagement() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <motion.button
-                            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            aria-label="View recipe"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
-                            className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            aria-label="Edit recipe"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
                             onClick={() => {
-                              setSelectedRecipe(recipe.recipe_id);
-                              setIsDeleteModalOpen(true);
+                              setSelectedRecipe(recipe.recipe_id)
+                              setIsDeleteModalOpen(true)
                             }}
                             className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                             whileHover={{ scale: 1.05 }}
@@ -707,16 +656,12 @@ export default function RecipeManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center">
+                    <td colSpan={8} className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                          No recipes found
-                        </h3>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">No recipes found</h3>
                         <p className="text-gray-500 dark:text-gray-400 max-w-xs">
-                          {searchTerm ||
-                          categoryFilter !== "all" ||
-                          occasionFilter !== "all"
+                          {searchTerm || categoryFilter !== "all" || occasionFilter !== "all"
                             ? "Try adjusting your search or filter criteria."
                             : "Get started by adding your first recipe."}
                         </p>
@@ -737,13 +682,10 @@ export default function RecipeManagement() {
             <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
               <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-              Delete Recipe
-            </DialogTitle>
+            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">Delete Recipe</DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-400 mt-2">
-              Are you sure you want to delete this recipe? This action cannot be
-              undone and will permanently remove the recipe from your
-              collection.
+              Are you sure you want to delete this recipe? This action cannot be undone and will permanently remove the
+              recipe from your collection.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-3 pt-4">
@@ -766,5 +708,5 @@ export default function RecipeManagement() {
         </DialogContent>
       </Dialog>
     </motion.div>
-  );
+  )
 }

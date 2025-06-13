@@ -1,58 +1,64 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, EffectFade } from "swiper/modules";
-import { supabase } from "@/app/lib/supabaseClient";
-import { Calendar, ArrowRight, Sparkles, Star, Play } from "lucide-react";
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
+import { useEffect, useState } from "react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { Autoplay, Pagination, EffectFade } from "swiper/modules"
+import { supabase } from "@/app/lib/supabaseClient"
+import { Calendar, ArrowRight, Sparkles, Star, Play } from "lucide-react"
+import "swiper/css"
+import "swiper/css/pagination"
+import "swiper/css/effect-fade"
 
 type Event = {
-  event_id: number;
-  title: string;
-  image_url: string;
-};
+  event_id: number
+  title: string
+  image_url: string
+  start_date?: string
+  end_date?: string
+}
 
 const DEFAULT_EVENT: Event = {
   event_id: 0,
   title: "Stay Tuned for Amazing Events!",
   image_url: "/placeholder.svg?height=500&width=1200",
-};
+}
 
 export default function BannerSwiper() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchEvents = async () => {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
-      const now = new Date().toISOString();
+      // Get current date for reference
+      const now = new Date().toISOString()
+
+      // Fetch only current events (where now is between start_date and end_date)
       const { data, error } = await supabase
         .from("event")
-        .select("event_id, title, image_url")
-        .gte("start_date", now)
-        .order("start_date", { ascending: true });
+        .select("event_id, title, image_url, start_date, end_date")
+        .lte("start_date", now) // start_date is less than or equal to now (event has started)
+        .gte("end_date", now) // end_date is greater than or equal to now (event hasn't ended)
+        .order("start_date", { ascending: false }) // Show newest events first
 
       if (error) {
-        setError("Failed to load events.");
-        console.error("Supabase error:", error.message);
+        setError("Failed to load events.")
+        console.error("Supabase error:", error.message)
         // Use default event even on error
-        setEvents([DEFAULT_EVENT]);
+        setEvents([DEFAULT_EVENT])
       } else {
-        // If no upcoming events, show default event
-        setEvents(data && data.length > 0 ? data : [DEFAULT_EVENT]);
+        // If no events, show default event
+        setEvents(data && data.length > 0 ? data : [DEFAULT_EVENT])
       }
 
-      setLoading(false);
-    };
+      setLoading(false)
+    }
 
-    fetchEvents();
-  }, []);
+    fetchEvents()
+  }, [])
 
   if (loading) {
     return (
@@ -66,24 +72,16 @@ export default function BannerSwiper() {
         <div className="flex items-center justify-center h-full">
           <div className="text-center text-white">
             <Sparkles className="h-12 w-12 text-yellow-400 animate-spin mx-auto mb-4" />
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
-              Loading Events...
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Loading Events...</h2>
             <div className="flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-              <div
-                className="w-2 h-2 bg-white rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-white rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -93,16 +91,17 @@ export default function BannerSwiper() {
           <div className="text-center text-white max-w-md mx-auto px-6">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
               <Calendar className="h-12 w-12 text-red-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold mb-2">
-                Oops! Something went wrong
-              </h2>
+              <h2 className="text-xl font-bold mb-2">Oops! Something went wrong</h2>
               <p className="text-white/80 text-sm">{error}</p>
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
+
+  // Check if we have any events to display
+  const hasEvents = events.length > 0 && events[0].event_id !== 0
 
   return (
     <div className="relative w-full">
@@ -118,8 +117,7 @@ export default function BannerSwiper() {
         pagination={{
           clickable: true,
           bulletClass: "swiper-pagination-bullet !bg-white/60 !w-3 !h-3 !mx-1",
-          bulletActiveClass:
-            "swiper-pagination-bullet-active !bg-white !scale-125",
+          bulletActiveClass: "swiper-pagination-bullet-active !bg-white !scale-125",
         }}
         effect="fade"
         fadeEffect={{ crossFade: true }}
@@ -133,9 +131,7 @@ export default function BannerSwiper() {
               <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                 style={{
-                  backgroundImage: `url(${
-                    event.image_url || "/placeholder.svg?height=500&width=1200"
-                  })`,
+                  backgroundImage: `url(${event.image_url || "/placeholder.svg?height=500&width=1200"})`,
                 }}
               />
 
@@ -274,5 +270,5 @@ export default function BannerSwiper() {
         }
       `}</style>
     </div>
-  );
+  )
 }
