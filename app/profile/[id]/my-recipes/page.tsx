@@ -264,8 +264,7 @@ export default function MyRecipesPage() {
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push(`/${user_id}/add-recipe`)}
-
+            onClick={() => router.push("/recipe/create")}
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Recipe

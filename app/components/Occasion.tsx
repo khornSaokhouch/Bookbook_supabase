@@ -120,7 +120,7 @@ export default function OccasionPage() {
           </p>
         </div>
       </div>
-<div className="max-w-9xl mx-auto px-20 py-8">
+<div className="max-w-9xl mx-auto px-16 py-8">
       {/* Search Section (Unchanged) */}
       <div className="mb-8">
         <div className="relative max-w-md mx-auto">
@@ -140,7 +140,7 @@ export default function OccasionPage() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Occasions Sidebar (Unchanged) */}
-        <div className="lg:w-1/3">
+        <div className="lg:w-1/4">
           <div className="sticky top-8">
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6">
               <div className="flex items-center mb-6">
