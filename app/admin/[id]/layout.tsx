@@ -6,6 +6,12 @@ import { supabase } from "../../lib/supabaseClient";
 import { motion } from "framer-motion";
 import AdminSidebar from "@/app/components/AdminSlideBa";
 import AdminHeader from "../../components/AdminHeader";
+import { Noto_Sans_Khmer } from "next/font/google";
+
+const notoSansKhmer = Noto_Sans_Khmer({
+  subsets: ["khmer"],
+  weight: ["400", "700"],
+});
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -143,91 +149,87 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <motion.div
-      className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-300"
-      variants={layoutVariants}
-      initial="hidden"
-      animate={isLayoutReady ? "visible" : "hidden"}
-    >
-      {/* Sidebar Component */}
-      <AdminSidebar
-        userId={userId}
+    className={`h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-300 ${notoSansKhmer.className}`}
+    variants={layoutVariants}
+    initial="hidden"
+    animate={isLayoutReady ? "visible" : "hidden"}
+  >
+    {/* Sidebar Component */}
+    <AdminSidebar
+      userId={userId}
+      sidebarOpen={sidebarOpen}
+      setSidebarOpen={setSidebarOpen}
+      sidebarCollapsed={sidebarCollapsed}
+      setSidebarCollapsed={setSidebarCollapsed}
+      isLayoutReady={isLayoutReady}
+    />
+
+    {/* Main Content */}
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Header Component */}
+      <AdminHeader
+        onMobileMenuClick={handleMobileMenuClick}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        onSearchFocus={handleSearchFocus}
+        onSearchBlur={handleSearchBlur}
+        isSearchFocused={isSearchFocused}
+        adminName={adminName}
+        adminImageUrl={adminImageUrl}
+        adminEmail={adminEmail}
+        onLogoutClick={() => {
+          supabase.auth.signOut().then(() => {
+            document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/login";
+          });
+        }}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         isLayoutReady={isLayoutReady}
-
+        userId={userId}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Component */}
-        <AdminHeader
-          onMobileMenuClick={handleMobileMenuClick}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          onSearchFocus={handleSearchFocus}
-          onSearchBlur={handleSearchBlur}
-          isSearchFocused={isSearchFocused}
-          adminName={adminName}
-          adminImageUrl={adminImageUrl}
-          adminEmail={adminEmail}
-          onLogoutClick={() => {
-            supabase.auth.signOut().then(() => {
-              document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-              window.location.href = "/login";
-            });
-          }}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
-          isLayoutReady={isLayoutReady}
-          userId={userId}
-        />
-
-        {/* Content Area */}
-        <motion.main
-          className="flex-1 overflow-y-auto p-6"
-          variants={contentVariants}
-        >
-          {/* Welcome Section */}
-          <div className="mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold mb-2">
-                    Welcome back, {adminName || "Admin"}&#x20;👋
-                  </h1>
-                  <p className="text-blue-100">
-                    Ready to manage your cookbook? Let&apos;s make something
-                    delicious happen today.
-                  </p>
-                </div>
-                <div className="hidden md:block">
-                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">🍳</span>
-                  </div>
+      {/* Content Area */}
+      <motion.main
+        className="flex-1 overflow-y-auto p-6"
+        variants={contentVariants}
+      >
+        {/* Welcome Section */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold mb-2">
+                  សូមស្វាគមន៍ {adminName || "Admin"} 👋
+                </h1>
+                <p className="text-blue-100">
+                  ត្រៀមដើម្បីគ្រប់គ្រងសៀវភៅចំអិនម្ហូបរបស់អ្នក។ មកចាប់ផ្តើមបង្កើតអ្វីឆ្ងាញ់ៗថ្ងៃនេះ។
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-3xl">🍳</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Main Content */}
-          <div className="">{children}</div>
-        </motion.main>
-      </div>
+        {/* Main Content */}
+        <div>{children}</div>
+      </motion.main>
+    </div>
 
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-     
-    </motion.div>
+    {/* Mobile Overlay */}
+    {sidebarOpen && (
+      <div
+        className="fixed inset-0 bg-opacity-50 z-30 md:hidden"
+        onClick={() => setSidebarOpen(false)}
+      />
+    )}
+  </motion.div>
   );
 };
 

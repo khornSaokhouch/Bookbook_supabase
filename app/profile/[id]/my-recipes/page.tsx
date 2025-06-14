@@ -5,14 +5,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Edit,
-  Trash2,
-  Plus,
-  ChefHat,
-  Calendar,
-  Sparkles,
-} from "lucide-react";
+import { Edit, Trash2, Plus, ChefHat, Calendar, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Recipe = {
@@ -267,15 +260,16 @@ export default function MyRecipesPage() {
           )}
 
           {/* Add Recipe Button */}
-          <motion.button
+          {/* <motion.button
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/recipe/create")}
+            onClick={() => router.push(`/${user_id}/add-recipe`)}
+
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Recipe
-          </motion.button>
+          </motion.button> */}
         </motion.div>
 
         {error && (
@@ -321,7 +315,7 @@ export default function MyRecipesPage() {
               return (
                 <motion.div
                   key={recipe.recipe_id}
-                  className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
+                  className="group  dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
                   variants={cardVariants}
                   whileHover={{ y: -8, scale: 1.02 }}
                   initial="hidden"
@@ -428,7 +422,7 @@ export default function MyRecipesPage() {
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            className="fixed inset-0  backdrop-blur-sm flex justify-center items-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -477,7 +471,7 @@ export default function MyRecipesPage() {
       <AnimatePresence>
         {showEditModal && recipeToEdit && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

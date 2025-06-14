@@ -356,9 +356,11 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
                     <Image
-                      src={previewUrl || generateImageUrl(user?.image_url ?? null)}
+                      src={
+                        previewUrl || generateImageUrl(user?.image_url ?? null)
+                      }
                       alt="Profile"
-                        className="w-full h-full object-cover"
+                      className="w-full h-full object-cover"
                       width={96}
                       height={96}
                     />
@@ -379,103 +381,104 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
 
             {/* Form */}
             <div className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Profile Picture Upload */}
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Profile Picture
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <input
-                        type="file"
-                        onChange={handleFileChange}
-                        accept="image/*"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <div className="flex items-center px-4 py-3 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 border-2 border-dashed border-violet-300 dark:border-violet-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-200 cursor-pointer">
-                        <Upload className="h-5 w-5 text-violet-500 mr-3" />
-                        <span className="text-violet-700 dark:text-violet-300 font-medium">
-                          {selectedFile
-                            ? selectedFile.name
-                            : "Choose new image"}
-                        </span>
-                      </div>
-                    </div>
-                    {selectedFile && (
-                      <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                        ✓ Image selected
-                      </span>
-                    )}
-                  </div>
-                </motion.div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+  {/* Profile Picture Upload */}
+  <motion.div variants={itemVariants}>
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+      Profile Picture
+    </label>
+    <div className="flex items-center space-x-4">
+      <div className="relative">
+        <input
+          type="file"
+          onChange={handleFileChange}
+          accept="image/*"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        <div className="flex items-center px-4 py-3 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 border-2 border-dashed border-violet-300 dark:border-violet-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-600 transition-all duration-200 cursor-pointer">
+          <Upload className="h-5 w-5 text-violet-500 mr-3" />
+          <span className="text-violet-700 dark:text-violet-300 font-medium">
+            {selectedFile ? selectedFile.name : "Choose new image"}
+          </span>
+        </div>
+      </div>
+      {selectedFile && (
+        <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+          ✓ Image selected
+        </span>
+      )}
+    </div>
+  </motion.div>
 
-                {/* Name Field */}
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    ref={nameRef}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    required
-                    defaultValue={user?.user_name || ""}
-                    placeholder="Enter your full name"
-                  />
-                </motion.div>
+  {/* Name Field */}
+  <motion.div variants={itemVariants}>
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+      Full Name
+    </label>
+    <input
+      type="text"
+      ref={nameRef}
+      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
+      required
+      defaultValue={user?.user_name || ""}
+      placeholder="Enter your full name"
+    />
+  </motion.div>
 
-                {/* Email Field */}
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    ref={emailRef}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-                    required
-                    defaultValue={user?.email || ""}
-                    placeholder="Enter your email address"
-                  />
-                </motion.div>
+  {/* Email Field */}
+  <motion.div variants={itemVariants}>
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+      Email Address
+    </label>
+    <input
+      type="email"
+      ref={emailRef}
+      className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-600 border-2 border-gray-200 dark:border-gray-600 rounded-xl cursor-not-allowed focus:outline-none transition-all duration-200"
+      required
+      defaultValue={user?.email || ""}
+      placeholder="Enter your email address"
+      readOnly
+    />
+    <p className="text-xs text-gray-500 mt-1">Email cannot be changed.</p>
+  </motion.div>
 
-                {/* About Me Field */}
-                <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    About Me
-                  </label>
-                  <textarea
-                    ref={aboutMeRef}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 resize-none"
-                    placeholder="Tell us about yourself, your cooking journey, favorite cuisines..."
-                    rows={4}
-                    defaultValue={user?.about_me || ""}
-                  />
-                </motion.div>
+  {/* About Me Field */}
+  <motion.div variants={itemVariants}>
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+      About Me
+    </label>
+    <textarea
+      ref={aboutMeRef}
+      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 resize-none"
+      placeholder="Tell us about yourself, your cooking journey, favorite cuisines..."
+      rows={4}
+      defaultValue={user?.about_me || ""}
+    />
+  </motion.div>
 
-                {/* Submit Button */}
-                <motion.button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
-                      Updating Profile...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
-                      <Save className="h-5 w-5 mr-3" />
-                      Update Profile
-                    </div>
-                  )}
-                </motion.button>
-              </form>
+  {/* Submit Button */}
+  <motion.button
+    type="submit"
+    className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+    disabled={loading}
+    variants={itemVariants}
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    {loading ? (
+      <div className="flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+        Updating Profile...
+      </div>
+    ) : (
+      <div className="flex items-center justify-center">
+        <Save className="h-5 w-5 mr-3" />
+        Update Profile
+      </div>
+    )}
+  </motion.button>
+</form>
+
             </div>
           </motion.div>
         )}

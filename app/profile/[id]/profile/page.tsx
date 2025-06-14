@@ -11,7 +11,6 @@ import {
   Heart,
   Camera,
   Edit3,
-  MapPin,
   Calendar,
   Star,
   Sparkles,
@@ -29,6 +28,7 @@ type UserProfile = {
   email: string;
   about_me: string;
   image_url?: string | null;
+  created_at: string;
 };
 
 const containerVariants = {
@@ -75,56 +75,79 @@ export default function ProfilePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const bucketName = "image-user";
+  const [recipeCount, setRecipeCount] = useState<number>(0);
+  const [savedRecipeCount, setSavedRecipeCount] = useState<number>(0);
+
+  const getRecipeCount = async (userId: string) => {
+    const { count, error } = await supabase
+      .from("recipe") // your table name is `recipe`
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId); // filter by user_id (uuid)
+
+    if (error) {
+      console.error("Error fetching recipe count:", error);
+      return 0;
+    }
+    return count ?? 0;
+  };
+
+  const getSavedRecipeCount = async (userId: string) => {
+    const { count, error } = await supabase
+      .from("saved_recipes") // your saved_recipes table
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId); // filter by user_id
+
+    if (error) {
+      console.error("Error fetching saved recipes count:", error);
+      return 0;
+    }
+
+    return count ?? 0;
+  };
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    const fetchUserData = async () => {
+      setLoading(true);
+      setError(null);
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-        if (sessionError || !session?.user) {
-          console.warn("No session found. Redirecting to login.");
-          router.push("/login");
-          return;
-        }
-
-        const userId = session.user.id;
-
-        const { data, error: userError } = await supabase
-          .from("users")
-          .select("user_id, user_name, email, about_me, image_url")
-          .eq("user_id", userId)
-          .single();
-
-        if (userError) {
-          console.error("Error fetching user:", userError);
-          throw userError;
-        }
-
-        if (!data) {
-          console.warn("User not found.");
-          throw new Error("User profile not found.");
-        }
-
-        setUser(data as UserProfile);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("Error fetching user:", err.message);
-          setError("There was an error loading your profile.");
-        } else {
-          setError("An unknown error occurred.");
-        }
-      } finally {
-        setLoading(false);
+      if (sessionError || !session?.user) {
+        router.push("/login");
+        return;
       }
+
+      const userId = session.user.id;
+
+      // Fetch user profile
+      const { data, error: userError } = await supabase
+        .from("users")
+        .select("user_id, user_name, email, about_me, image_url, created_at")
+        .eq("user_id", userId)
+        .single();
+
+      if (userError || !data) {
+        setError("User not found");
+        setLoading(false);
+        return;
+      }
+
+      setUser(data as UserProfile);
+
+      // Fetch counts
+      const recipeCount = await getRecipeCount(userId);
+      setRecipeCount(recipeCount);
+
+      const savedCount = await getSavedRecipeCount(userId);
+      setSavedRecipeCount(savedCount);
+
+      setLoading(false);
     };
 
-    fetchUserProfile();
+    fetchUserData();
   }, [router]);
 
   const generatePublicUrl = (path: string | null | undefined) => {
@@ -258,7 +281,9 @@ export default function ProfilePage() {
                 className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-200 backdrop-blur-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => router.push(`/profile/${user.user_id}/edit-profile`)}
+                onClick={() =>
+                  router.push(`/profile/${user.user_id}/edit-profile`)
+                }
               >
                 <Edit3 className="h-4 w-4" />
               </motion.button>
@@ -311,12 +336,13 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center">
                     <Calendar className="h-3 w-3 mr-1" />
-                    Member since 2024
+                    {new Date(user.created_at).toLocaleDateString("en-GB")}
                   </div>
-                  <div className="flex items-center">
+
+                  {/* <div className="flex items-center">
                     <MapPin className="h-3 w-3 mr-1" />
                     Worldwide
-                  </div>
+                  </div> */}
                 </motion.div>
               </div>
             </div>
@@ -366,7 +392,7 @@ export default function ProfilePage() {
                       Recipes Created
                     </p>
                     <p className="text-lg font-bold text-gray-800 dark:text-white">
-                      12
+                      {recipeCount}
                     </p>
                   </div>
                 </div>
@@ -382,17 +408,17 @@ export default function ProfilePage() {
                     <Heart className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Favorites
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                      Recipes Saved
                     </p>
                     <p className="text-lg font-bold text-gray-800 dark:text-white">
-                      28
+                      {savedRecipeCount}
                     </p>
                   </div>
                 </div>
               </motion.div>
 
-              <motion.div
+              {/* <motion.div
                 className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl border border-purple-100 dark:border-purple-800"
                 whileHover={{ y: -2, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}
                 transition={{ type: "spring", stiffness: 300 }}
@@ -410,10 +436,8 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </motion.div> */}
             </motion.div>
-
-          
           </div>
         </motion.div>
       </div>
