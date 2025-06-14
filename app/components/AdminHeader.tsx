@@ -31,6 +31,12 @@ interface AdminHeaderProps {
   notifications?: Notification[];
   unreadCount?: number;
   onNotificationsClick?: () => void;
+
+  // ✅ Newly added props to match what's passed in AdminLayout
+  sidebarOpen: boolean;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  isLayoutReady: boolean;
 }
 
 const AdminHeader: React.FC<AdminHeaderProps> = ({
@@ -49,6 +55,10 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   notifications = [],
   unreadCount = 0,
   onNotificationsClick = () => {},
+  sidebarOpen,
+  setSidebarOpen,
+  setSidebarCollapsed,
+  isLayoutReady,
 }) => {
   const getInitials = (email: string | null, name: string | null) => {
     if (name) {
