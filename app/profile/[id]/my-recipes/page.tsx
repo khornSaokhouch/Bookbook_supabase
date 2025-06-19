@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Edit, Trash2, Plus, ChefHat, Calendar, Sparkles } from "lucide-react";
+import { Edit, Trash2, Plus, ChefHat, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import EditRecipeModal from "@/app/components/EditRecipeModal";
 
 type Recipe = {
   recipe_id: number;
@@ -16,12 +17,6 @@ type Recipe = {
   instructions: string;
   created_at: string;
   images: { image_url: string }[];
-};
-
-const constructImageUrl = (path: string | null) => {
-  if (!path) return "/default-image.jpg";
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`;
 };
 
 const containerVariants = {
@@ -88,7 +83,8 @@ export default function MyRecipesPage() {
         const { data, error } = await supabase
           .from("recipe")
           .select(
-            `recipe_id, recipe_name, description, ingredients, instructions, created_at, image_recipe(image_url)`
+            `recipe_id, recipe_name, description, ingredients, instructions, created_at, 
+             image_recipe(image_id, image_url)`
           )
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
@@ -120,13 +116,37 @@ export default function MyRecipesPage() {
     fetchRecipes();
   }, [router]);
 
+  console.log("Recipes fetched:", recipes);
+
+  
+
   const handleDeleteRecipe = async () => {
     if (!recipeToDelete) return;
     try {
+      // Delete recipe images first
+      const { data: imagesData, error: imagesError } = await supabase
+        .from("image_recipe")
+        .select("image_url")
+        .eq("recipe_id", recipeToDelete);
+
+      if (imagesError) throw imagesError;
+
+      // Delete from storage
+      if (imagesData && imagesData.length > 0) {
+        const imagePaths = imagesData.map(img => img.image_url);
+        const { error: deleteStorageError } = await supabase.storage
+          .from("recipes")
+          .remove(imagePaths);
+
+        if (deleteStorageError) throw deleteStorageError;
+      }
+
+      // Delete from database
       const { error } = await supabase
         .from("recipe")
         .delete()
         .eq("recipe_id", recipeToDelete);
+
       if (error) throw error;
 
       setRecipes((prev) => prev.filter((r) => r.recipe_id !== recipeToDelete));
@@ -161,35 +181,21 @@ export default function MyRecipesPage() {
     setRecipeToEdit(null);
   };
 
-  const handleUpdateRecipe = async () => {
-    if (!recipeToEdit) return;
-    try {
-      const { error } = await supabase
-        .from("recipe")
-        .update({
-          recipe_name: recipeToEdit.recipe_name,
-          description: recipeToEdit.description,
-          ingredients: recipeToEdit.ingredients,
-          instructions: recipeToEdit.instructions,
-        })
-        .eq("recipe_id", recipeToEdit.recipe_id);
+   const handleUpdateRecipe = (updatedRecipe: Recipe) => {
+    setRecipes((prevRecipes) =>
+      prevRecipes.map((recipe) =>
+        recipe.recipe_id === updatedRecipe.recipe_id ? updatedRecipe : recipe
+      )
+    );
+    closeEditModal();
+  };
+  const buildImageUrl = (imagePath: string | null | undefined): string => {
+    if (!imagePath) return "/default-image.jpg";
 
-      if (error) throw error;
-
-      setRecipes((prev) =>
-        prev.map((r) =>
-          r.recipe_id === recipeToEdit.recipe_id ? recipeToEdit : r
-        )
-      );
-
-      closeEditModal();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred while updating.");
-      }
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
     }
+   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes${imagePath.startsWith("/") ? imagePath : "/" + imagePath}`;
   };
 
   if (loading) {
@@ -221,7 +227,7 @@ export default function MyRecipesPage() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 py-8 px-4 sm:px-6"
+      className="min-h-screen dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 py-8 px-4 sm:px-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -260,7 +266,7 @@ export default function MyRecipesPage() {
           )}
 
           {/* Add Recipe Button */}
-          {/* <motion.button
+          <motion.button
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
@@ -268,7 +274,7 @@ export default function MyRecipesPage() {
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Recipe
-          </motion.button> */}
+          </motion.button>
         </motion.div>
 
         {error && (
@@ -309,12 +315,14 @@ export default function MyRecipesPage() {
             variants={containerVariants}
           >
             {recipes.map((recipe, index) => {
-              const imageUrl = constructImageUrl(recipe.images[0]?.image_url);
+              const imageUrl = recipe.images.length > 0
+                ? buildImageUrl(recipe.images[0].image_url)
+                : "/default-image.jpg";
 
               return (
                 <motion.div
                   key={recipe.recipe_id}
-                  className="group  dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
+                  className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50"
                   variants={cardVariants}
                   whileHover={{ y: -8, scale: 1.02 }}
                   initial="hidden"
@@ -327,26 +335,17 @@ export default function MyRecipesPage() {
                       href={`/${recipe.recipe_id}/detailspage`}
                       className="block"
                     >
-                      {recipe.images.length > 0 ? (
+                      <div className="aspect-video">
                         <Image
-                          src={imageUrl || "/placeholder.svg"}
+                          src={imageUrl}
                           alt={recipe.recipe_name}
                           width={400}
                           height={250}
-                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           priority
                           unoptimized
                         />
-                      ) : (
-                        <div className="flex items-center justify-center w-full h-48 bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20">
-                          <div className="text-center">
-                            <ChefHat className="h-12 w-12 text-orange-400 mx-auto mb-2" />
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">
-                              No image available
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </Link>
 
                     {/* Overlay with actions */}
@@ -383,6 +382,19 @@ export default function MyRecipesPage() {
                       </h3>
                     </Link>
 
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      <span className="truncate">
+                        {recipe.ingredients.split(",").slice(0, 3).join(", ")}
+                        {recipe.ingredients.split(",").length > 3 && ", ..."}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
+                      <span className="truncate">
+                        {recipe.description.split(".").slice(0, 2).join(". ")}
+                        {recipe.description.split(".").length > 2 && "..."}
+                      </span>
+                    </div>
                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
                       <Calendar className="h-3 w-3 mr-1" />
                       Created {new Date(recipe.created_at).toLocaleDateString()}
@@ -421,7 +433,7 @@ export default function MyRecipesPage() {
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
-            className="fixed inset-0  backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -469,133 +481,11 @@ export default function MyRecipesPage() {
       {/* Edit Modal */}
       <AnimatePresence>
         {showEditModal && recipeToEdit && (
-          <motion.div
-            className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <div className="text-4xl mb-3">✏️</div>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                    Edit Recipe
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Update your delicious creation
-                  </p>
-                </div>
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleUpdateRecipe();
-                  }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Recipe Name
-                    </label>
-                    <input
-                      type="text"
-                      value={recipeToEdit.recipe_name}
-                      onChange={(e) =>
-                        setRecipeToEdit({
-                          ...recipeToEdit,
-                          recipe_name: e.target.value,
-                        })
-                      }
-                      placeholder="Enter recipe name"
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={recipeToEdit.description || ""}
-                      onChange={(e) =>
-                        setRecipeToEdit({
-                          ...recipeToEdit,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Describe your amazing recipe..."
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Ingredients
-                    </label>
-                    <textarea
-                      value={recipeToEdit.ingredients || ""}
-                      onChange={(e) =>
-                        setRecipeToEdit({
-                          ...recipeToEdit,
-                          ingredients: e.target.value,
-                        })
-                      }
-                      placeholder="List your ingredients (comma-separated)"
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Instructions
-                    </label>
-                    <textarea
-                      value={recipeToEdit.instructions || ""}
-                      onChange={(e) =>
-                        setRecipeToEdit({
-                          ...recipeToEdit,
-                          instructions: e.target.value,
-                        })
-                      }
-                      placeholder="Step-by-step cooking instructions"
-                      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
-                      rows={5}
-                    />
-                  </div>
-
-                  <div className="flex space-x-3 pt-4">
-                    <motion.button
-                      type="button"
-                      onClick={closeEditModal}
-                      className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Cancel
-                    </motion.button>
-                    <motion.button
-                      type="submit"
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 px-4 rounded-xl font-medium hover:from-orange-600 hover:to-pink-600 transition-all duration-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Sparkles className="h-4 w-4 mr-2 inline" />
-                      Save Changes
-                    </motion.button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </motion.div>
+          <EditRecipeModal
+            recipe={recipeToEdit}
+            onClose={closeEditModal}
+            onUpdateRecipe={handleUpdateRecipe}
+          />
         )}
       </AnimatePresence>
     </motion.div>

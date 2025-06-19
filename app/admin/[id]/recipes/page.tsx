@@ -143,8 +143,9 @@ export default function RecipeManagement() {
       const recipesWithData = recipesResult.data.map((recipe) => ({
         ...recipe,
         image_url: recipe.image_recipe?.[0]?.image_url ?? null,
-        user_name: recipe.users?.user_name || "Unknown User",
-      }))
+        user_name: recipe.users?.[0]?.user_name || "Unknown User",
+      }));
+      
 
       setRecipes(recipesWithData);
       setCategories(categoriesResult.data || []);

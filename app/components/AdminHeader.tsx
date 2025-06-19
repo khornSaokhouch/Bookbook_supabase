@@ -50,15 +50,8 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   adminImageUrl,
   adminEmail,
   onLogoutClick,
-  sidebarCollapsed,
-  userId,
-  notifications = [],
   unreadCount = 0,
   onNotificationsClick = () => {},
-  sidebarOpen,
-  setSidebarOpen,
-  setSidebarCollapsed,
-  isLayoutReady,
 }) => {
   const getInitials = (email: string | null, name: string | null) => {
     if (name) {

@@ -1,22 +1,25 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion"; // Import framer-motion
+import { motion } from "framer-motion";
+import {HelpCircle, AlertTriangle } from "lucide-react"; // Import icons
 
 interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title: string; // Add title prop
-  message: string; // Add message prop
+  title: string;
+  message: string;
+  type?: "confirmation" | "warning"; // Optional type for different icons
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  title, // Destructure title
-  message, // Destructure message
+  title,
+  message,
+  type = "confirmation", // Default to confirmation type
 }) => {
   const backdropVariants = {
     hidden: { opacity: 0 },
@@ -27,6 +30,19 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
+
+  let icon;
+  let buttonColor = "blue";
+
+  switch (type) {
+    case "warning":
+      icon = <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4" />;
+      buttonColor = "orange";
+      break;
+    default:
+      icon = <HelpCircle className="w-12 h-12 text-blue-500 mb-4" />;
+      break;
+  }
 
   if (!isOpen) return null;
 
@@ -39,25 +55,33 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       exit="hidden"
     >
       <motion.div
-        className="bg-white rounded-lg p-8 w-96 shadow-2xl"
+        className="bg-white dark:bg-gray-800 rounded-lg p-8 w-126 shadow-2xl"
         variants={modalVariants}
       >
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
-          {title} {/* Use title prop */}
-        </h2>
-        <p className="text-gray-700 text-center mb-8">
-          {message} {/* Use message prop */}
+        {/* Header */}
+        <div className="flex flex-col items-center justify-center mb-6">
+          {icon}
+          <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white">
+            {title}
+          </h2>
+        </div>
+
+        {/* Message */}
+        <p className="text-gray-700 dark:text-gray-300 text-center mb-8">
+          {message}
         </p>
+
+        {/* Actions */}
         <div className="flex justify-center space-x-4">
           <button
             onClick={onClose}
-            className="bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-6 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className={`bg-${buttonColor}-500 text-white py-3 px-6 rounded-md hover:bg-${buttonColor}-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-${buttonColor}-400`}
           >
             Confirm
           </button>

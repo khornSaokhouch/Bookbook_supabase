@@ -2,23 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import {
   Mail,
   Heart,
-  Camera,
   Edit3,
   Calendar,
-  Star,
   Sparkles,
   Coffee,
 } from "lucide-react";
 
 const ProfileImageModal = dynamic(
-  () => import("../../../components/ProfileImageModal"),
+  () => import("@/app/components/ProfileImageModal"),
   { ssr: false }
 );
 
@@ -304,14 +302,14 @@ export default function ProfilePage() {
                     className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl object-cover cursor-pointer"
                     onClick={toggleModal}
                   />
-                  <motion.button
+                  {/* <motion.button
                     className="absolute bottom-0 right-0 bg-violet-600 hover:bg-violet-700 text-white p-2 rounded-full shadow-lg transition-all duration-200"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={toggleModal}
                   >
                     <Camera className="h-4 w-4" />
-                  </motion.button>
+                  </motion.button> */}
                 </motion.div>
               </div>
 
@@ -321,7 +319,7 @@ export default function ProfilePage() {
                   variants={itemVariants}
                 >
                   {user.user_name}
-                  <Star className="h-5 w-5 text-yellow-300 ml-2" />
+                  {/* <Star className="h-5 w-5 text-yellow-300 ml-2" /> */}
                 </motion.h2>
                 <motion.div
                   className="flex items-center text-white/80 mb-3"

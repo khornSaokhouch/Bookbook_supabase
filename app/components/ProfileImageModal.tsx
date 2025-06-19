@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-
 type ProfileImageModalProps = {
   imageUrl: string;
   onClose: () => void;
 };
 
-export default function ProfileImageModal({ imageUrl, onClose }: ProfileImageModalProps) {
+export default function ProfileImageModal({
+  imageUrl,
+  onClose,
+}: ProfileImageModalProps) {
   return (
     <div className="fixed inset-0  bg-opacity-70 backdrop-blur-sm flex justify-center items-center z-50">
       <motion.div
@@ -24,14 +26,15 @@ export default function ProfileImageModal({ imageUrl, onClose }: ProfileImageMod
           X
         </button>
         <div className="flex justify-center mb-4">
-        <Image
-  src={imageUrl}
-  alt="Profile Image"
-  width={288} // same as w-72
-  height={288} // same as h-72
-  className="object-cover rounded-full border-4 border-white shadow-lg transition-transform transform hover:scale-105"
-/>
+          <Image
+            src={imageUrl || "/placeholder.svg"}
+            alt="Profile Image"
+            width={140}
+            height={140}
+            className="w-46 h-46 sm:w-72 sm:h-72 rounded-full border-4 border-white shadow-xl object-cover cursor-pointer"
+          />
         </div>
+
         <p className="text-center text-gray-700 text-lg font-semibold mt-2">
           Profile Image
         </p>
