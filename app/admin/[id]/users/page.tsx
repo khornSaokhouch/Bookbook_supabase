@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/app/lib/supabaseClient";
+import { supabase } from "../../../lib/supabaseClient";
 import DeleteUserModal from "@/app/components/DeleteUserModal";
 import EditUserModal from "@/app/components/EditUserModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,8 +47,6 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  console.log("Users fetched:", users);
 
   useEffect(() => {
     if (successMessage) {
@@ -223,7 +221,7 @@ const UserManagement = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 p-6"
+      className="container mx-auto p-4 md:p-8 "
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -428,13 +426,17 @@ const UserManagement = () => {
                         {/* User Info: avatar + name + email */}
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-4">
-                            <Image
-                              src={user.image_url || "/default-avatar.png"}
-                              alt={`${user.user_name}'s avatar`}
-                              className="w-12 h-12 rounded-full object-cover shadow-md"
-                              width={48}
-                              height={48}
-                            />
+                          <div className="w-12 h-12 relative rounded-full overflow-hidden shadow-md">
+  <Image
+    src={user.image_url || "/default-avatar.png"}
+    alt={`${user.user_name}'s avatar`}
+    fill
+    style={{ objectFit: "cover" }}
+    className="rounded-full"
+  />
+</div>
+
+
 
                             <div>
                               <div className="text-lg font-semibold text-gray-900 dark:text-white">

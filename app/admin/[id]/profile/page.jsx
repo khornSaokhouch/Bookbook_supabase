@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/app/components/ui/card";
+import { useParams, useRouter } from "next/navigation";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -52,6 +53,7 @@ const floatingVariants = {
 };
 
 export default function ProfileAdminPage() {
+  const { id } = useParams();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,6 +61,8 @@ export default function ProfileAdminPage() {
   const [aboutMe, setAboutMe] = useState("");
   const [preview, setPreview] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
+  const router = useRouter();
+  const [createdAt, setCreatedAt] = useState(null);
 
   // Get authenticated user
   useEffect(() => {
@@ -85,13 +89,14 @@ export default function ProfileAdminPage() {
       try {
         const { data, error } = await supabase
           .from("users")
-          .select("user_name, about_me, image_url")
+          .select("user_name, about_me, image_url, created_at")
           .eq("user_id", user.id)
           .single();
 
         if (!error && data) {
           setName(data.user_name || "");
           setAboutMe(data.about_me || "");
+          setCreatedAt(data.created_at || null);
           if (data.image_url) {
             const { data: publicData } = supabase.storage
               .from("image-user")
@@ -136,6 +141,18 @@ export default function ProfileAdminPage() {
       </div>
     );
   }
+
+  const handleEditClick = () => {
+    if (!id) return; // or fallback
+    router.push(`/admin/${id}/edit-profile`);
+  };
+
+  const formattedCreatedAt = createdAt
+    ? new Date(createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+      })
+    : "Unknown";
 
   return (
     <motion.div
@@ -214,10 +231,10 @@ export default function ProfileAdminPage() {
                     <Shield className="h-3 w-3 mr-1" />
                     Admin
                   </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white">
+                  {/* <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white">
                     <Award className="h-3 w-3 mr-1" />
                     Verified
-                  </span>
+                  </span> */}
                 </div>
               </CardHeader>
 
@@ -245,14 +262,14 @@ export default function ProfileAdminPage() {
                         <User className="h-10 w-10 text-white" />
                       </motion.div>
                     )}
-                    <motion.button
+                    {/* <motion.button
                       className="absolute bottom-0 right-0 bg-violet-500 hover:bg-violet-600 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       title="Update profile picture"
                     >
                       <Camera className="h-4 w-4" />
-                    </motion.button>
+                    </motion.button> */}
                   </div>
 
                   <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-1.5">
@@ -265,7 +282,12 @@ export default function ProfileAdminPage() {
                     {user.email}
                   </div>
 
-                  <Button variant="outline" size="sm" className="mb-6 w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mb-6 w-full"
+                    onClick={handleEditClick}
+                  >
                     <Edit3 className="h-3.5 w-3.5 mr-2" /> Edit Profile
                   </Button>
 
@@ -276,14 +298,16 @@ export default function ProfileAdminPage() {
                       transition={{ type: "spring", stiffness: 300 }}
                     >
                       <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-emerald-500 mr-2" />
-                        <div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Member Since
-                          </p>
-                          <p className="font-semibold text-gray-800 dark:text-white">
-                            Jan 2024
-                          </p>
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 text-emerald-500 mr-2" />
+                          <div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Member Since
+                            </p>
+                            <p className="font-semibold text-gray-800 dark:text-white">
+                              {formattedCreatedAt}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -319,14 +343,14 @@ export default function ProfileAdminPage() {
                       <Heart className="h-4 w-4 mr-2 text-pink-500" />
                       About Me
                     </h3>
-                    <motion.button
+                    {/* <motion.button
                       className="text-violet-500 hover:text-violet-600 p-1.5 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all duration-200"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       title="Edit about me"
                     >
                       <Edit3 className="h-3.5 w-3.5" />
-                    </motion.button>
+                    </motion.button> */}
                   </div>
                   <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/10 dark:to-indigo-900/10 p-5 rounded-xl border border-violet-100 dark:border-violet-800/50">
                     <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
@@ -438,8 +462,6 @@ export default function ProfileAdminPage() {
             </Card>
           </motion.div>
         )}
-
-
       </div>
     </motion.div>
   );

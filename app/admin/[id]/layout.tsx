@@ -59,7 +59,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("Error fetching admin profile:", error);
       } else {
-        console.log("getAdminProfile: Data fetched:", data);
         setAdminName(data?.user_name || "Admin");
         setAdminImageUrl(data?.image_url || null);
         setAdminEmail(data?.email || null);

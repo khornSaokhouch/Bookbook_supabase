@@ -69,8 +69,6 @@ export default function RecipeManagement() {
     fetchData();
   }, []);
 
-  console.log("Recipes:", recipes);
-
   useEffect(() => {
     if (successMessage || error) {
       const timer = setTimeout(() => {
@@ -145,7 +143,6 @@ export default function RecipeManagement() {
         image_url: recipe.image_recipe?.[0]?.image_url ?? null,
         user_name: recipe.users?.[0]?.user_name || "Unknown User",
       }));
-      
 
       setRecipes(recipesWithData);
       setCategories(categoriesResult.data || []);
@@ -489,8 +486,8 @@ export default function RecipeManagement() {
                             alt={recipe.recipe_name}
                             fill
                             className="object-cover"
-                            loading="lazy"
                             decoding="async"
+                            priority
                           />
                         </div>
                       </div>
@@ -636,13 +633,13 @@ export default function RecipeManagement() {
                       <td className="px-6 py-4">
                         <div className="w-14 h-14 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
                           <Image
-                            src={recipe.image_url || "/placeholder-image.png"} // Fallback image
+                            src={recipe.image_url || "/placeholder-image.png"}
                             alt={recipe.recipe_name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            decoding="async"
                             width={56}
                             height={56}
+                            className="object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         </div>
                       </td>

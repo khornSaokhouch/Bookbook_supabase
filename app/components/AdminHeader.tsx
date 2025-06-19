@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Menu, Bell } from "lucide-react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/app/lib/supabaseClient";
@@ -31,8 +30,6 @@ interface AdminHeaderProps {
   notifications?: Notification[];
   unreadCount?: number;
   onNotificationsClick?: () => void;
-
-  // ✅ Newly added props to match what's passed in AdminLayout
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -60,8 +57,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
     }
     if (!email) return "";
     const username = email.split("@")[0];
-    const firstLetter = username.charAt(0).toUpperCase();
-    return firstLetter;
+    return username.charAt(0).toUpperCase();
   };
 
   const { id } = useParams() as { id?: string | string[] };
@@ -80,10 +76,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   return (
     <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-sm transition-colors duration-300">
       {/* Mobile Menu Button */}
-      <button
-        onClick={onMobileMenuClick}
-        className="md:hidden focus:outline-none"
-      >
+      <button onClick={onMobileMenuClick} className="md:hidden focus:outline-none">
         <Menu className="h-6 w-6 text-gray-600 dark:text-gray-400" />
       </button>
 
@@ -97,18 +90,10 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
           onFocus={onSearchFocus}
           onBlur={onSearchBlur}
           className={`border rounded-md px-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-            isSearchFocused
-              ? "shadow-md"
-              : "border-gray-300 dark:border-gray-200"
+            isSearchFocused ? "shadow-md" : "border-gray-300 dark:border-gray-200"
           }`}
         />
-        <Image
-          src="https://img.icons8.com/ios7/512/search.png"
-          alt="search icon"
-          width={20}
-          height={20}
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200"
-        />
+        {/* You can add a search icon here if you want */}
       </div>
 
       {/* Notifications and Profile */}
@@ -117,6 +102,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         <button
           onClick={onNotificationsClick}
           className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+          aria-label="Notifications"
         >
           <Bell className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           {unreadCount > 0 && (
@@ -126,7 +112,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
           )}
         </button>
 
-        {/* Profile */}
+        {/* Profile Dropdown */}
         {normalizedId && (
           <ProfileDropdown
             adminImageUrl={imageUrl}

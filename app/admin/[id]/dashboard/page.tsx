@@ -404,13 +404,15 @@ export default function Dashboard() {
                   whileHover={{ y: -5, scale: 1.05 }}
                 >
                   <div className="relative mb-3">
-                    <Image
-                      src={category.image || "/placeholder.svg"}
-                      alt={category.category_name}
-                      width={80}
-                      height={80}
-                      className="mx-auto rounded-full object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                    />
+                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
+  <Image
+    src={category.image || "/placeholder.svg"}
+    alt={category.category_name}
+    fill
+    style={{ objectFit: 'cover' }}
+    className="rounded-full"
+  />
+</div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                   <h3 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm">
@@ -465,13 +467,17 @@ export default function Dashboard() {
                   whileHover={{ y: -5, scale: 1.05 }}
                 >
                   <div className="relative mb-3">
-                    <Image
-                      src={occasion.occasion_image || "/placeholder.svg"}
-                      alt={occasion.name}
-                      width={80}
-                      height={80}
-                      className="mx-auto rounded-full object-cover shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                    />
+                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
+  <Image
+    src={occasion.occasion_image || "/placeholder.svg"}
+    alt={occasion.name}
+    fill
+    style={{ objectFit: 'cover' }}
+    className="rounded-full"
+  />
+</div>
+
+
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                   <h3 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm">

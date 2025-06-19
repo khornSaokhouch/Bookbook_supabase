@@ -11,7 +11,6 @@ import {
   X,
   Heart,
   Clock,
-  Users,
 } from "lucide-react";
 
 type Occasion = {
@@ -24,6 +23,7 @@ type Recipe = {
   recipe_name: string;
   overview: string | null;
   image_recipe?: { image_url: string }[];
+  created_at: string;
 };
 
 export default function OccasionPage() {
@@ -58,6 +58,7 @@ export default function OccasionPage() {
 
   const fetchRecipes = useCallback(async (occasion_id?: number) => {
     setIsLoadingRecipes(true);
+
     let query = supabase
       .from("recipe")
       .select(
@@ -65,6 +66,7 @@ export default function OccasionPage() {
         recipe_id,
         recipe_name,
         overview,
+        created_at,
         image_recipe (image_url)
       `
       )
@@ -80,6 +82,7 @@ export default function OccasionPage() {
     } else {
       setRecipes(data || []);
     }
+
     setIsLoadingRecipes(false);
   }, []);
 
@@ -305,15 +308,30 @@ export default function OccasionPage() {
                         </p>
                       )}
 
+
+                   
+
                       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center">
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <Clock className="h-3 w-3 mr-1" />
-                          <span>Quick & Easy</span>
+                          <span>
+                            {recipe.created_at
+                              ? new Date(recipe.created_at).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
+                              : "Date Unknown"}
+                          </span>
                         </div>
-                        <div className="flex items-center">
+
+                        {/* <div className="flex items-center">
                           <Users className="h-3 w-3 mr-1" />
                           <span>Family Friendly</span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </Link>

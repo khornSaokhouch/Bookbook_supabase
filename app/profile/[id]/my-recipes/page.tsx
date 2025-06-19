@@ -116,8 +116,6 @@ export default function MyRecipesPage() {
     fetchRecipes();
   }, [router]);
 
-  console.log("Recipes fetched:", recipes);
-
   
 
   const handleDeleteRecipe = async () => {

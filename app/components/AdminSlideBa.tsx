@@ -113,15 +113,16 @@ const AdminSidebar = ({
                 sidebarCollapsed ? "scale-75" : ""
               }`}
             >
-              <Image
-                src="/logo.png"
-                alt="CookBook Logo"
-                width={90}
-                height={90}
-                layout="intrinsic"
-                style={{ height: "auto" }}
-                className="transition-all duration-300"
-              />
+            <Image
+  src="/logo.png"
+  alt="CookBook Logo"
+  width={90}
+  height={90}
+  style={{ width: "80px", height: "auto" }}
+  className="transition-all duration-300"
+/>
+
+
             </div>
           </Link>
         </div>
