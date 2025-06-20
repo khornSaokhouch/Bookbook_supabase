@@ -224,7 +224,7 @@ export default function NewPostPage() {
           <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Fresh New Recipes
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-lg mx-auto">
             Discover the latest culinary creations from our amazing community!
             👨‍🍳
           </p>
@@ -234,7 +234,7 @@ export default function NewPostPage() {
         </div>
 
         {loading ? (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
@@ -279,7 +279,7 @@ export default function NewPostPage() {
           </div>
         ) : (
           <motion.div
-            className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+            className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4"
             variants={containerVariants}
             initial="initial"
             animate="animate"

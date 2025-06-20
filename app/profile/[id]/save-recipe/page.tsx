@@ -1,58 +1,61 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { supabase } from "../../../lib/supabaseClient"
-import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Trash2 } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { supabase } from "../../../lib/supabaseClient";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 
 // Define the Recipe type
 type Recipe = {
-  id: string
-  title: string
-  description: string
-  ingredients: string
-  instructions: string
-  created_at: string
-  image_url?: string
-}
+  id: string;
+  title: string;
+  description: string;
+  ingredients: string;
+  instructions: string;
+  created_at: string;
+  image_url?: string;
+};
 
 const constructImageUrl = (path: string | null) => {
-  if (!path) return "/default-image.jpg" // Fallback to a default image
-  if (path.startsWith("http://") || path.startsWith("https://")) return path // Already a valid URL
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}` // Construct full URL
-}
+  if (!path) return "/default-image.jpg"; // Fallback to a default image
+  if (path.startsWith("http://") || path.startsWith("https://")) return path; // Already a valid URL
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`; // Construct full URL
+};
 
 export default function SavedRecipesPage() {
-  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null)
+  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSavedRecipes = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        const { data: sessionData } = await supabase.auth.getSession()
-        const user = sessionData?.session?.user
+        setLoading(true);
+        setError(null);
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
         if (!user) {
-          router.push("/login")
-          return
+          router.push("/login");
+          return;
         }
         const { data, error } = await supabase
           .from("saved_recipes")
           .select(
-            `id, created_at, recipe:recipe_id (recipe_name, description, ingredients, instructions, image_recipe (image_url))`,
+            `id, created_at, recipe:recipe_id (recipe_name, description, ingredients, instructions, image_recipe (image_url))`
           )
-          .eq("user_id", user.id)
-        if (error) throw error
+          .eq("user_id", user.id);
+        if (error) throw error;
         const formattedRecipes =
           data?.map((savedRecipe) => {
-            const recipe = Array.isArray(savedRecipe.recipe) ? savedRecipe.recipe[0] : savedRecipe.recipe
+            const recipe = Array.isArray(savedRecipe.recipe)
+              ? savedRecipe.recipe[0]
+              : savedRecipe.recipe;
             return {
               id: savedRecipe.id,
               title: recipe?.recipe_name || "Unknown",
@@ -61,32 +64,37 @@ export default function SavedRecipesPage() {
               instructions: recipe?.instructions || "No instructions provided",
               created_at: savedRecipe.created_at,
               image_url: constructImageUrl(recipe?.image_recipe?.[0]?.image_url),
-            }
-          }) || []
-        setSavedRecipes(formattedRecipes)
+            };
+          }) || [];
+        setSavedRecipes(formattedRecipes);
       } catch (e) {
-        console.error("Error fetching recipes:", e)
-        setError("Failed to load saved recipes.")
+        console.error("Error fetching recipes:", e);
+        setError("Failed to load saved recipes.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchSavedRecipes()
-  }, [router])
+    };
+    fetchSavedRecipes();
+  }, [router]);
 
   const handleConfirmDelete = async () => {
-    if (!recipeToDelete) return
+    if (!recipeToDelete) return;
     try {
-      const { error } = await supabase.from("saved_recipes").delete().eq("id", recipeToDelete)
-      if (error) throw error
-      setSavedRecipes((prevRecipes) => prevRecipes.filter((recipe) => recipe.id !== recipeToDelete))
+      const { error } = await supabase
+        .from("saved_recipes")
+        .delete()
+        .eq("id", recipeToDelete);
+      if (error) throw error;
+      setSavedRecipes((prevRecipes) =>
+        prevRecipes.filter((recipe) => recipe.id !== recipeToDelete)
+      );
     } catch (err) {
-      console.error("Error removing recipe:", err)
-      setError("Failed to remove recipe.")
+      console.error("Error removing recipe:", err);
+      setError("Failed to remove recipe.");
     } finally {
-      setRecipeToDelete(null)
+      setRecipeToDelete(null);
     }
-  }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -94,7 +102,7 @@ export default function SavedRecipesPage() {
       opacity: 1,
       transition: { duration: 0.5, staggerChildren: 0.1 },
     },
-  }
+  };
 
   const recipeCardVariants = {
     initial: { opacity: 0, y: 20 },
@@ -104,7 +112,7 @@ export default function SavedRecipesPage() {
       transition: { duration: 0.3, ease: "easeOut" },
     },
     hover: { scale: 1.03, transition: { duration: 0.2 } },
-  }
+  };
 
   return (
     <motion.div
@@ -113,7 +121,9 @@ export default function SavedRecipesPage() {
       initial="hidden"
       animate="visible"
     >
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">Saved Recipes</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+        Saved Recipes
+      </h1>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -122,30 +132,33 @@ export default function SavedRecipesPage() {
       ) : error ? (
         <div className="text-red-500 text-center">{error}</div>
       ) : savedRecipes.length === 0 ? (
-        <p className="text-center text-gray-500 dark:text-gray-300">No saved recipes found.</p>
+        <p className="text-center text-gray-500 dark:text-gray-300">
+          No saved recipes found.
+        </p>
       ) : (
-        <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        // Responsive Grid with 2 columns on small screens and 3 on larger
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {savedRecipes.map((recipe) => (
             <motion.div
               key={recipe.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden" // Added overflow-hidden
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden"
               variants={recipeCardVariants}
               initial="initial"
               animate="animate"
               whileHover="hover"
             >
-              {/* --- START OF CHANGES --- */}
-
-              {/* 1. Create a relative container for the image and icon */}
               <div className="relative">
-                <Link href={`/recipes/${recipe.id}/detailspage`} className="block">
+                <Link
+                  href={`/recipes/${recipe.id}/detailspage`}
+                  className="block"
+                >
                   {recipe.image_url ? (
                     <Image
                       src={recipe.image_url || "/placeholder.svg"}
                       alt={recipe.title}
                       width={500}
                       height={200}
-                      className="w-full h-48 object-cover" // Removed rounded-md and mb-4
+                      className="w-full h-48 object-cover"
                       priority
                       unoptimized
                     />
@@ -156,42 +169,42 @@ export default function SavedRecipesPage() {
                   )}
                 </Link>
 
-                {/* 2. Add the new absolute-positioned icon button */}
+                {/* Delete Button */}
                 <motion.button
-                  onClick={() => setRecipeToDelete(recipe.id)}
-                  className="absolute top-3 right-3 z-10 p-2 bg-black/50 rounded-full text-white hover:bg-red-600 transition-colors duration-200"
-                  aria-label="Delete recipe"
-                  whileHover={{ scale: 1.1, rotate: 15 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </motion.button>
+  onClick={() => setRecipeToDelete(recipe.id)}
+  className="absolute top-3 right-3 z-10 p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
+  aria-label="Delete recipe"
+  whileHover={{ scale: 1.1, rotate: 15 }}
+  whileTap={{ scale: 0.9 }}
+>
+  <Trash2 className="w-5 h-5" />
+</motion.button>
+
               </div>
 
-              {/* 3. Wrap text content in a div with padding */}
               <div className="p-6 flex-grow flex flex-col">
                 <div className="flex-grow">
-                  <h3 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-100">{recipe.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">{recipe.description}</p>
+                  <h3 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
+                    {recipe.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                    {recipe.description}
+                  </p>
                 </div>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                   Saved on: {new Date(recipe.created_at).toLocaleDateString()}
                 </p>
               </div>
-
-              {/* 4. The old button is now removed from here */}
-
-              {/* --- END OF CHANGES --- */}
             </motion.div>
           ))}
         </div>
       )}
 
-      {/* MODAL (Unchanged) */}
+      {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {recipeToDelete && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            className="fixed inset-0 flex justify-center items-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -205,9 +218,12 @@ export default function SavedRecipesPage() {
             >
               <div className="text-center">
                 <div className="text-6xl mb-4">🗑️</div>
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Delete Favorite Recipe?</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                  Delete Favorite Recipe?
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Are you sure you want to delete this Favorite Recipe? This action cannot be undone.
+                  Are you sure you want to delete this Favorite Recipe? This
+                  action cannot be undone.
                 </p>
                 <div className="flex space-x-3">
                   <motion.button
@@ -232,8 +248,6 @@ export default function SavedRecipesPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      
     </motion.div>
-  )
+  );
 }

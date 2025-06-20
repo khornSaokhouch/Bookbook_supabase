@@ -221,14 +221,14 @@ const UserManagement = () => {
 
   return (
     <motion.div
-      className="container mx-auto p-4 md:p-8 "
+      className="container mx-auto p-4 md:p-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {/* Header Section */}
       <motion.div className="mb-8" variants={cardVariants}>
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
           <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
             <Users className="w-8 h-8 text-white" />
           </div>
@@ -243,7 +243,7 @@ const UserManagement = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <motion.div
             className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700"
             variants={statsVariants}
@@ -308,10 +308,10 @@ const UserManagement = () => {
 
       {/* Filters and Search */}
       <motion.div
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700 mb-8"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-100 dark:border-gray-700 mb-8"
         variants={cardVariants}
       >
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -319,7 +319,7 @@ const UserManagement = () => {
               placeholder="Search users by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 text-sm"
             />
           </div>
           <div className="relative">
@@ -327,7 +327,7 @@ const UserManagement = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer min-w-[150px]"
+              className="pl-10 pr-4 py-2 sm:py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer text-sm"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -341,26 +341,26 @@ const UserManagement = () => {
       <AnimatePresence>
         {successMessage && (
           <motion.div
-            className="fixed top-6 right-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-md"
+            className="fixed top-6 right-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-md"
             initial={{ opacity: 0, x: 100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 100, scale: 0.8 }}
             transition={{ duration: 0.3 }}
           >
-            <CheckCircle className="w-6 h-6 mr-3" />
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
             <span className="font-medium">{successMessage}</span>
           </motion.div>
         )}
 
         {error && (
           <motion.div
-            className="fixed top-6 right-6 bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-md"
+            className="fixed top-6 right-6 bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-md"
             initial={{ opacity: 0, x: 100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 100, scale: 0.8 }}
             transition={{ duration: 0.3 }}
           >
-            <AlertTriangle className="w-6 h-6 mr-3" />
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
             <span className="font-medium">{error}</span>
           </motion.div>
         )}
@@ -372,11 +372,11 @@ const UserManagement = () => {
         variants={cardVariants}
       >
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-16 sm:py-20">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-500" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
               </div>
             </div>
           </div>
@@ -385,22 +385,24 @@ const UserManagement = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
                     ID
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
                     User
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  {/* Responsive: Hide on small screens */}
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:hidden">
                     Created
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
+                  {/* Responsive: Hide on small screens */}
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:hidden">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
                     Actions
                   </th>
                 </tr>
@@ -419,31 +421,28 @@ const UserManagement = () => {
                         whileHover={{ scale: 1.01 }}
                       >
                         {/* Sequential ID */}
-                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400 font-semibold">
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-semibold">
                           {index + 1}
                         </td>
 
                         {/* User Info: avatar + name + email */}
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 relative rounded-full overflow-hidden shadow-md">
-  <Image
-    src={user.image_url || "/default-avatar.png"}
-    alt={`${user.user_name}'s avatar`}
-    fill
-    style={{ objectFit: "cover" }}
-    className="rounded-full"
-  />
-</div>
-
-
-
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 relative rounded-full overflow-hidden shadow-md">
+                              <Image
+                                src={user.image_url || "/default-avatar.png"}
+                                alt={`${user.user_name}'s avatar`}
+                                fill
+                                style={{ objectFit: "cover" }}
+                                className="rounded-full"
+                              />
+                            </div>
                             <div>
-                              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                              <div className="text-base font-semibold text-gray-900 dark:text-white">
                                 {user.user_name}
                               </div>
                               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                <Mail className="w-4 h-4 mr-1" />
+                                <Mail className="w-3 h-3 mr-1" />
                                 {user.email}
                               </div>
                             </div>
@@ -451,21 +450,21 @@ const UserManagement = () => {
                         </td>
 
                         {/* Role */}
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-lg ${getRoleBadgeColor(
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shadow-lg ${getRoleBadgeColor(
                               user.role
                             )}`}
                           >
                             {getRoleIcon(user.role)}
-                            <span className="ml-2 capitalize">{user.role}</span>
+                            <span className="ml-1 capitalize">{user.role}</span>
                           </span>
                         </td>
 
-                        {/* Created Date */}
-                        <td className="px-6 py-4">
-                          <div className="flex items-center text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-4 h-4 mr-2" />
+                        {/* Created Date (Conditionally Hidden) */}
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs sm:hidden">
+                          <div className="flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" />
                             {new Date(user.created_at).toLocaleDateString(
                               "en-US",
                               {
@@ -477,27 +476,25 @@ const UserManagement = () => {
                           </div>
                         </td>
 
-                        {/* Status */}
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 shadow-lg">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            {
-                              user.status ||
-                                "Active" /* Assuming a status field exists */
-                            }
+                        {/* Status (Conditionally Hidden) */}
+                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs sm:hidden">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 shadow-lg">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            {user.status || "Active"}
                           </span>
                         </td>
 
                         {/* Actions */}
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end space-x-2">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end space-x-1">
                             <motion.button
                               onClick={() => handleEdit(user)}
                               className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
+                              aria-label="Edit"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3" />
                             </motion.button>
                             <motion.button
                               onClick={() => {
@@ -507,8 +504,9 @@ const UserManagement = () => {
                               className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
+                              aria-label="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3" />
                             </motion.button>
                           </div>
                         </td>
@@ -518,7 +516,7 @@ const UserManagement = () => {
                     <tr>
                       <td colSpan={5} className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center justify-center">
-                          <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+                          <Users className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 dark:text-gray-600 mb-4" />
                           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                             No users found
                           </h3>

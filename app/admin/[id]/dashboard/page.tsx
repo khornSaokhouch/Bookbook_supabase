@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/app/lib/supabaseClient";
+import { supabase } from "../../../lib/supabaseClient";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -15,13 +15,6 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
-
-type DashboardStats = {
-  userCount: number;
-  recipeCount: number;
-  eventCount: number;
-  categoryCount: number;
-};
 
 type Category = {
   category_id: string;
@@ -68,7 +61,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
 
 async function getCategories(): Promise<Category[]> {
   try {
-    const { data, error } = await supabase.from("category").select();
+    const { data, error } = await supabase.from("category").select("*");
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -79,7 +72,7 @@ async function getCategories(): Promise<Category[]> {
 
 async function getOccasions(): Promise<Occasion[]> {
   try {
-    const { data, error } = await supabase.from("occasion").select();
+    const { data, error } = await supabase.from("occasion").select("*");
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -87,6 +80,13 @@ async function getOccasions(): Promise<Occasion[]> {
     return [];
   }
 }
+
+type DashboardStats = {
+  userCount: number;
+  recipeCount: number;
+  eventCount: number;
+  categoryCount: number;
+};
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -245,8 +245,8 @@ export default function Dashboard() {
   };
 
   return (
-    <motion.div
-      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8"
+    <motion.main
+      className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 py-6 space-y-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -320,6 +320,7 @@ export default function Dashboard() {
           </h2>
         </div>
 
+        {/* Responsive Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {[
             { label: "Users", count: stats.userCount },
@@ -333,7 +334,7 @@ export default function Dashboard() {
             return (
               <motion.div
                 key={label}
-                className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 dark:border-gray-700 overflow-hidden"
+                className="group relative bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 dark:border-gray-700 overflow-hidden"
                 onClick={() => handleStatClick(label)}
                 variants={cardVariants}
                 whileHover={{ y: -5, scale: 1.02 }}
@@ -345,23 +346,23 @@ export default function Dashboard() {
                 ></div>
 
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
                     <div
-                      className={`p-3 rounded-xl bg-gradient-to-br ${colorClass} text-white shadow-lg`}
+                      className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${colorClass} text-white shadow-lg`}
                     >
-                      {Icon && <Icon className="h-6 w-6" />}
+                      {Icon && <Icon className="h-5 w-5 sm:h-6 sm-w-6" />}
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all duration-300" />
+                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all duration-300" />
                   </div>
 
-                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
                     {label}
                   </h3>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                     {count.toLocaleString()}
                   </p>
 
-                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     Click to manage →
                   </div>
                 </div>
@@ -371,19 +372,19 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
-      {/* Enhanced Categories & Occasions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
+      {/* Enhanced Categories & Occasions Sections */}
+      <div className="mt-8">
         {/* Recipe Categories */}
         <motion.section
-          className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mb-6"
           variants={itemVariants}
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
-                <RestaurantMenu className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <RestaurantMenu className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                 Recipe Categories
               </h2>
             </div>
@@ -392,61 +393,64 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="flex overflow-x-auto pb-4 space-x-4 scrollbar-hide -mx-2 px-2">
-            {categories.length > 0 ? (
-              categories.map((category) => (
-                <motion.div
-                  key={category.category_id}
-                  className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-md min-w-[140px] sm:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
-                  whileHover={{ y: -5, scale: 1.05 }}
-                >
-                  <div className="relative mb-3">
-                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
-  <Image
-    src={category.image || "/placeholder.svg"}
-    alt={category.category_name}
-    fill
-    style={{ objectFit: 'cover' }}
-    className="rounded-full"
-  />
-</div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm">
-                    {category.category_name}
-                  </h3>
-                  <Link
-                    href={`/admin/${userId}/categories`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
+          {/* Make Category Scrollable on Smaller Screens */}
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex space-x-4 scrollbar-hide w-max">
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <motion.div
+                    key={category.category_id}
+                    className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-md min-w-[120px] sm:min-w-[140px] md:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    whileHover={{ y: -5, scale: 1.05 }}
                   >
-                    View All
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Link>
-                </motion.div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center w-full py-12 text-gray-500 dark:text-gray-400">
-                <RestaurantMenu className="w-12 h-12 mb-3 opacity-50" />
-                <p className="text-center">No categories available yet.</p>
-              </div>
-            )}
+                    <div className="relative mb-2 sm:mb-3">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
+                        <Image
+                          src={category.image || "/placeholder.svg"}
+                          alt={category.category_name}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          className="rounded-full"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm">
+                      {category.category_name}
+                    </h3>
+                    <Link
+                      href={`/admin/${userId}/categories`}
+                      className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
+                    >
+                      View All
+                      <ArrowRight className="w-3 h-3 ml-1" />
+                    </Link>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
+                  <RestaurantMenu className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
+                  <p className="text-center">No categories available yet.</p>
+                </div>
+              )}
+            </div>
           </div>
         </motion.section>
 
         {/* Occasions */}
         <motion.section
-          className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
           variants={itemVariants}
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
-                <Event className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <Event className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                 Special Occasions
               </h2>
             </div>
@@ -455,52 +459,54 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="flex overflow-x-auto pb-4 space-x-4 scrollbar-hide -mx-2 px-2">
-            {occasions.length > 0 ? (
-              occasions.map((occasion) => (
-                <motion.div
-                  key={occasion.occasion_id}
-                  className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 text-center shadow-md min-w-[140px] sm:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
-                  whileHover={{ y: -5, scale: 1.05 }}
-                >
-                  <div className="relative mb-3">
-                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
-  <Image
-    src={occasion.occasion_image || "/placeholder.svg"}
-    alt={occasion.name}
-    fill
-    style={{ objectFit: 'cover' }}
-    className="rounded-full"
-  />
-</div>
-
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm">
-                    {occasion.name}
-                  </h3>
-                  <Link
-                    href={`/admin/${userId}/occasions`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
+          {/* Make Occasions Scrollable on Smaller Screens */}
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex space-x-4 scrollbar-hide w-max">
+              {occasions.length > 0 ? (
+                occasions.map((occasion) => (
+                  <motion.div
+                    key={occasion.occasion_id}
+                    className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-md min-w-[120px] sm:min-w-[140px] md:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    whileHover={{ y: -5, scale: 1.05 }}
                   >
-                    View All
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Link>
-                </motion.div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center w-full py-12 text-gray-500 dark:text-gray-400">
-                <Event className="w-12 h-12 mb-3 opacity-50" />
-                <p className="text-center">No occasions available yet.</p>
-              </div>
-            )}
+                    <div className="relative mb-2 sm:mb-3">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
+                        <Image
+                          src={occasion.occasion_image || "/placeholder.svg"}
+                          alt={occasion.name}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          className="rounded-full"
+                        />
+                      </div>
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm">
+                      {occasion.name}
+                    </h3>
+                    <Link
+                      href={`/admin/${userId}/occasions`}
+                      className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
+                    >
+                      View All
+                      <ArrowRight className="w-3 h-3 ml-1" />
+                    </Link>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
+                  <Event className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
+                  <p className="text-center">No occasions available yet.</p>
+                </div>
+              )}
+            </div>
           </div>
         </motion.section>
       </div>
-    </motion.div>
+    </motion.main>
   );
 }

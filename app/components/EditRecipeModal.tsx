@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
-import { motion } from "framer-motion";
-import { Sparkles, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, XCircle, CheckCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
 
@@ -36,6 +36,7 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
   // Fetch user ID asynchronously on mount
@@ -70,7 +71,8 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const uniqueFiles = files.filter(
-        (file) => !imageFiles.find((existingFile) => existingFile.name === file.name)
+        (file) =>
+          !imageFiles.find((existingFile) => existingFile.name === file.name)
       );
       setImageFiles((prevFiles) => [...prevFiles, ...uniqueFiles]);
     }
@@ -153,12 +155,15 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
       }
 
       // Clear and insert image references
-      await supabase.from("image_recipe").delete().eq("recipe_id", editedRecipe.recipe_id);
+      await supabase
+        .from("image_recipe")
+        .delete()
+        .eq("recipe_id", editedRecipe.recipe_id);
 
       const imageInsertPromises = newImageUrls.map((imageUrl) =>
-        supabase.from("image_recipe").insert([
-          { recipe_id: editedRecipe.recipe_id, image_url: imageUrl },
-        ])
+        supabase
+          .from("image_recipe")
+          .insert([{ recipe_id: editedRecipe.recipe_id, image_url: imageUrl }])
       );
       await Promise.all(imageInsertPromises);
 
@@ -173,20 +178,23 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
       };
 
       onUpdateRecipe(updatedRecipe);
+      setSuccessMessage("Recipe updated successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000); // Clear after 3 seconds
       onClose();
     } catch (dbErr: unknown) {
       console.error("Database Update Error:", dbErr);
-    
+
       // Check if dbErr is an Error object with a message property
       const errorMessage =
         dbErr instanceof Error ? dbErr.message : "An unexpected error occurred.";
-    
-      setError(`Recipe update failed: ${errorMessage}. Please check the console for details.`);
+
+      setError(
+        `Recipe update failed: ${errorMessage}. Please check the console for details.`
+      );
     } finally {
       setLoading(false);
       setUploading(false);
     }
-    
   };
 
   const editableFields: (keyof Recipe)[] = [
@@ -229,27 +237,41 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
         {error && (
           <div className="mb-4 p-3 rounded-md bg-red-100 text-red-700">{error}</div>
         )}
+         {/* Success Message */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div
+            className="fixed top-6 right-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-md"
+            initial={{ opacity: 0, x: 100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
+            <span className="font-medium">{successMessage}</span>
+          </motion.div>
+        )}
+        </AnimatePresence>
         <form onSubmit={handleSubmit} className="space-y-4">
-        {editableFields.map((field) => (
-  <div key={field}>
-    <label
-      htmlFor={field}
-      className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 capitalize"
-    >
-      {field.replace("_", " ")}
-    </label>
-    <textarea
-      id={field}
-      name={field}
-      value={(editedRecipe[field] as string) ?? ""}
-      onChange={handleChange}
-      placeholder={`Enter ${field.replace("_", " ")}`}
-      className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
-      rows={field === "instructions" ? 5 : 3}
-    />
-  </div>
-))}
-
+          {editableFields.map((field) => (
+            <div key={field}>
+              <label
+                htmlFor={field}
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 capitalize"
+              >
+                {field.replace("_", " ")}
+              </label>
+              <textarea
+                id={field}
+                name={field}
+                value={(editedRecipe[field] as string) ?? ""}
+                onChange={handleChange}
+                placeholder={`Enter ${field.replace("_", " ")}`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none"
+                rows={field === "instructions" ? 5 : 3}
+              />
+            </div>
+          ))}
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -265,13 +287,13 @@ const EditRecipeModal: React.FC<EditRecipeModalProps> = ({
             <div className="flex flex-wrap mt-4">
               {imagePreviews.map((preview, index) => (
                 <div key={index} className="relative m-2">
-                 <Image
-  src={preview}
-  alt={`Recipe Preview ${index}`}
-  width={96} // 24 * 4px (Tailwind default spacing)
-  height={96}
-  className="object-cover rounded-md"
-/>
+                  <Image
+                    src={preview}
+                    alt={`Recipe Preview ${index}`}
+                    width={96} // 24 * 4px (Tailwind default spacing)
+                    height={96}
+                    className="object-cover rounded-md"
+                  />
                   <button
                     onClick={() => handleClearImage(index)}
                     className="absolute top-0 right-0 bg-black text-white rounded-full p-1 text-xs hover:bg-red-700"
