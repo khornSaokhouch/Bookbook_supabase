@@ -268,7 +268,7 @@ export default function MyRecipesPage() {
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/recipe/create")}
+            onClick={() => router.push("/${user.user_id}/add-recipe")}
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Recipe
@@ -300,7 +300,7 @@ export default function MyRecipesPage() {
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => router.push("/recipe/create")}
+                onClick={() => router.push("/${user.user_id}/add-recipe")}
               >
                 <Plus className="h-4 w-4 mr-2 inline" />
                 Create Your First Recipe
@@ -431,7 +431,7 @@ export default function MyRecipesPage() {
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
-            className="fixed inset-0 flex justify-center items-center z-50 p-4"
+            className="fixed inset-0  backdrop-blur-sm flex justify-center items-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

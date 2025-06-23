@@ -8,8 +8,8 @@ import {
   useCallback,
   useRef,
 } from "react";
-import { supabase } from "../../../lib/supabaseClient";
-import RecipeModal from "../../../components/RecipeModal";
+import { supabase } from "@/app/lib/supabaseClient";
+import RecipeModal from "@/app/components/RecipeModal";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import Image from "next/image";
