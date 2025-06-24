@@ -1,8 +1,8 @@
-"use client"
-import { useState, useEffect } from "react"
-import { supabase } from "@/app/lib/supabaseClient"
-import Image from "next/image"
-import { motion, AnimatePresence } from "framer-motion"
+"use client";
+import { useState, useEffect } from "react";
+import { supabase } from "@/app/lib/supabaseClient";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit,
   Trash2,
@@ -18,145 +18,210 @@ import {
   Clock,
   TrendingUp,
   Star,
-} from "lucide-react"
-import EventModal from "@/app/components/Event-modal"
+} from "lucide-react";
+import EventModal from "@/app/components/Event-modal";
 
 type EventType = {
-  event_id: number
-  admin_id: string
-  title: string
-  description: string
-  start_date: string
-  end_date: string | null
-  image_url: string | null
-  created_at: string
-}
+  event_id: number;
+  admin_id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string | null;
+  image_url: string | null;
+  created_at: string;
+};
 
-const DEFAULT_IMAGE_URL = "/placeholder.svg?height=200&width=300"
+const DEFAULT_IMAGE_URL = "/placeholder.svg?height=200&width=300";
 
 export default function EventsManagement() {
-  const [events, setEvents] = useState<EventType[]>([])
-  const [filteredEvents, setFilteredEvents] = useState<EventType[]>([])
-  const [editingEvent, setEditingEvent] = useState<EventType | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  const [pageLoading, setPageLoading] = useState(true)
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-  const [eventToDelete, setEventToDelete] = useState<number | null>(null)
+  const [events, setEvents] = useState<EventType[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventType[]>([]);
+  const [editingEvent, setEditingEvent] = useState<EventType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchEvents()
-  }, [])
+    fetchEvents();
+  }, []);
 
   useEffect(() => {
     if (successMessage || error) {
       const timer = setTimeout(() => {
-        setSuccessMessage(null)
-        setError(null)
-      }, 4000)
-      return () => clearTimeout(timer)
+        setSuccessMessage(null);
+        setError(null);
+      }, 4000);
+      return () => clearTimeout(timer);
     }
-  }, [successMessage, error])
+  }, [successMessage, error]);
 
   useEffect(() => {
-    let filtered = events
+    let filtered = events;
     if (searchTerm) {
       filtered = filtered.filter(
         (event) =>
           event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          event.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-    setFilteredEvents(filtered)
-  }, [events, searchTerm])
+    setFilteredEvents(filtered);
+  }, [events, searchTerm]);
 
   const fetchEvents = async () => {
-    setPageLoading(true)
-    setError(null)
+    setPageLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase.from("event").select("*").order("start_date", { ascending: true })
+      const { data, error } = await supabase
+        .from("event")
+        .select("*")
+        .order("start_date", { ascending: true });
 
-      if (error) throw error
-      setEvents(data as EventType[])
+      if (error) throw error;
+      console.log("Fetched events:", data); // Debug log
+      setEvents(data as EventType[]);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message)
+        setError(err.message);
       } else {
-        setError("An unknown error occurred.")
+        setError("An unknown error occurred.");
       }
     } finally {
-      setPageLoading(false)
+      setPageLoading(false);
     }
-  }
+  };
+
+  // Enhanced event status detection
+  const getEventStatus = (startDate: string, endDate: string | null) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : null;
+
+    // Reset time to compare dates only
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventStart = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate()
+    );
+    const eventEnd = end
+      ? new Date(end.getFullYear(), end.getMonth(), end.getDate())
+      : eventStart;
+
+    // Check if event is happening today or is ongoing
+    if (
+      eventStart.getTime() <= today.getTime() &&
+      eventEnd.getTime() >= today.getTime()
+    ) {
+      return "live";
+    }
+
+    // Check if event is upcoming
+    if (eventStart.getTime() > today.getTime()) {
+      return "upcoming";
+    }
+
+    // Event is in the past
+    return "past";
+  };
+
+  const getStatusBadge = (event: EventType) => {
+    const status = getEventStatus(event.start_date, event.end_date);
+
+    switch (status) {
+      case "live":
+        return (
+          <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-3 py-1 rounded-full shadow-lg animate-pulse">
+            🔴 Live
+          </div>
+        );
+      case "upcoming":
+        return (
+          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+            ✨ Upcoming
+          </div>
+        );
+      case "past":
+        return (
+          <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+            📅 Past
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   const handleEdit = (event: EventType) => {
-    setEditingEvent(event)
-    setIsModalOpen(true)
-  }
+    setEditingEvent(event);
+    setIsModalOpen(true);
+  };
 
   const openModal = () => {
-    setIsModalOpen(true)
-    setEditingEvent(null)
-    setError(null)
-  }
+    setIsModalOpen(true);
+    setEditingEvent(null);
+    setError(null);
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setEditingEvent(null)
-    setError(null)
-  }
+    setIsModalOpen(false);
+    setEditingEvent(null);
+    setError(null);
+  };
 
   const openDetailModal = (event: EventType) => {
-    setSelectedEvent(event)
-    setIsDetailModalOpen(true)
-  }
+    setSelectedEvent(event);
+    setIsDetailModalOpen(true);
+  };
 
   const handleEventSaved = (message: string) => {
-    setSuccessMessage(message)
-    fetchEvents()
-  }
+    setSuccessMessage(message);
+    fetchEvents();
+  };
 
   const handleModalError = (errorMessage: string) => {
-    setError(errorMessage)
-  }
+    setError(errorMessage);
+  };
 
   const handleDelete = (id: number) => {
-    // Open the delete confirmation modal
-    setEventToDelete(id)
-    setShowDeleteConfirmation(true)
-  }
+    setEventToDelete(id);
+    setShowDeleteConfirmation(true);
+  };
 
   const confirmDelete = async () => {
-    // Perform the deletion after confirmation
     if (eventToDelete) {
       try {
-        const { error } = await supabase.from("event").delete().eq("event_id", eventToDelete)
-        if (error) throw error
-        setSuccessMessage("Event deleted successfully!")
-        fetchEvents()
+        const { error } = await supabase
+          .from("event")
+          .delete()
+          .eq("event_id", eventToDelete);
+        if (error) throw error;
+        setSuccessMessage("Event deleted successfully!");
+        fetchEvents();
       } catch (err: unknown) {
         if (err instanceof Error) {
-          setError(err.message)
+          setError(err.message);
         } else {
-          setError("An unknown error occurred.")
+          setError("An unknown error occurred.");
         }
       } finally {
-        setEventToDelete(null) // Clear the eventToDelete state
-        setShowDeleteConfirmation(false) // Close the confirmation modal
+        setEventToDelete(null);
+        setShowDeleteConfirmation(false);
       }
     }
-  }
+  };
 
   const cancelDelete = () => {
-    // Cancel the deletion and close the confirmation modal
-    setEventToDelete(null)
-    setShowDeleteConfirmation(false)
-  }
+    setEventToDelete(null);
+    setShowDeleteConfirmation(false);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -164,20 +229,59 @@ export default function EventsManagement() {
       opacity: 1,
       transition: { duration: 0.6, staggerChildren: 0.1 },
     },
-  }
+  };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+  };
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.9 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-  }
+  };
 
-  const upcomingEvents = events.filter((event) => new Date(event.start_date) > new Date())
-  const pastEvents = events.filter((event) => new Date(event.start_date) <= new Date())
+  // Enhanced event categorization
+  const categorizeEvents = () => {
+    const liveEvents: EventType[] = [];
+    const upcomingEvents: EventType[] = [];
+    const pastEvents: EventType[] = [];
+    const thisMonthEvents: EventType[] = [];
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    events.forEach((event) => {
+      const status = getEventStatus(event.start_date, event.end_date);
+      const eventDate = new Date(event.start_date);
+
+      // Categorize by status
+      switch (status) {
+        case "live":
+          liveEvents.push(event);
+          break;
+        case "upcoming":
+          upcomingEvents.push(event);
+          break;
+        case "past":
+          pastEvents.push(event);
+          break;
+      }
+
+      // Check if event is in current month
+      if (
+        eventDate.getMonth() === currentMonth &&
+        eventDate.getFullYear() === currentYear
+      ) {
+        thisMonthEvents.push(event);
+      }
+    });
+
+    return { liveEvents, upcomingEvents, pastEvents, thisMonthEvents };
+  };
+
+  const { liveEvents, upcomingEvents, pastEvents, thisMonthEvents } =
+    categorizeEvents();
 
   if (pageLoading) {
     return (
@@ -189,11 +293,15 @@ export default function EventsManagement() {
               <Calendar className="w-8 h-8 text-indigo-500" />
             </div>
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Loading Events</h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Preparing your event calendar...</p>
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Loading Events
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
+            Preparing your event calendar...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -213,11 +321,13 @@ export default function EventsManagement() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Events Management
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Create and manage your events and celebrations</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Create and manage your events and celebrations
+            </p>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <motion.div
             className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700"
@@ -226,8 +336,17 @@ export default function EventsManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Events</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{events.length}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                  Total Events
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {events.length}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                    🔴 {liveEvents.length} live
+                  </span>
+                </div>
               </div>
               <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
                 <Calendar className="w-6 h-6 text-white" />
@@ -242,8 +361,20 @@ export default function EventsManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Upcoming</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{upcomingEvents.length}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                  Upcoming
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {upcomingEvents.length}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Next:{" "}
+                  {upcomingEvents[0]
+                    ? new Date(
+                        upcomingEvents[0].start_date
+                      ).toLocaleDateString()
+                    : "None"}
+                </p>
               </div>
               <div className="p-3 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-white" />
@@ -258,8 +389,15 @@ export default function EventsManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Past Events</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{pastEvents.length}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                  Past Events
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {pastEvents.length}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Completed successfully
+                </p>
               </div>
               <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl">
                 <Clock className="w-6 h-6 text-white" />
@@ -274,15 +412,17 @@ export default function EventsManagement() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">This Month</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                  This Month
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {
-                    events.filter(
-                      (event) =>
-                        new Date(event.start_date).getMonth() === new Date().getMonth() &&
-                        new Date(event.start_date).getFullYear() === new Date().getFullYear(),
-                    ).length
-                  }
+                  {thisMonthEvents.length}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {new Date().toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
               <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
@@ -401,8 +541,8 @@ export default function EventsManagement() {
                         fill
                         className="object-cover group-hover:scale-110 transition-transform duration-300"
                       />
-                      <div className="absolute top-4 right-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
-                        {new Date(event.start_date) > new Date() ? "Upcoming" : "Past"}
+                      <div className="absolute top-4 right-4">
+                        {getStatusBadge(event)}
                       </div>
                     </div>
 
@@ -410,24 +550,32 @@ export default function EventsManagement() {
                       <h3 className="font-bold text-gray-800 dark:text-white text-xl mb-2 line-clamp-2">
                         {event.title}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">{event.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                        {event.description}
+                      </p>
 
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <Calendar className="w-4 h-4 mr-2" />
-                          {new Date(event.start_date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {new Date(event.start_date).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
                         </div>
                         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <Clock className="w-4 h-4 mr-2" />
-                          {new Date(event.start_date).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(event.start_date).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
                         </div>
                       </div>
 
@@ -466,9 +614,13 @@ export default function EventsManagement() {
             ) : (
               <div className="text-center py-20">
                 <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events found</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No events found
+                </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {searchTerm ? "Try adjusting your search criteria." : "Get started by creating your first event."}
+                  {searchTerm
+                    ? "Try adjusting your search criteria."
+                    : "Get started by creating your first event."}
                 </p>
                 <motion.button
                   onClick={openModal}
@@ -484,162 +636,147 @@ export default function EventsManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-           <table className="w-full text-left text-sm font-sans">
-  <thead>
-    <tr
-      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600"
-    >
-      <th
-        className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-1/12"
-      >
-        No.
-      </th>
-      <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-4/12">
-        Event
-      </th>
-      <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-3/12">
-        Date & Time
-      </th>
-      <th className="px-22 py-4 font-semibold text-gray-900 dark:text-white w-2/12">
-        Status
-      </th>
-      <th
-        className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white w-2/12"
-      >
-        Actions
-      </th>
-    </tr>
-  </thead>
-  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-    {filteredEvents.length > 0 ? (
-      filteredEvents.map((event, index) => (
-        <motion.tr
-          key={event.event_id}
-          className="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05, duration: 0.3 }}
-          whileHover={{ scale: 1.005 }}
-        >
-          <td className="px-6 py-4 font-medium text-gray-700 dark:text-white">
-            <span
-              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md select-none"
-            >
-              #{index + 1}
-            </span>
-          </td>
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700"
-              >
-                <Image
-                  src={event.image_url || DEFAULT_IMAGE_URL}
-                  alt={event.title}
-                  width={56}
-                  height={56}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div>
-                <div
-                  className="font-semibold text-gray-900 dark:text-white text-base leading-tight mb-0.5"
-                >
-                  {event.title}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-                  {event.description}
-                </div>
-              </div>
-            </div>
-          </td>
-          <td className="px-6 py-4">
-            <div className="space-y-1">
-              <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
-                <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>
-                  {new Date(event.start_date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
-                <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>
-                  {new Date(event.start_date).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            </div>
-          </td>
-          <td className="px-6 py-4 text-center">
-            <span
-              className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium shadow-lg ${
-                new Date(event.start_date) > new Date()
-                  ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white"
-                  : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-              }`}
-            >
-              {new Date(event.start_date) > new Date() ? "Upcoming" : "Past"}
-            </span>
-          </td>
-          <td className="px-6 py-4">
-            <div className="flex items-center justify-end space-x-2">
-              <motion.button
-                onClick={() => openDetailModal(event)}
-                className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                aria-label="View details"
-              >
-                <Eye className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                onClick={() => handleEdit(event)}
-                className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                aria-label="Edit event"
-              >
-                <Edit className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                onClick={() => handleDelete(event.event_id)}
-                className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                aria-label="Delete event"
-              >
-                <Trash2 className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </td>
-        </motion.tr>
-      ))
-    ) : (
-      <tr>
-        {/* Corrected colSpan to colSpan */}
-        <td colSpan={5} className="px-6 py-20 text-center">
-          <div className="flex flex-col items-center justify-center">
-            <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              No events found
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm text-center">
-              {searchTerm
-                ? "We couldn't find any events matching your search. Try adjusting your criteria."
-                : "It looks like you don't have any events yet. Get started by creating your first one!"}
-            </p>
-          </div>
-        </td>
-      </tr>
-    )}
-  </tbody>
-</table>
+            <table className="w-full text-left text-sm font-sans">
+              <thead>
+                <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-1/12">
+                    No.
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-4/12">
+                    Event
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-3/12">
+                    Date & Time
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-2/12">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white w-2/12">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {filteredEvents.length > 0 ? (
+                  filteredEvents.map((event, index) => (
+                    <motion.tr
+                      key={event.event_id}
+                      className="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      whileHover={{ scale: 1.005 }}
+                    >
+                      <td className="px-6 py-4 font-medium text-gray-700 dark:text-white">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md select-none">
+                          #{index + 1}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
+                            <Image
+                              src={event.image_url || DEFAULT_IMAGE_URL}
+                              alt={event.title}
+                              width={56}
+                              height={56}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900 dark:text-white text-base leading-tight mb-0.5">
+                              {event.title}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                              {event.description}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>
+                              {new Date(event.start_date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                            <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>
+                              {new Date(event.start_date).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {getStatusBadge(event)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end space-x-2">
+                          <motion.button
+                            onClick={() => openDetailModal(event)}
+                            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.08 }}
+                            whileTap={{ scale: 0.92 }}
+                            aria-label="View details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleEdit(event)}
+                            className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.08 }}
+                            whileTap={{ scale: 0.92 }}
+                            aria-label="Edit event"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleDelete(event.event_id)}
+                            className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                            whileHover={{ scale: 1.08 }}
+                            whileTap={{ scale: 0.92 }}
+                            aria-label="Delete event"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                          No events found
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm text-center">
+                          {searchTerm
+                            ? "We couldn't find any events matching your search. Try adjusting your criteria."
+                            : "It looks like you don't have any events yet. Get started by creating your first one!"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </motion.div>
@@ -663,7 +800,7 @@ export default function EventsManagement() {
             exit={{ opacity: 0 }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                setIsDetailModalOpen(false)
+                setIsDetailModalOpen(false);
               }
             }}
           >
@@ -690,7 +827,9 @@ export default function EventsManagement() {
                   <XCircle className="h-6 w-6" />
                 </button>
                 <div className="absolute bottom-4 left-4 text-white">
-                  <h2 className="text-2xl font-bold mb-2">{selectedEvent.title}</h2>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {selectedEvent.title}
+                  </h2>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
@@ -698,18 +837,26 @@ export default function EventsManagement() {
                     </span>
                     <span className="flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
-                      {new Date(selectedEvent.start_date).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(selectedEvent.start_date).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </span>
                   </div>
+                </div>
+                <div className="absolute top-4 left-4">
+                  {getStatusBadge(selectedEvent)}
                 </div>
               </div>
 
               <div className="p-6">
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Description
+                  </h3>
                   <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                     {selectedEvent.description || "No description provided."}
                   </p>
@@ -717,15 +864,21 @@ export default function EventsManagement() {
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Start Date</h4>
+                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Start Date
+                    </h4>
                     <p className="text-gray-900 dark:text-white">
                       {new Date(selectedEvent.start_date).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">End Date</h4>
+                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      End Date
+                    </h4>
                     <p className="text-gray-900 dark:text-white">
-                      {selectedEvent.end_date ? new Date(selectedEvent.end_date).toLocaleString() : "Not specified"}
+                      {selectedEvent.end_date
+                        ? new Date(selectedEvent.end_date).toLocaleString()
+                        : "Not specified"}
                     </p>
                   </div>
                 </div>
@@ -733,8 +886,8 @@ export default function EventsManagement() {
                 <div className="flex gap-3">
                   <motion.button
                     onClick={() => {
-                      setIsDetailModalOpen(false)
-                      handleEdit(selectedEvent)
+                      setIsDetailModalOpen(false);
+                      handleEdit(selectedEvent);
                     }}
                     className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                     whileHover={{ scale: 1.02 }}
@@ -745,8 +898,8 @@ export default function EventsManagement() {
                   </motion.button>
                   <motion.button
                     onClick={() => {
-                      setIsDetailModalOpen(false)
-                      handleDelete(selectedEvent.event_id)
+                      setIsDetailModalOpen(false);
+                      handleDelete(selectedEvent.event_id);
                     }}
                     className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                     whileHover={{ scale: 1.02 }}
@@ -779,9 +932,12 @@ export default function EventsManagement() {
               transition={{ duration: 0.2 }}
             >
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Confirm Deletion</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                Confirm Deletion
+              </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Are you sure you want to delete this event? This action cannot be undone.
+                Are you sure you want to delete this event? This action cannot
+                be undone.
               </p>
               <div className="flex gap-4 justify-center">
                 <motion.button
@@ -806,5 +962,5 @@ export default function EventsManagement() {
         )}
       </AnimatePresence>
     </motion.div>
-  )
+  );
 }
