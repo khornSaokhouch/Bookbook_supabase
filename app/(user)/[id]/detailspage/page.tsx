@@ -343,14 +343,14 @@ const DetailsPage: React.FC = () => {
             {recipe && (
               <div className="relative overflow-hidden rounded-3xl shadow-2xl mb-8">
                 <Image
-                  src={recipe.image_url || "/placeholder.svg"}
-                  alt={recipe.recipe_name}
-                  width={1200}
-                  height={600}
-                  unoptimized
-                  className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
-                  priority
-                />
+  src={recipe.image_url || "/placeholder.svg"}
+  alt={recipe.recipe_name}
+  width={1200}
+  height={600}
+  className="w-full h-64 md:h-96 lg:h-[500px] object-cover"
+  priority
+/>
+
               </div>
             )}
 

@@ -375,137 +375,145 @@ export default function Dashboard() {
       {/* Enhanced Categories & Occasions Sections */}
       <div className="mt-8">
         {/* Recipe Categories */}
-        <motion.section
-          className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mb-6"
-          variants={itemVariants}
-        >
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
-                <RestaurantMenu className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
-                Recipe Categories
-              </h2>
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-              {categories.length} items
-            </span>
-          </div>
+<motion.section
+  className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mb-6"
+  variants={itemVariants}
+>
+  <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="flex items-center">
+      <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
+        <RestaurantMenu className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
+      </div>
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+        Recipe Categories
+      </h2>
+    </div>
 
-          {/* Make Category Scrollable on Smaller Screens */}
-          <div className="overflow-x-auto pb-4 -mx-4 px-4">
-            <div className="flex space-x-4 scrollbar-hide w-max">
-              {categories.length > 0 ? (
-                categories.map((category) => (
-                  <motion.div
-                    key={category.category_id}
-                    className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-md min-w-[120px] sm:min-w-[140px] md:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    whileHover={{ y: -5, scale: 1.05 }}
-                  >
-                    <div className="relative mb-2 sm:mb-3">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
-                        <Image
-                          src={category.image || "/placeholder.svg"}
-                          alt={category.category_name}
-                          fill
-                          style={{ objectFit: "cover" }}
-                          className="rounded-full"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm">
-                      {category.category_name}
-                    </h3>
-                    <Link
-                      href={`/admin/${userId}/categories`}
-                      className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
-                    >
-                      View All
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </Link>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
-                  <RestaurantMenu className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
-                  <p className="text-center">No categories available yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.section>
+    <div className="flex items-center space-x-2">
+      <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+        {categories.length} items
+      </span>
 
-        {/* Occasions */}
-        <motion.section
-          className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
-          variants={itemVariants}
-        >
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
-                <Event className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
-                Special Occasions
-              </h2>
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-              {occasions.length} items
-            </span>
-          </div>
+      <Link
+        href={`/admin/${userId}/categories`}
+        className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium group-hover:underline"
+      >
+        View All
+        <ArrowRight className="w-4 h-4 ml-1" />
+      </Link>
+    </div>
+  </div>
 
-          {/* Make Occasions Scrollable on Smaller Screens */}
-          <div className="overflow-x-auto pb-4 -mx-4 px-4">
-            <div className="flex space-x-4 scrollbar-hide w-max">
-              {occasions.length > 0 ? (
-                occasions.map((occasion) => (
-                  <motion.div
-                    key={occasion.occasion_id}
-                    className="group bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-md min-w-[120px] sm:min-w-[140px] md:min-w-[160px] hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100 dark:border-gray-600"
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    whileHover={{ y: -5, scale: 1.05 }}
-                  >
-                    <div className="relative mb-2 sm:mb-3">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 relative">
-                        <Image
-                          src={occasion.occasion_image || "/placeholder.svg"}
-                          alt={occasion.name}
-                          fill
-                          style={{ objectFit: "cover" }}
-                          className="rounded-full"
-                        />
-                      </div>
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    <h3 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm">
-                      {occasion.name}
-                    </h3>
-                    <Link
-                      href={`/admin/${userId}/occasions`}
-                      className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs font-medium group-hover:underline"
-                    >
-                      View All
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </Link>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
-                  <Event className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
-                  <p className="text-center">No occasions available yet.</p>
-                </div>
-              )}
+  {/* Make Category Scrollable on Smaller Screens */}
+  <div className="overflow-x-auto pb-4 -mx-4 px-4">
+    <div className="flex space-x-4 scrollbar-hide w-max">
+      {categories.length > 0 ? (
+        categories.map((category) => (
+          <motion.div
+            key={category.category_id}
+            className="group bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-md hover:shadow-xl transition-shadow duration-300 min-w-[140px] sm:min-w-[160px] md:min-w-[180px] border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            whileHover={{ y: -4, scale: 1.03 }}
+          >
+            {/* Category Image */}
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-3 rounded-full overflow-hidden shadow-lg">
+              <Image
+                src={category.image || "/placeholder.svg"}
+                alt={category.category_name}
+                fill
+                style={{ objectFit: "cover" }}
+                className="transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
-          </div>
-        </motion.section>
+
+            {/* Category Name */}
+            <h3 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white mb-1 truncate w-full">
+              {category.category_name}
+            </h3>
+          </motion.div>
+        ))
+      ) : (
+        <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
+          <RestaurantMenu className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
+          <p className="text-center">No categories available yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+</motion.section>
+
+
+       {/* Occasions */}
+<motion.section
+  className="bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700"
+  variants={itemVariants}
+>
+  <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="flex items-center">
+      <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-3">
+        <Event className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
+      </div>
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+        Special Occasions
+      </h2>
+    </div>
+
+    <div className="flex items-center space-x-2">
+      <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+        {occasions.length} items
+      </span>
+      <Link
+        href={`/admin/${userId}/occasions`}
+        className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium group-hover:underline"
+      >
+        View All
+        <ArrowRight className="w-4 h-4 ml-1" />
+      </Link>
+    </div>
+  </div>
+
+  {/* Make Occasions Scrollable on Smaller Screens */}
+  <div className="overflow-x-auto pb-4 -mx-4 px-4">
+    <div className="flex space-x-4 scrollbar-hide w-max">
+      {occasions.length > 0 ? (
+        occasions.map((occasion) => (
+          <motion.div
+            key={occasion.occasion_id}
+            className="group bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-md hover:shadow-xl transition-shadow duration-300 min-w-[140px] sm:min-w-[160px] md:min-w-[180px] border border-gray-200 dark:border-gray-700 flex flex-col items-center text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            whileHover={{ y: -4, scale: 1.03 }}
+          >
+            {/* Occasion Image */}
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mb-3 rounded-full overflow-hidden shadow-lg">
+              <Image
+                src={occasion.occasion_image || "/placeholder.svg"}
+                alt={occasion.name}
+                fill
+                style={{ objectFit: "cover" }}
+                className="transition-transform duration-300 group-hover:scale-105 rounded-full"
+              />
+            </div>
+
+            {/* Occasion Name */}
+            <h3 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-white mb-1 truncate w-full">
+              {occasion.name}
+            </h3>
+          </motion.div>
+        ))
+      ) : (
+        <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 text-gray-500 dark:text-gray-400">
+          <Event className="w-10 h-10 sm:w-12 sm:h-12 mb-2 sm:mb-3 opacity-50" />
+          <p className="text-center">No occasions available yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+</motion.section>
+
       </div>
     </motion.main>
   );

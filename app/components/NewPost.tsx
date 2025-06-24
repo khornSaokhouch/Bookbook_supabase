@@ -6,6 +6,8 @@ import RecipeCard from "@/app/components/recipe-card";
 import { motion } from "framer-motion";
 import { ChefHat } from "lucide-react";
 import type { User } from "@/app/types";
+import Link from "next/link"; // Ensure Link is imported
+import { useParams } from "next/navigation"; // Use Next.js router for params
 
 // Recipe Type - aligned with RecipeCard expectations
 type Recipe = {
@@ -33,6 +35,7 @@ type Review = {
 };
 
 export default function NewPostPage() {
+  const { id } = useParams(); // Assuming you're using a router that provides `useParams`
   const [newRecipes, setNewRecipes] = useState<Recipe[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<number[]>([]);
@@ -111,20 +114,20 @@ export default function NewPostPage() {
           .from("recipe")
           .select(
             `
-          recipe_id,
-          recipe_name,
-          description,
-          ingredients,
-          instructions,
-          created_at,
-          prep_time,
-          cook_time,
-          note,
-          image_recipe ( image_url )
-        `
+            recipe_id,
+            recipe_name,
+            description,
+            ingredients,
+            instructions,
+            created_at,
+            prep_time,
+            cook_time,
+            note,
+            image_recipe ( image_url )
+            `
           )
           .order("created_at", { ascending: false })
-          .limit(8);
+          .limit(8); // Ensures only 8 recipes are fetched
 
         if (recipesError) throw recipesError;
 
@@ -168,6 +171,7 @@ export default function NewPostPage() {
   const handleSaveRecipe = async (recipeId: number) => {
     if (!user) {
       console.warn("User not logged in. Cannot save recipe.");
+      setError("Please log in to save recipes."); // Provides simple feedback
       return;
     }
     try {
@@ -218,9 +222,16 @@ export default function NewPostPage() {
   };
 
   return (
-    <div>
+    // The main container provides the overall padding and max-width for the page content
+    <motion.div
+      className="container mx-auto py-10 px-4 sm:px-6 lg:px-8"
+      variants={containerVariants}
+      initial="initial"
+      animate="animate"
+    >
       <section className="mb-12">
-        <div className="text-center mb-12">
+        {/* Centralized main title and description */}
+        <div className="text-center mb-6">
           <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Fresh New Recipes
           </h2>
@@ -228,11 +239,27 @@ export default function NewPostPage() {
             Discover the latest culinary creations from our amazing community!
             👨‍🍳
           </p>
-          <div className="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full inline-block">
+
+          <div className="text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-full inline-block mt-4">
             {newRecipes.length} fresh recipes just added
           </div>
         </div>
 
+        {/* "View More" aligned to right on larger screens */}
+        <div className="w-full flex justify-center sm:justify-end mb-8">
+  {!loading && !error && newRecipes.length > 0 && (
+    <Link
+      href={id ? `/${user?.user_id}/recipe` : "/recipe"}
+      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+    >
+      View More
+      <span className="ml-1 text-base">→</span>
+    </Link>
+  )}
+</div>
+
+
+        {/* Conditional rendering for loading, error, or no recipes */}
         {loading ? (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(8)].map((_, i) => (
@@ -300,6 +327,6 @@ export default function NewPostPage() {
           </motion.div>
         )}
       </section>
-    </div>
+    </motion.div>
   );
 }

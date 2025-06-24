@@ -106,7 +106,9 @@ const Footer: React.FC = () => {
                     width={80}
                     height={80}
                     className="transition-transform duration-300 group-hover:scale-110"
+                    style={{ height: "auto", width: "auto" }} // ✅ Maintain aspect ratio
                   />
+
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
                 </div>
                 <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">

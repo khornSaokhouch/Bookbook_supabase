@@ -63,7 +63,8 @@ export default function Component({ recipe }: RecipeGalleryProps) {
                       width={400}
                       height={300}
                       unoptimized
-                      className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700"
+                      style={{ height: "auto", width: "100%" }}
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
                     />
 
                     {/* Overlay */}

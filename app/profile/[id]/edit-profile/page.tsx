@@ -1,3 +1,4 @@
+// app/your-path/EditProfile.tsx
 "use client";
 
 import type React from "react";
@@ -5,18 +6,17 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
 import ConfirmationModal from "@/app/components/ConfirmationModal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Mail,
   Save,
   ArrowLeft,
-  CheckCircle,
-  AlertCircle,
   Upload,
   Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAlert } from "@/app/context/AlertContext";
 
 type UserType = {
   id: string;
@@ -68,9 +68,7 @@ const itemVariants = {
 const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -78,12 +76,13 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const emailRef = useRef<HTMLInputElement>(null);
   const aboutMeRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
+  const { showAlert } = useAlert();
 
   useEffect(() => {
+    // Reset loading state when component mounts or params change (e.g., navigating back)
+    setLoading(false);
     const fetchUserData = async () => {
-      setLoading(true);
-      setError(null);
-
+      setLoading(true); // Set loading true for data fetch
       try {
         const resolvedParams = await params;
         const userId = resolvedParams.id;
@@ -95,7 +94,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           .single();
 
         if (error) {
-          setError("Failed to load user data.");
+          showAlert("Failed to load user data.", "error");
         } else {
           const fetchedUser: UserType = {
             id: data.user_id,
@@ -105,17 +104,27 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
             image_url: data.image_url || null,
           };
           setUser(fetchedUser);
+          // Set initial preview URL if user has an image
+          if (fetchedUser.image_url) {
+            setPreviewUrl(generateImageUrl(fetchedUser.image_url));
+          }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error during fetchUserData:", error);
-        setError("Failed to load user data.");
+        let errorMessage = "Failed to load user data.";
+        if (error instanceof Error) {
+          errorMessage += `: ${error.message}`;
+        } else if (typeof error === 'string') {
+          errorMessage += `: ${error}`;
+        }
+        showAlert(errorMessage, "error");
       } finally {
-        setLoading(false);
+        setLoading(false); // Ensure loading is false after data fetch attempt
       }
     };
 
     fetchUserData();
-  }, [params]);
+  }, [params, showAlert]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -123,19 +132,20 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
       const validFileTypes = ["image/jpeg", "image/png", "image/gif"];
 
       if (!validFileTypes.includes(file.type)) {
-        setError("Please upload a valid image file (JPEG, PNG, GIF).");
+        showAlert("Please upload a valid image file (JPEG, PNG, GIF).", "error");
+        setSelectedFile(null); // Clear selected file if invalid
+        setPreviewUrl(generateImageUrl(user?.image_url ?? null)); // Revert preview to current user image
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        setError("File size must be less than 5MB.");
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        showAlert("File size must be less than 5MB.", "error");
+        setSelectedFile(null); // Clear selected file if invalid
+        setPreviewUrl(generateImageUrl(user?.image_url ?? null)); // Revert preview to current user image
         return;
       }
 
       setSelectedFile(file);
-
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -144,7 +154,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameRef.current?.value || !emailRef.current?.value) {
-      setError("Name and Email are required!");
+      showAlert("Name and Email are required!", "error");
       return;
     }
 
@@ -152,13 +162,12 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   const handleConfirmUpdate = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); // Start loading for the update process
 
     let imagePath: string | null = null;
 
-    if (selectedFile) {
-      try {
+    try {
+      if (selectedFile) {
         const fileExt = selectedFile.name.split(".").pop();
         const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
@@ -167,69 +176,75 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           .from("image-user")
           .upload(filePath, selectedFile, {
             cacheControl: "3600",
-            upsert: false,
+            upsert: false, // Set to true if you want to replace existing files easily
           });
 
         if (uploadError) {
           console.error("Error uploading image:", uploadError.message);
-          setError("Failed to upload image.");
+          showAlert("Failed to upload image.", "error");
+          // Do not proceed with profile update if image upload fails
           setLoading(false);
           setIsModalOpen(false);
           return;
         }
-
         imagePath = filePath;
-      } catch (uploadError: unknown) {
-        console.error("Error during image upload:", uploadError);
-        setError("Failed to upload image.");
-        setLoading(false);
-        setIsModalOpen(false);
-        return;
+
+        // If a new image is uploaded, we might want to remove the old one
+        // This is a more advanced step and requires knowing the old path.
+        // For simplicity, we'll just update the image_url in the user table.
       }
-    }
 
-    const updatedUser = {
-      user_name: nameRef.current?.value,
-      email: emailRef.current?.value,
-      about_me: aboutMeRef.current?.value,
-      ...(imagePath ? { image_url: imagePath } : {}),
-    };
+      const updatedUser = {
+        user_name: nameRef.current?.value,
+        email: emailRef.current?.value,
+        about_me: aboutMeRef.current?.value,
+        ...(imagePath ? { image_url: imagePath } : {}), // Only add image_url if a new image was uploaded
+      };
 
-    try {
       const result = await updateUser(user?.id || "", updatedUser);
 
       if (result.success) {
-        setSuccessMessage(result.message ?? "Profile updated successfully");
-        setTimeout(() => {
-          router.push(`/profile/${user?.id}/profile`);
-        }, 2000);
-      } else {
-        setError(result.error || "An error occurred while updating profile.");
-      }
-    } catch (error) {
-      setError("An error occurred while updating profile.");
-      console.error(error);
-    }
+        showAlert(result.message ?? "Profile updated successfully", "success");
+        // Update local user state with new image URL immediately for preview consistency
+        if (imagePath && user) {
+            setUser(prevUser => ({
+                ...(prevUser as UserType), // Cast prevUser to UserType for safe spreading
+                image_url: imagePath,
+            }));
+            // Also update previewUrl directly if you want it to reflect the *new* uploaded image
+            setPreviewUrl(generateImageUrl(imagePath));
+        }
 
-    setLoading(false);
-    setIsModalOpen(false);
+        router.push(`/profile/${user?.id}/profile`); // Navigate immediately
+      } else {
+        showAlert(result.error || "An error occurred while updating profile.", "error");
+      }
+    } catch (error: unknown) {
+      console.error("Error during profile update or image upload:", error); // Consolidated error log
+      let errorMessage = "An unexpected error occurred during profile update.";
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      } else if (typeof error === 'string') {
+        errorMessage += `: ${error}`;
+      }
+      showAlert(errorMessage, "error");
+    } finally {
+      setLoading(false); // Always stop loading, regardless of success or failure
+      setIsModalOpen(false); // Always close modal
+    }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
 
-  const handleCloseAlert = () => {
-    setSuccessMessage(null);
-    setError(null);
-  };
-
   const generateImageUrl = (path: string | null) => {
     if (!path) return "/default-avatar.png";
+    // Ensure this matches your Supabase storage URL structure
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/image-user/${path}`;
   };
 
-  if (loading && !user) {
+  if (loading && !user) { // This check should only apply to initial data fetch loading
     return (
       <div className="min-h-screen bg-gradient-to-br from-violet-50 via-pink-50 to-indigo-50 dark:from-gray-900 dark:via-violet-900/20 dark:to-gray-800 flex items-center justify-center">
         <motion.div
@@ -243,6 +258,37 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           </p>
         </motion.div>
       </div>
+    );
+  }
+
+  // If user data could not be loaded, display a "not found" message
+  if (!user && !loading) {
+    return (
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-violet-50 via-pink-50 to-indigo-50 dark:from-gray-900 dark:via-violet-900/20 dark:to-gray-800 py-8 px-4 sm:px-6 flex items-center justify-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="text-center" variants={itemVariants}>
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-full border border-violet-200 dark:border-violet-700 mb-4 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-200"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Back
+            </span>
+          </button>
+          <div className="text-6xl mb-4">👤</div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+            User not found
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            The user profile could not be loaded or does not exist.
+          </p>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -281,70 +327,8 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
           </p>
         </motion.div>
 
-        {/* Success/Error Messages */}
-        <AnimatePresence>
-          {successMessage && (
-            <motion.div
-              className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              variants={itemVariants}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                  <span className="text-green-800 dark:text-green-300 font-medium">
-                    {successMessage}
-                  </span>
-                </div>
-                <button
-                  onClick={handleCloseAlert}
-                  className="text-green-600 hover:text-green-800 text-xl font-semibold"
-                >
-                  ×
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {error && (
-            <motion.div
-              className="mb-6 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              variants={itemVariants}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
-                  <span className="text-red-800 dark:text-red-300 font-medium">
-                    {error}
-                  </span>
-                </div>
-                <button
-                  onClick={handleCloseAlert}
-                  className="text-red-600 hover:text-red-800 text-xl font-semibold"
-                >
-                  ×
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {!user ? (
-          <motion.div className="text-center py-16" variants={itemVariants}>
-            <div className="text-6xl mb-4">👤</div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-              User not found
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              The user profile could not be loaded.
-            </p>
-          </motion.div>
-        ) : (
+        {/* This `user` check is now redundant because it's handled above */}
+        {user && ( // Only render the form if user data is available
           <motion.div
             className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
             variants={itemVariants}
@@ -362,11 +346,9 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                       className="w-full h-full object-cover"
                       width={96}
                       height={96}
+                      priority // Consider adding priority for profile images
                     />
                   </div>
-                  {/* <div className="absolute bottom-0 right-0 bg-violet-600 p-1.5 rounded-full">
-                    <Camera className="h-3 w-3 text-white" />
-                  </div> */}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold mb-1">{user?.user_name}</h2>
@@ -463,7 +445,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                 <motion.button
                   type="submit"
                   className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
+                  disabled={loading} // Button disabled when loading
                   variants={itemVariants}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

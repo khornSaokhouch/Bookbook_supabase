@@ -1,14 +1,13 @@
+// app/admin/[id]/profile/edit/page.tsx
 "use client";
 
 import type React from "react";
-
-import { useState, useEffect } from "react";
-import { supabase } from "../../../lib/supabaseClient";
+import { useState, useEffect, useCallback } from "react"; // Added useCallback for consistency
+import { supabase } from "@/app/lib/supabaseClient"; // Adjust path as per your project structure
 import Image from "next/image";
-import ConfirmationModal from "../../../components/ConfirmationModal";
+import ConfirmationModal from "@/app/components/ConfirmationModal";
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   User,
   Mail,
   Camera,
@@ -18,6 +17,8 @@ import {
   Edit3,
   ImageIcon,
 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useAlert } from "@/app/context/AlertContext"; // <--- NEW: Import useAlert
 
 interface SupabaseUser {
   id: string;
@@ -55,16 +56,20 @@ const floatingVariants = {
 };
 
 export default function EditProfilePage() {
+  const router = useRouter();
+  const { id } = useParams();
+  const { showAlert } = useAlert(); // <--- NEW: Initialize useAlert
+
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [name, setName] = useState("");
   const [aboutMe, setAboutMe] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
+  // Fetch current authenticated user
   useEffect(() => {
     async function getUser() {
       const { data, error } = await supabase.auth.getUser();
@@ -78,53 +83,53 @@ export default function EditProfilePage() {
     getUser();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
+  // Fetch user profile data when user is available
+  const fetchProfile = useCallback(async () => {
+    if (!user) return; // Only fetch if user is authenticated
 
-    async function fetchProfile() {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    // Removed setError(null) here because useAlert will handle transient messages
 
-      try {
-        const { data, error } = await supabase
-          .from("users")
-          .select("user_name, about_me, image_url")
-          .eq("user_id", user?.id)
-          .single();
+    try {
+      const { data, error: fetchError } = await supabase
+        .from("users")
+        .select("user_name, about_me, image_url")
+        .eq("user_id", user.id) // Use authenticated user's ID
+        .single();
 
-        if (!error && data) {
-          setName(data.user_name || "");
-          setAboutMe(data.about_me || "");
-          if (data.image_url) {
-            const { data: publicData } = supabase.storage
-              .from("image-user")
-              .getPublicUrl(data.image_url);
-            setPreview(publicData.publicUrl);
-          } else {
-            setPreview(null);
-          }
-        } else if (error) {
-          console.error("Error fetching profile:", error);
-          setError(`Oops! We couldn't load your profile. Let's try again! 😊`);
+      if (!fetchError && data) {
+        setName(data.user_name || "");
+        setAboutMe(data.about_me || "");
+        if (data.image_url) {
+          const { data: publicData } = supabase.storage
+            .from("image-user")
+            .getPublicUrl(data.image_url);
+          setPreview(publicData.publicUrl);
+        } else {
+          setPreview(null);
         }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        setError(
-          "Something unexpected happened. Don't worry, we'll get this sorted out!"
-        );
-      } finally {
-        setLoading(false);
+      } else if (fetchError) {
+        console.error("Error fetching profile:", fetchError);
+        showAlert('error'); // <--- NEW: Use showAlert for errors
       }
+    } catch (err) {
+      console.error("Unexpected error fetching profile:", err);
+      showAlert('error'); // <--- NEW: Use showAlert for unexpected errors
+    } finally {
+      setLoading(false);
     }
+  }, [user, showAlert]); // Dependency array: re-run if user or showAlert changes
 
+  useEffect(() => {
     fetchProfile();
-  }, [user]);
+  }, [fetchProfile]); // Depend on the memoized fetchProfile function
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (file) {
       setImage(file);
       setPreview(URL.createObjectURL(file));
+      // No need to clear local error state if useAlert manages global alerts
     }
   };
 
@@ -135,6 +140,7 @@ export default function EditProfilePage() {
     if (file && file.type.startsWith("image/")) {
       setImage(file);
       setPreview(URL.createObjectURL(file));
+      // No need to clear local error state
     }
   };
 
@@ -167,7 +173,7 @@ export default function EditProfilePage() {
     if (!user) return;
 
     setLoading(true);
-    setError(null);
+    // Removed setError(null) here
 
     try {
       let avatar_url: string | null = null;
@@ -183,30 +189,30 @@ export default function EditProfilePage() {
         ...(avatar_url && { image_url: avatar_url }),
       };
 
-      const { error } = await supabase.from("users").upsert(updates);
-      if (error) {
-        console.error("Error updating profile:", error);
-        setError(
-          `Hmm, something went wrong while saving. Let's give it another try! 🤔`
-        );
+      const { error: updateError } = await supabase.from("users").upsert(updates);
+      if (updateError) {
+        console.error("Error updating profile:", updateError);
+        showAlert('error'); // <--- NEW: Use showAlert for update errors
       } else {
-        setShowConfirmation(true);
+        setShowConfirmation(true); // <-- Keep ConfirmationModal for success message
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Unexpected error:", err);
-        setError(`Oops! ${err.message}`);
+        showAlert('error'); // <--- NEW: Use showAlert for general errors
       } else {
         console.error("Unknown error:", err);
-        setError("Something unexpected happened. Please try again!");
+        showAlert('error'); // <--- NEW: Use showAlert for unknown errors
       }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleCloseConfirmation = () => {
     setShowConfirmation(false);
+    showAlert('Edit Profile Success'); // <--- NEW: Show success alert after modal closes
+    router.push(`/admin/${id}/profile`); // Redirect after modal closes, using the ID from useParams
   };
 
   if (!user)
@@ -267,24 +273,8 @@ export default function EditProfilePage() {
           className="bg-white/80 backdrop-blur-sm dark:bg-gray-800/90 rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
           variants={itemVariants}
         >
-          {error && (
-            <motion.div
-              className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-6 m-6 rounded-xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center">
-                <AlertTriangle className="w-6 h-6 text-red-500 mr-3" />
-                <div>
-                  <p className="text-red-700 dark:text-red-300 font-medium">
-                    Oops!
-                  </p>
-                  <p className="text-red-600 dark:text-red-400">{error}</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+          {/* Removed the local error message display as useAlert will handle it globally */}
+          {/* Removed the local success message display as ConfirmationModal and useAlert handle it */}
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             {/* Profile Picture Section */}
@@ -365,7 +355,7 @@ export default function EditProfilePage() {
               <div className="relative">
                 <input
                   type="text"
-                  value={user.email}
+                  value={user?.email || ''} // Handle potential null user
                   disabled
                   className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed text-lg"
                 />
@@ -409,8 +399,7 @@ export default function EditProfilePage() {
                 className="w-full px-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:bg-gray-700 dark:text-white transition-all duration-200 text-lg resize-none"
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Share what makes you awesome! This helps others connect with you
-                💫
+                Share what makes you awesome! This helps others connect with you 💫
               </p>
             </motion.div>
 
@@ -441,13 +430,13 @@ export default function EditProfilePage() {
         </motion.div>
       </div>
 
-      {/* Enhanced Confirmation Modal */}
+      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={showConfirmation}
         onClose={handleCloseConfirmation}
-        onConfirm={handleCloseConfirmation}
+        onConfirm={handleCloseConfirmation} // Here, onConfirm also triggers the close and redirect
         title="🎉 Profile Updated!"
-        message="Your profile looks absolutely amazing! All changes have been saved successfully."
+        message="Your profile looks absolutely amazing! All changes have been saved successfully. You'll be redirected shortly to view your updated profile."
       />
     </motion.div>
   );

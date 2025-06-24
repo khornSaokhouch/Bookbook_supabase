@@ -5,7 +5,7 @@ import { supabase } from "@/app/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Edit, Trash2, Plus, ChefHat, Calendar } from "lucide-react";
+import { Edit, Trash2, Plus, ChefHat, Calendar, CheckCircle } from "lucide-react"; // Import CheckCircle
 import { motion, AnimatePresence } from "framer-motion";
 import EditRecipeModal from "@/app/components/EditRecipeModal";
 
@@ -64,6 +64,7 @@ export default function MyRecipesPage() {
   const [recipeToDelete, setRecipeToDelete] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Added state for success message
 
   const router = useRouter();
 
@@ -83,7 +84,7 @@ export default function MyRecipesPage() {
         const { data, error } = await supabase
           .from("recipe")
           .select(
-            `recipe_id, recipe_name, description, ingredients, instructions, created_at, 
+            `recipe_id, recipe_name, description, ingredients, instructions, created_at,
              image_recipe(image_id, image_url)`
           )
           .eq("user_id", user.id)
@@ -116,8 +117,6 @@ export default function MyRecipesPage() {
     fetchRecipes();
   }, [router]);
 
-  
-
   const handleDeleteRecipe = async () => {
     if (!recipeToDelete) return;
     try {
@@ -131,12 +130,23 @@ export default function MyRecipesPage() {
 
       // Delete from storage
       if (imagesData && imagesData.length > 0) {
-        const imagePaths = imagesData.map(img => img.image_url);
+        // Correctly map to paths for storage deletion
+        const imagePathsToDelete = imagesData.map(img => {
+          const url = img.image_url;
+          // Extract path after 'recipes/' to match Supabase storage's expected path format
+          const parts = url.split('/storage/v1/object/public/recipes/');
+          return parts.length > 1 ? parts[1] : url; // If not a full URL, use as is (though it should be)
+        });
+
         const { error: deleteStorageError } = await supabase.storage
           .from("recipes")
-          .remove(imagePaths);
+          .remove(imagePathsToDelete);
 
-        if (deleteStorageError) throw deleteStorageError;
+        if (deleteStorageError) {
+            console.warn("Failed to delete some images from storage:", deleteStorageError);
+            // Don't throw a full error here, as database deletion might still succeed.
+            // You might want a more robust error handling for partial success.
+        }
       }
 
       // Delete from database
@@ -148,8 +158,10 @@ export default function MyRecipesPage() {
       if (error) throw error;
 
       setRecipes((prev) => prev.filter((r) => r.recipe_id !== recipeToDelete));
-      setShowDeleteModal(false);
-      setRecipeToDelete(null);
+      setSuccessMessage("Recipe deleted successfully!"); // Set success message
+      closeDeleteModal(); // Close modal first
+      setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -179,22 +191,26 @@ export default function MyRecipesPage() {
     setRecipeToEdit(null);
   };
 
-   const handleUpdateRecipe = (updatedRecipe: Recipe) => {
+  const handleUpdateRecipe = (updatedRecipe: Recipe) => {
     setRecipes((prevRecipes) =>
       prevRecipes.map((recipe) =>
         recipe.recipe_id === updatedRecipe.recipe_id ? updatedRecipe : recipe
       )
     );
+    // The success message for editing is handled inside EditRecipeModal
     closeEditModal();
   };
+
   const buildImageUrl = (imagePath: string | null | undefined): string => {
     if (!imagePath) return "/default-image.jpg";
 
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath;
     }
-   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes${imagePath.startsWith("/") ? imagePath : "/" + imagePath}`;
+    // Ensure the path is correctly prepended for Supabase storage public URLs
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/${imagePath.startsWith("/") ? imagePath.substring(1) : imagePath}`;
   };
+
 
   if (loading) {
     return (
@@ -225,12 +241,28 @@ export default function MyRecipesPage() {
 
   return (
     <motion.div
-      className="min-h-screen dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 py-8 px-4 sm:px-6"
+      className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-orange-900/20 dark:to-gray-800 py-8 px-4 sm:px-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <div className="container max-w-7xl mx-auto">
+        {/* Success Message - Positioned as a global toast */}
+        <AnimatePresence>
+          {successMessage && (
+            <motion.div
+              className="fixed top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-2xl z-50 flex items-center max-w-sm text-center"
+              initial={{ opacity: 0, y: -50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+            >
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-3" />
+              <span className="font-medium text-lg">{successMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <motion.div className="text-center mb-12" variants={itemVariants}>
           <div className="inline-flex items-center px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-full border border-orange-200 dark:border-orange-700 mb-4">
@@ -268,7 +300,17 @@ export default function MyRecipesPage() {
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/${user.user_id}/add-recipe")}
+            // Fix for router.push with user.user_id:
+            onClick={async () => {
+                const { data: sessionData } = await supabase.auth.getSession();
+                const user = sessionData?.session?.user;
+                if (user) {
+                    router.push(`/${user.id}/add-recipe`); // Correct way to use user.id
+                } else {
+                    // Handle case where user is not logged in, maybe redirect to login or show an error
+                    router.push("/login");
+                }
+            }}
           >
             <Plus className="h-5 w-5 mr-2" />
             Create New Recipe
@@ -300,7 +342,16 @@ export default function MyRecipesPage() {
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => router.push("/${user.user_id}/add-recipe")}
+                // Fix for router.push with user.user_id:
+                onClick={async () => {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    const user = sessionData?.session?.user;
+                    if (user) {
+                        router.push(`/${user.id}/add-recipe`); // Correct way to use user.id
+                    } else {
+                        router.push("/login");
+                    }
+                }}
               >
                 <Plus className="h-4 w-4 mr-2 inline" />
                 Create Your First Recipe
@@ -431,7 +482,7 @@ export default function MyRecipesPage() {
       <AnimatePresence>
         {showDeleteModal && (
           <motion.div
-            className="fixed inset-0  backdrop-blur-sm flex justify-center items-center z-50 p-4"
+            className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 p-4" // Added backdrop
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import {
   Trash2,
   CheckCircle,
