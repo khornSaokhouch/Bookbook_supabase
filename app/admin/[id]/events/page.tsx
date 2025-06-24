@@ -484,124 +484,162 @@ export default function EventsManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Event</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Date & Time
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {filteredEvents.length > 0 ? (
-                  filteredEvents.map((event, index) => (
-                    <motion.tr
-                      key={event.event_id}
-                      className="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
-                      whileHover={{ scale: 1.01 }}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md">
-                            <Image
-                              src={event.image_url || DEFAULT_IMAGE_URL}
-                              alt={event.title}
-                              width={48}
-                              height={48}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 dark:text-white text-lg">{event.title}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                              {event.description}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            {new Date(event.start_date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </div>
-                          <div className="flex items-center text-gray-600 dark:text-gray-400">
-                            <Clock className="w-4 h-4 mr-2" />
-                            {new Date(event.start_date).toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-lg ${
-                            new Date(event.start_date) > new Date()
-                              ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white"
-                              : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-                          }`}
-                        >
-                          {new Date(event.start_date) > new Date() ? "Upcoming" : "Past"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end space-x-2">
-                          <motion.button
-                            onClick={() => openDetailModal(event)}
-                            className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
-                            onClick={() => handleEdit(event)}
-                            className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
-                            onClick={() => handleDelete(event.event_id)}
-                            className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events found</h3>
-                        <p className="text-gray-500 dark:text-gray-400">
-                          {searchTerm
-                            ? "Try adjusting your search criteria."
-                            : "Get started by creating your first event."}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+           <table className="w-full text-left text-sm font-sans">
+  <thead>
+    <tr
+      className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600"
+    >
+      <th
+        className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-1/12"
+      >
+        No.
+      </th>
+      <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-4/12">
+        Event
+      </th>
+      <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white w-3/12">
+        Date & Time
+      </th>
+      <th className="px-22 py-4 font-semibold text-gray-900 dark:text-white w-2/12">
+        Status
+      </th>
+      <th
+        className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white w-2/12"
+      >
+        Actions
+      </th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+    {filteredEvents.length > 0 ? (
+      filteredEvents.map((event, index) => (
+        <motion.tr
+          key={event.event_id}
+          className="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05, duration: 0.3 }}
+          whileHover={{ scale: 1.005 }}
+        >
+          <td className="px-6 py-4 font-medium text-gray-700 dark:text-white">
+            <span
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md select-none"
+            >
+              #{index + 1}
+            </span>
+          </td>
+          <td className="px-6 py-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700"
+              >
+                <Image
+                  src={event.image_url || DEFAULT_IMAGE_URL}
+                  alt={event.title}
+                  width={56}
+                  height={56}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <div>
+                <div
+                  className="font-semibold text-gray-900 dark:text-white text-base leading-tight mb-0.5"
+                >
+                  {event.title}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                  {event.description}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td className="px-6 py-4">
+            <div className="space-y-1">
+              <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>
+                  {new Date(event.start_date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>
+                  {new Date(event.start_date).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td className="px-6 py-4 text-center">
+            <span
+              className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium shadow-lg ${
+                new Date(event.start_date) > new Date()
+                  ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white"
+                  : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+              }`}
+            >
+              {new Date(event.start_date) > new Date() ? "Upcoming" : "Past"}
+            </span>
+          </td>
+          <td className="px-6 py-4">
+            <div className="flex items-center justify-end space-x-2">
+              <motion.button
+                onClick={() => openDetailModal(event)}
+                className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                aria-label="View details"
+              >
+                <Eye className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                onClick={() => handleEdit(event)}
+                className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                aria-label="Edit event"
+              >
+                <Edit className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                onClick={() => handleDelete(event.event_id)}
+                className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                aria-label="Delete event"
+              >
+                <Trash2 className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </td>
+        </motion.tr>
+      ))
+    ) : (
+      <tr>
+        {/* Corrected colSpan to colSpan */}
+        <td colSpan={5} className="px-6 py-20 text-center">
+          <div className="flex flex-col items-center justify-center">
+            <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No events found
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm text-center">
+              {searchTerm
+                ? "We couldn't find any events matching your search. Try adjusting your criteria."
+                : "It looks like you don't have any events yet. Get started by creating your first one!"}
+            </p>
+          </div>
+        </td>
+      </tr>
+    )}
+  </tbody>
+</table>
           </div>
         )}
       </motion.div>
