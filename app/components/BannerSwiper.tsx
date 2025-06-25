@@ -206,10 +206,10 @@ export default function BannerSwiper() {
                             <span>Explore Event</span>
                             <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                           </button>
-                          <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
+                          {/* <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
                             <Calendar className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                             Learn More
-                          </button>
+                          </button> */}
                         </>
                       )}
                     </div>
