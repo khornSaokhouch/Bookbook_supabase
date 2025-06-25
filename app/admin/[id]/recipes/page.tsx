@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/app/lib/supabaseClient";
-import { Button } from "@/app/components/ui/button";
 import {
   Trash2,
   CheckCircle,
@@ -17,18 +16,12 @@ import {
   BookOpen,
   TrendingUp,
   Clock,
+  User,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogHeader,
-  DialogFooter,
-} from "@/app/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+// Final shape of a recipe object used in the component's state
 interface Recipe {
   recipe_id: string;
   recipe_name: string;
@@ -38,6 +31,19 @@ interface Recipe {
   image_url?: string | null;
   user_id?: string;
   user_name?: string;
+}
+
+// CORRECTED: Shape of the raw data returned from the Supabase query
+interface RawRecipeFromSupabase {
+  recipe_id: string;
+  recipe_name: string;
+  category_id: string;
+  occasion_id: string;
+  created_at: string;
+  user_id: string | null;
+  // FIX #1: Define 'users' as an array of objects or null, as indicated by the error.
+  users: { user_name: string }[] | null;
+  image_recipe: { image_url: string }[] | null;
 }
 
 interface Category {
@@ -124,7 +130,7 @@ export default function RecipeManagement() {
           created_at,
           user_id,
           users(user_name),
-          image_recipe:image_recipe(image_url)
+          image_recipe(image_url)
         `
             )
             .order("created_at", { ascending: false }),
@@ -137,12 +143,22 @@ export default function RecipeManagement() {
       if (categoriesResult.error) throw categoriesResult.error;
       if (occasionsResult.error) throw occasionsResult.error;
 
-      // Process recipes with images and user information
-      const recipesWithData = recipesResult.data.map((recipe) => ({
-        ...recipe,
-        image_url: recipe.image_recipe?.[0]?.image_url ?? null,
-        user_name: recipe.users?.[0]?.user_name || "Unknown User",
-      }));
+      // This is line 145 where the error occurred. It will now work with the corrected interface.
+      const rawData: RawRecipeFromSupabase[] = recipesResult.data || [];
+
+      const recipesWithData: Recipe[] = rawData.map(
+        (recipe: RawRecipeFromSupabase) => ({
+          recipe_id: recipe.recipe_id,
+          recipe_name: recipe.recipe_name,
+          category_id: recipe.category_id,
+          occasion_id: recipe.occasion_id,
+          created_at: recipe.created_at,
+          user_id: recipe.user_id || undefined,
+          image_url: recipe.image_recipe?.[0]?.image_url ?? null,
+          // FIX #2: Access the first element of the 'users' array to get the user name.
+          user_name: recipe.users?.[0]?.user_name || "Unknown User",
+        })
+      );
 
       setRecipes(recipesWithData);
       setCategories(categoriesResult.data || []);
@@ -479,17 +495,18 @@ export default function RecipeManagement() {
                     whileHover={{ y: -5, scale: 1.02 }}
                   >
                     <div className="relative mb-4">
-                      <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                        <div className="relative w-full h-24 rounded-xl overflow-hidden">
-                          <Image
-                            src={recipe.image_url || "/placeholder-image.png"} // Fallback image
-                            alt={recipe.recipe_name}
-                            fill
-                            className="object-cover"
-                            decoding="async"
-                            priority
-                          />
-                        </div>
+                      <div className="w-full h-24 mx-auto rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                        <Image
+                          src={
+                            recipe.image_url ||
+                            "/placeholder.svg?height=96&width=200"
+                          }
+                          alt={recipe.recipe_name}
+                          width={200}
+                          height={96}
+                          className="object-cover w-full h-full"
+                          loading="lazy"
+                        />
                       </div>
                       <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-1 rounded-full shadow-lg">
                         #{index + 1}
@@ -521,22 +538,8 @@ export default function RecipeManagement() {
                       </div>
                       <div className="flex items-center justify-center">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="mr-1"
-                          >
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                          </svg>
-                          Published by {recipe.user_name || "Unknown"}
+                          <User className="w-3 h-3 mr-1" />
+                          Published by {recipe.user_name}
                         </span>
                       </div>
                     </div>
@@ -633,18 +636,20 @@ export default function RecipeManagement() {
                       <td className="px-6 py-4">
                         <div className="w-14 h-14 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
                           <Image
-                            src={recipe.image_url || "/placeholder-image.png"}
+                            src={
+                              recipe.image_url ||
+                              "/placeholder.svg?height=56&width=56"
+                            }
                             alt={recipe.recipe_name}
                             width={56}
                             height={56}
-                            className="object-cover"
+                            className="object-cover w-full h-full"
                             loading="lazy"
-                            decoding="async"
                           />
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold font-[Noto_Sans_Khmer]">
+                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">
                         {recipe.recipe_name}
                       </td>
 
@@ -667,22 +672,8 @@ export default function RecipeManagement() {
                       {/* Published by */}
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md select-none">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="mr-1"
-                          >
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                          </svg>
-                          {recipe.user_name || "Unknown"}
+                          <User className="w-4 h-4 mr-1" />
+                          {recipe.user_name}
                         </span>
                       </td>
 
@@ -746,40 +737,45 @@ export default function RecipeManagement() {
       </motion.div>
 
       {/* Delete Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl">
-          <DialogHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Delete Recipe
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete this recipe? This action cannot
+                be undone and will permanently remove the recipe from your
+                collection.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={deleteRecipe}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Recipe
+                </button>
+              </div>
             </div>
-            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-              Delete Recipe
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400 mt-2">
-              Are you sure you want to delete this recipe? This action cannot be
-              undone and will permanently remove the recipe from your
-              collection.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="flex-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={deleteRecipe}
-              className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 border-0"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Recipe
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }
