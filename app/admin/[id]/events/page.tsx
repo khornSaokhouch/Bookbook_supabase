@@ -85,7 +85,6 @@ export default function EventsManagement() {
         .order("start_date", { ascending: true });
 
       if (error) throw error;
-      console.log("Fetched events:", data); // Debug log
       setEvents(data as EventType[]);
     } catch (err: unknown) {
       if (err instanceof Error) {
