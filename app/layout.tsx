@@ -16,14 +16,7 @@ export const metadata: Metadata = {
   title: "Cookbooks",
   description: "Website description",
   icons: {
-    icon: [
-      {
-        rel: "icon",
-        sizes: "any",
-        url: "/logo.png",
-        href: "/logo.png",
-      },
-    ],
+    icon: "/images/favicon.ico", // Corrected from "/images/favicon.ico"
   },
 };
 
