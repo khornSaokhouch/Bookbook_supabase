@@ -8,6 +8,7 @@ import { Calendar, ArrowRight, Sparkles, Star, Play } from "lucide-react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
+import Link from "next/link";
 
 type Event = {
   event_id: number;
@@ -201,11 +202,17 @@ export default function BannerSwiper() {
                         </>
                       ) : (
                         <>
-                          <button className="group flex items-center px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-sm md:text-base shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:from-purple-700 hover:to-pink-700">
-                            <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                            <span>Explore Event</span>
-                            <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                          </button>
+                          <Link
+                            href={`/${event.event_id}/event-detail`}
+                            className="group"
+                          >
+                            <div className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-sm md:text-base shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:from-purple-700 hover:to-pink-700 cursor-pointer">
+                              <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                              <span>Explore Event</span>
+                              <ArrowRight className="h-4 w-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                            </div>
+                          </Link>
+
                           {/* <button className="flex items-center px-6 py-3 md:px-8 md:py-4 bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl font-bold text-sm md:text-base hover:bg-white/25 transition-all duration-300 transform hover:scale-105">
                             <Calendar className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                             Learn More
