@@ -372,7 +372,11 @@ const AddRecipe = () => {
 
   // Navigation tabs for form sections
   const formSections = [
-    { id: "basics", label: "Basics", icon: <ChefHat className="h-4 w-4" /> },
+    {
+      id: "basics",
+      label: "General information",
+      icon: <ChefHat className="h-4 w-4" />,
+    },
     { id: "details", label: "Details", icon: <FileText className="h-4 w-4" /> },
     {
       id: "ingredients",
@@ -775,13 +779,30 @@ const AddRecipe = () => {
                     </h2>
                   </div>
 
-                  <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 mb-6">
-                    <div className="flex items-start">
-                      <Info className="h-5 w-5 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-orange-800 dark:text-orange-300">
-                        List each ingredient on a new line. Include quantities
-                        and any preparation notes .
+                  <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 md:p-5 mb-6 flex items-start space-x-3">
+                    {/* Removed space-x-4 from parent as content now flows vertically */}
+                    <Info className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                    {/* Consolidated icon and adjusted margin-top for better alignment */}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">
+                        {/* Added font-medium for slight emphasis, mb-2 for spacing */}
+                        Please follow these guidelines for ingredients:
                       </p>
+                      <ul className="list-disc list-inside text-sm text-orange-700 dark:text-orange-400 space-y-1">
+                        {/* Used ul for clear bullet points, space-y-1 for line spacing */}
+                        <li>List each ingredient on a new line.</li>
+                        <li>Include quantities and any preparation notes.</li>
+                      </ul>
+
+                      <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mt-3 mb-1">
+                        {/* Added margin-top for separation, mb-1 for spacing */}
+                        Example:
+                      </p>
+                      <pre className="bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 p-3 rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto">
+                        {/* Using <pre> for pre-formatted text, added font-mono for code-like appearance */}
+                        1/4 cup granulated sugar 1 tsp baking powder 1/2 tsp
+                        salt ...
+                      </pre>
                     </div>
                   </div>
 
@@ -848,13 +869,30 @@ const AddRecipe = () => {
                     </h2>
                   </div>
 
-                  <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 mb-6">
-                    <div className="flex items-start">
-                      <Info className="h-5 w-5 text-orange-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-orange-800 dark:text-orange-300">
-                        Number each step and be specific. Include temperatures,
-                        times, and visual cues .
+                  <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 md:p-5 mb-6 flex items-start space-x-3">
+                    <Info className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">
+                        Please follow these guidelines for your recipe
+                        instructions:
                       </p>
+                      <ul className="list-disc list-inside text-sm text-orange-700 dark:text-orange-400 space-y-1">
+                        <li>Number each step clearly.</li>
+                        <li>
+                          Be specific and include temperatures, times, and
+                          visual cues.
+                        </li>
+                      </ul>
+
+                      <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mt-3 mb-1">
+                        Example:
+                      </p>
+                      <pre className="bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 p-3 rounded-md text-sm whitespace-pre-wrap font-mono overflow-auto">
+                        1. Preheat oven to 350°F (175°C). 2. In a large bowl,
+                        combine flour, sugar, baking powder, and salt. 3. In a
+                        separate bowl, whisk together eggs, milk, and vanilla.
+                        ...
+                      </pre>
                     </div>
                   </div>
 

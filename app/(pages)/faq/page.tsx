@@ -34,12 +34,7 @@ const FAQ = () => {
         "Many of our recipes cater to special dietary needs. Each recipe includes a section highlighting dietary information, such as gluten-free, vegan, or nut-free options.",
     },
     {
-      question: "How do I print a recipe?",
-      answer:
-        "You can print any recipe by clicking the Print button found on each recipe page. This will generate a printer-friendly version of the recipe for you to use in the kitchen.",
-    },
-    {
-      question: "Can I leave a review for a recipe?",
+      question: "Can I leave a review and Comment for a recipe?",
       answer:
         "Yes! After trying a recipe, you can leave a review by scrolling to the bottom of the recipe page. We appreciate your feedback and love hearing about your cooking experiences!",
     },

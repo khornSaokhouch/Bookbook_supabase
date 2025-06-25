@@ -396,7 +396,7 @@ const EditProfile = ({ params }: { params: Promise<{ id: string }> }) => {
                 {/* Name Field */}
                 <motion.div variants={itemVariants}>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Full Name
+                    Name
                   </label>
                   <input
                     type="text"

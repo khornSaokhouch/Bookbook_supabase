@@ -398,7 +398,7 @@ export default function MyRecipesPage() {
                     </Link>
 
                     {/* Overlay with actions */}
-                    <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {/* <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <motion.button
                         onClick={() => openEditModal(recipe)}
                         className="bg-blue-500/90 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg backdrop-blur-sm"
@@ -417,7 +417,7 @@ export default function MyRecipesPage() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </motion.button>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Recipe Content */}
@@ -446,7 +446,7 @@ export default function MyRecipesPage() {
                     </div>
                     <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
                       <Calendar className="h-3 w-3 mr-1" />
-                      Created {new Date(recipe.created_at).toLocaleDateString()}
+                      Created date : {new Date(recipe.created_at).toLocaleDateString()}
                     </div>
 
                     {/* Action buttons */}

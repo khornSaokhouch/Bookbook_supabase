@@ -214,7 +214,7 @@ export default function NewPostPage() {
       <section className="mb-12">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Recipe of the Week
+          Newest Recipe
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Handpicked just for you! 👨‍🍳

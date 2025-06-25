@@ -82,13 +82,7 @@ export default function EventsPage() {
       ? new Date(end.getFullYear(), end.getMonth(), end.getDate())
       : eventStart;
 
-    console.log("Date comparison:", {
-      today: today.toISOString(),
-      eventStart: eventStart.toISOString(),
-      eventEnd: eventEnd.toISOString(),
-      startDate,
-      endDate,
-    });
+
 
     // Check if event is happening today
     if (
@@ -112,7 +106,7 @@ export default function EventsPage() {
       case "live":
         return (
           <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center animate-pulse">
-            🔴 LIVE NOW!
+            🔴 on going Event!
           </div>
         );
       case "upcoming":
@@ -134,7 +128,7 @@ export default function EventsPage() {
 
   // Separate events by status for better organization
   const categorizeEvents = () => {
-    const liveEvents: Event[] = [];
+    const ongoingEvent: Event[] = [];
     const upcomingEvents: Event[] = [];
     const pastEvents: Event[] = [];
 
@@ -142,7 +136,7 @@ export default function EventsPage() {
       const status = getEventStatus(event.start_date, event.end_date);
       switch (status) {
         case "live":
-          liveEvents.push(event);
+          ongoingEvent.push(event);
           break;
         case "upcoming":
           upcomingEvents.push(event);
@@ -153,10 +147,10 @@ export default function EventsPage() {
       }
     });
 
-    return { liveEvents, upcomingEvents, pastEvents };
+    return { ongoingEvent, upcomingEvents, pastEvents };
   };
 
-  const { liveEvents, upcomingEvents, pastEvents } = categorizeEvents();
+  const { ongoingEvent, upcomingEvents, pastEvents } = categorizeEvents();
 
   const renderEventCard = (event: Event, index: number) => {
     const status = getEventStatus(event.start_date, event.end_date);
@@ -269,7 +263,8 @@ export default function EventsPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 leading-tight">
+            {/* mb-4 for closer proximity to description, leading-tight for better line spacing */}
             Amazing Events
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -281,7 +276,7 @@ export default function EventsPage() {
               📍 {events.length} total events
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400 bg-green-100/50 dark:bg-green-900/20 px-4 py-2 rounded-full">
-              🔴 {liveEvents.length} live
+              🔴 {ongoingEvent.length} on going Event
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400 bg-blue-100/50 dark:bg-blue-900/20 px-4 py-2 rounded-full">
               ✨ {upcomingEvents.length} upcoming
@@ -322,7 +317,7 @@ export default function EventsPage() {
           </div>
         ) : (
           <div>
-            {renderEventSection("Live Events", liveEvents, "🔴")}
+            {renderEventSection("On going Event", ongoingEvent, "🔴")}
             {renderEventSection("Upcoming Events", upcomingEvents, "✨")}
             {renderEventSection("Past Events", pastEvents, "📅")}
           </div>

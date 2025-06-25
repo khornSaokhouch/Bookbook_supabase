@@ -271,7 +271,7 @@ export default function Navbar({ user }: NavbarProps) {
                 { href: "/", label: "Home" },
                 {
                   href: id ? `/${user?.user_id}/recipe` : "/recipe",
-                  label: "Recipe",
+                  label: "Recipes",
                 },
                 {
                   href: id ? `/${user?.user_id}/event` : "/event",
@@ -425,7 +425,7 @@ export default function Navbar({ user }: NavbarProps) {
                 { href: "/", label: "Home" },
                 {
                   href: id ? `/${user?.user_id}/recipe` : "/recipe",
-                  label: "Recipe",
+                  label: "Recipes",
                 },
                 {
                   href: id ? `/${user?.user_id}/event` : "/event",

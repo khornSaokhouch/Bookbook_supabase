@@ -6,14 +6,8 @@ import { supabase } from "@/app/lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import {
-  Mail,
-  Heart,
-  Edit3,
-  Calendar,
-  Sparkles,
-  Coffee,
-} from "lucide-react";
+import { Mail, Heart, Edit3, Calendar, Sparkles, Coffee } from "lucide-react";
+import Link from "next/link";
 
 const ProfileImageModal = dynamic(
   () => import("@/app/components/ProfileImageModal"),
@@ -314,33 +308,58 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex-1 text-white">
+                {/* User Name */}
                 <motion.h2
-                  className="text-2xl sm:text-3xl font-bold mb-2 flex items-center"
+                  className="text-2xl sm:text-3xl font-extrabold mb-2 leading-tight flex items-center"
                   variants={itemVariants}
                 >
-                  {user.user_name}
+                  {/* Used font-extrabold for more impact, leading-tight for better line spacing */}
+                  Hello,{" "}
+                  <span className="text-blue-200 ml-2">{user.user_name}!</span>
+                  {/* Added a friendly greeting and highlighted the name */}
+                  {/* Optional: Star icon for premium/verified users, if applicable */}
                   {/* <Star className="h-5 w-5 text-yellow-300 ml-2" /> */}
                 </motion.h2>
+
+                {/* Email Address */}
                 <motion.div
-                  className="flex items-center text-white/80 mb-3"
+                  className="flex items-center text-white/90 mb-3 text-base"
                   variants={itemVariants}
                 >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {user.email}
+                  {/* Adjusted text color and size for better readability */}
+                  <Mail className="h-4 w-4 mr-2 text-blue-300" />
+                  {/* Added a subtle color to the icon */}
+                  <span className="font-medium">{user.email}</span>
+                  {/* Made email text slightly bolder */}
                 </motion.div>
+
+                {/* Creation Date and Optional Location */}
                 <motion.div
-                  className="flex items-center space-x-4 text-sm text-white/70"
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70 mt-4"
                   variants={itemVariants}
                 >
-                  <div className="flex items-center">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {new Date(user.created_at).toLocaleDateString("en-GB")}
+                  {/* Used flex-wrap and gap for better responsiveness and spacing */}
+                  {/* Creation Date */}
+                  <div className="flex items-center bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm shadow-md">
+                    {/* Added subtle background, padding, blur, and shadow for a badge-like look */}
+                    <Calendar className="h-3.5 w-3.5 mr-1.5 text-blue-300" />
+                    {/* Slightly larger icon, increased margin, added color */}
+                    <span className="font-semibold">Joined:</span>{" "}
+                    {new Date(user.created_at).toLocaleDateString("en-GB", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                    {/* Added "Joined:" label and more formatted date */}
                   </div>
 
-                  {/* <div className="flex items-center">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    Worldwide
-                  </div> */}
+                  {/* Optional: Location (uncomment if needed) */}
+                  {/*
+    <div className="flex items-center bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm shadow-md">
+      <MapPin className="h-3.5 w-3.5 mr-1.5 text-pink-300" />
+      <span className="font-semibold">Location:</span> Worldwide
+    </div>
+    */}
                 </motion.div>
               </div>
             </div>
@@ -348,73 +367,90 @@ export default function ProfilePage() {
 
           {/* Profile Content */}
           <div className="p-8 -mt-12 relative">
-            <motion.div
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700"
-              variants={itemVariants}
+            <Link
+              href={`/profile/${user.user_id}/edit-profile`}
+              className="block"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
-                  <Heart className="h-5 w-5 text-pink-500 mr-2" />
-                  About Me
-                </h3>
-              </div>
+              <motion.div
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-xl transition-shadow"
+                variants={itemVariants}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center">
+                    <Heart className="h-5 w-5 text-pink-500 mr-2" />
+                    About Me
+                  </h3>
+                </div>
 
-              <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/10 dark:to-indigo-900/10 p-6 rounded-xl border border-violet-100 dark:border-violet-800/50">
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {user.about_me || (
-                    <span className="text-gray-500 dark:text-gray-400 italic">
-                      ✨ Share something interesting about yourself! Click the
-                      edit button to add your story.
-                    </span>
-                  )}
-                </p>
-              </div>
-            </motion.div>
+                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/10 dark:to-indigo-900/10 p-5 rounded-xl border border-violet-100 dark:border-violet-800/50">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">
+                    {user.about_me || (
+                      <span className="inline-flex items-center text-gray-500 dark:text-gray-400 italic hover:underline">
+                        <span className="mr-1">✨</span>
+                        Share something interesting about yourself! Click here
+                        to add your story.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
 
             {/* Stats Cards */}
             <motion.div
               className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6"
               variants={itemVariants}
             >
-              <motion.div
-                className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800"
-                whileHover={{ y: -2, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center">
-                  <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg mr-3">
-                    <Coffee className="h-5 w-5 text-emerald-600" />
+              <Link href={`/profile/${user.user_id}/my-recipes`} passHref>
+                <motion.div
+                  className="cursor-pointer bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800"
+                  whileHover={{
+                    y: -2,
+                    boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
+                  }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="flex items-center">
+                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-lg mr-3">
+                      <Coffee className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Recipes Created
+                      </p>
+                      <p className="text-lg font-bold text-gray-800 dark:text-white">
+                        {recipeCount}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Recipes Created
-                    </p>
-                    <p className="text-lg font-bold text-gray-800 dark:text-white">
-                      {recipeCount}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
 
-              <motion.div
-                className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800"
-                whileHover={{ y: -2, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex items-center">
-                  <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg mr-3">
-                    <Heart className="h-5 w-5 text-blue-600" />
+              <Link href={`/profile/${user.user_id}/save-recipe`} passHref>
+                <motion.div
+                  className="cursor-pointer bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800"
+                  whileHover={{
+                    y: -2,
+                    boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
+                  }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg mr-3">
+                      <Heart className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Recipes Saved
+                      </p>
+                      <p className="text-lg font-bold text-gray-800 dark:text-white">
+                        {savedRecipeCount}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-                      Recipes Saved
-                    </p>
-                    <p className="text-lg font-bold text-gray-800 dark:text-white">
-                      {savedRecipeCount}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
 
               {/* <motion.div
                 className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-xl border border-purple-100 dark:border-purple-800"

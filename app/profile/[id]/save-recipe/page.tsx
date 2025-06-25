@@ -226,9 +226,9 @@ export default function SavedRecipesPage() {
                     {recipe.description}
                   </p>
                 </div>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                {/* <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                   Saved on: {new Date(recipe.created_at).toLocaleDateString()}
-                </p>
+                </p> */}
               </div>
             </motion.div>
           ))}

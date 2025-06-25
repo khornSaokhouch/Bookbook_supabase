@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, Clock, Eye, Sparkles } from "lucide-react";
+import { BookmarkIcon, Clock, Eye } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import StarRating from "./StarRating";
@@ -56,11 +56,11 @@ const RecipeCard = ({
     (review) => review.recipe_id === recipe.recipe_id
   );
   const totalTime = parseTime(recipe.prep_time) + parseTime(recipe.cook_time);
-  const averageRating =
-    userReviews.length > 0
-      ? userReviews.reduce((sum, review) => sum + review.rating, 0) /
-        userReviews.length
-      : 0;
+  // const averageRating =
+  //   userReviews.length > 0
+  //     ? userReviews.reduce((sum, review) => sum + review.rating, 0) /
+  //       userReviews.length
+  //     : 0;
 
   const recipeCardVariants = {
     initial: { opacity: 0, y: 30 },
@@ -101,19 +101,15 @@ const RecipeCard = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-          {/* Floating time badge */}
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-3 py-2 rounded-full text-xs font-bold flex items-center shadow-lg">
-            <Clock className="h-3 w-3 mr-1" />
-            {formatTime(totalTime)}
-          </div>
+         
 
           {/* Rating sparkle */}
-          {averageRating > 0 && (
+          {/* {averageRating > 0 && (
             <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-2 rounded-full text-xs font-bold flex items-center shadow-lg">
               <Sparkles className="h-3 w-3 mr-1" />
               {averageRating.toFixed(1)}
             </div>
-          )}
+          )} */}
 
           {/* New recipe magic */}
           {new Date(recipe.created_at) >
@@ -124,51 +120,68 @@ const RecipeCard = ({
           )}
         </div>
 
-        {/* Content with friendly design */}
-        <div className="p-6 relative">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300 line-clamp-2 flex-1 mr-3">
-              {recipe.recipe_name}
-            </h3>
+       {/* Content with friendly design */}
+<div className="p-6 relative">
+  <div className="flex justify-between items-start mb-4">
+    <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300 line-clamp-2 flex-1 mr-3">
+      {recipe.recipe_name}
+    </h3>
 
-            {user && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSaveRecipe(recipe.recipe_id);
-                }}
-                className={`relative p-3 rounded-full transition-all duration-300 transform hover:scale-110 z-10 ${
-                  savedRecipes.includes(recipe.recipe_id)
-                    ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg animate-pulse"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-red-100 hover:to-pink-100 dark:hover:from-red-900/30 dark:hover:to-pink-900/30"
-                }`}
-              >
-                <Heart
-                  className={`h-5 w-5 ${
-                    savedRecipes.includes(recipe.recipe_id)
-                      ? "fill-current"
-                      : ""
-                  }`}
-                />
-              </button>
-            )}
-          </div>
+    {user && (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onSaveRecipe(recipe.recipe_id);
+        }}
+        className={`relative p-3 rounded-full transition-all duration-300 transform hover:scale-110 z-10 ${
+          savedRecipes.includes(recipe.recipe_id)
+            ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg animate-pulse"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gradient-to-r hover:from-red-100 hover:to-pink-100 dark:hover:from-red-900/30 dark:hover:to-pink-900/30"
+        }`}
+      >
+        <BookmarkIcon
+          className={`h-5 w-5 ${
+            savedRecipes.includes(recipe.recipe_id) ? "fill-current" : ""
+          }`}
+        />
+      </button>
+    )}
+  </div>
 
-          {/* Friendly description */}
-          {recipe.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-              {recipe.description.length > 80
-                ? `${recipe.description.substring(0, 80)}...`
-                : recipe.description}
-            </p>
-          )}
+  {/* Friendly description */}
+  {recipe.description && (
+    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2 leading-relaxed">
+      {/* Reduced mb to mb-2 for closer proximity to CookTime */}
+      {recipe.description.length > 80
+        ? `${recipe.description.substring(0, 80)}...`
+        : recipe.description}
+    </p>
+  )}
 
-          {/* Star rating with friendly message */}
-          <div className="mb-4">
-            <StarRating reviews={userReviews} />
-          </div>
-        </div>
+
+
+  {/* Star rating with friendly message */}
+  <div className="mb-4">
+    <StarRating reviews={userReviews} />
+  </div>
+
+
+    {/* CookTime badge - MOVED AND MODIFIED */}
+    <div className="mb-4">
+    {" "}
+    {/* Added mb-4 for spacing below CookTime */}
+    <div
+      className="inline-flex items-center bg-gradient-to-r from-orange-500 to-pink-500 text-white px-3 py-2 rounded-full text-xs font-bold shadow-lg"
+      // Removed absolute, top-4, left-4 classes
+    >
+      <Clock className="h-3 w-3 mr-1" />
+      CookTime: {formatTime(totalTime)}
+    </div>
+  </div>
+</div>
+
+        
 
         {/* Magical hover border */}
         <div className="absolute inset-0 border-2 border-transparent group-hover:border-gradient-to-r group-hover:from-orange-400/50 group-hover:to-pink-400/50 rounded-3xl transition-all duration-300"></div>

@@ -98,7 +98,7 @@ const ContactUs = () => {
         variants={itemVariants}
       >
         <h1 className="text-3xl xl:text-4xl font-bold text-center text-gray-800 dark:text-white mb-4">Contact Us</h1> {/* Larger text on larger screens */}
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-8 text-lg">Any questions or remarks? Just write us a message!</p> {/* Larger text on larger screens */}
+        <p className="text-center text-gray-600 dark:text-gray-400 mb-8 text-lg">Any questions or feedback? Just write us a message!</p> {/* Larger text on larger screens */}
 
         <div className="md:flex md:space-x-8 xl:space-x-12"> {/* Increased spacing on larger screens */}
           {/* Contact Information Section */}

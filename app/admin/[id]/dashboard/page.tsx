@@ -385,7 +385,7 @@ export default function Dashboard() {
         <RestaurantMenu className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
       </div>
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
-        Recipe Categories
+      Categories
       </h2>
     </div>
 
@@ -456,7 +456,7 @@ export default function Dashboard() {
         <Event className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
       </div>
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
-        Special Occasions
+      Occasions
       </h2>
     </div>
 

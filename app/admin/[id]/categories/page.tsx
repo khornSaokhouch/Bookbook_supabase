@@ -19,7 +19,6 @@ import {
   Grid3X3,
   List,
   ChefHat,
-  TrendingUp,
   Star,
 } from "lucide-react";
 
@@ -171,7 +170,7 @@ export default function CategoriesManagement() {
           </div>
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-              Recipe Categories
+            Categories
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               Organize and manage your recipe categories
@@ -223,7 +222,7 @@ export default function CategoriesManagement() {
             </div>
           </motion.div>
 
-          <motion.div
+          {/* <motion.div
             className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700"
             variants={itemVariants}
             whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
@@ -241,7 +240,7 @@ export default function CategoriesManagement() {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
             </div>
-          </motion.div>
+          </motion.div> */}
         </div>
       </motion.div>
 

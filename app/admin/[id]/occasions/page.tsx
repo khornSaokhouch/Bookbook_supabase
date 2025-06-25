@@ -211,7 +211,7 @@ export default function RecipeManagement() {
           </div>
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Special Occasions
+              Occasions
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               Manage occasions and celebrations for your recipes

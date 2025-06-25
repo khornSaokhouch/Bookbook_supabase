@@ -395,17 +395,17 @@ const PopularPage = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
                   {/* Ranking Badge for top 3 */}
-                  {index < 3 && (
+                  {/* {index < 3 && (
                     <div className="absolute -top-2 -left-2 z-10 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
                       #{index + 1}
                     </div>
-                  )}
+                  )} */}
 
                   {/* Rating Badge - Always show since all recipes have ratings */}
-                  <div className="absolute top-2 right-2 z-10 bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
+                  {/* <div className="absolute top-2 right-2 z-10 bg-black/70 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
                     <Star className="h-3 w-3 text-yellow-400 mr-1" />
                     {recipe.average_rating.toFixed(1)}
-                  </div>
+                  </div> */}
 
                   <RecipeCard
                     recipe={recipe}

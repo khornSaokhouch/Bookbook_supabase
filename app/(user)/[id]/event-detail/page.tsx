@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Calendar,
-  Clock,
-  MapPin,
   Users,
   Star,
   Sparkles,
@@ -16,12 +14,9 @@ import {
   CheckCircle,
   AlertCircle,
   User,
-  Mail,
-  Phone,
-  Globe,
 } from "lucide-react";
 import Image from "next/image";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "@/app/lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Badge } from "@/app/components/ui/badge";
 
@@ -137,23 +132,23 @@ const EventDetailPage: React.FC = () => {
     fetchEvent();
   }, [eventId]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString("en-US", {
+  //     weekday: "long",
+  //     year: "numeric",
+  //     month: "long",
+  //     day: "numeric",
+  //   });
+  // };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // const formatTime = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleTimeString("en-US", {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
+  // };
 
   const isUpcoming = (dateString: string) => {
     return new Date(dateString) > new Date();
@@ -355,7 +350,7 @@ const EventDetailPage: React.FC = () => {
         </div>
 
         {/* Event Info Cards */}
-        <motion.div
+        {/* <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -433,7 +428,7 @@ const EventDetailPage: React.FC = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
@@ -556,7 +551,7 @@ const EventDetailPage: React.FC = () => {
             )}
 
             {/* Contact Info */}
-            <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
+            {/* <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50">
               <h4 className="font-bold text-gray-800 dark:text-gray-200 mb-3">
                 📞 Contact Organizer
               </h4>
@@ -580,7 +575,7 @@ const EventDetailPage: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
           </motion.section>
         </div>
 

@@ -231,7 +231,7 @@ const Footer: React.FC = () => {
             </div>
 
             {/* Newsletter Signup */}
-            <motion.div
+            {/* <motion.div
               className="mt-8 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600"
               variants={itemVariants}
             >
@@ -251,7 +251,7 @@ const Footer: React.FC = () => {
                   Subscribe
                 </button>
               </div>
-            </motion.div>
+            </motion.div> */}
           </motion.div>
         </div>
 
